@@ -9,8 +9,8 @@ with sync_playwright() as p:
     if os.environ.get('THREE_MODULE_PATH'):
         context.route('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js',lambda route:route.fulfill(path=os.environ['THREE_MODULE_PATH'],content_type='text/javascript'))
     # Inspection hook exists in the test response only, never production source.
-    html=(ROOT/'index.html').read_text().replace('let previous=performance.now();', '''window.__test={getState:()=>({x:player.position.x,y:player.position.y,z:player.position.z,yaw,stick:{...stick}}),height:terrainHeight,
-    pose:(x,z)=>{player.position.set(x,terrainHeight(x,z),z);cam.position.copy(player.position).add(new THREE.Vector3(0,22,30));},places,
+    html=(ROOT/'index.html').read_text().replace('let previous=performance.now();', '''window.__test={getState:()=>({x:player.position.x,y:player.position.y,z:player.position.z,yaw,stick:{...stick}}),height:walkHeight,
+    pose:(x,z)=>{player.position.set(x,walkHeight(x,z),z);cam.position.copy(player.position).add(new THREE.Vector3(0,22,30));},places,
     visited,terrain,scene};let previous=performance.now();''')
     context.route('http://127.0.0.1:8000/',lambda route:route.fulfill(body=html,content_type='text/html'))
     page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
