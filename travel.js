@@ -2,7 +2,8 @@ import {ringDistance} from './terrain.js';
 export function findDestinations(campus,network){
  const buildings=[...campus.places.filter(p=>p.height),...campus.buildings];
  const centre=ring=>({x:ring.reduce((s,p)=>s+p[0],0)/ring.length,z:ring.reduce((s,p)=>s+p[1],0)/ring.length});
- const result=[{id:'gate',label:'大門',x:-279,z:512,yaw:0}];
+ const gate=network.nearest(-279,512,true);
+ const result=[{id:'gate',label:'大門',x:gate?gate.segment.a.x+gate.segment.dx*gate.t:-279,z:gate?gate.segment.a.z+gate.segment.dz*gate.t:512,yaw:0}];
  for(const [id,name] of [['canteen','歸燕食巢'],['zhili','致理大樓']]){
   const target=campus.places.find(p=>p.name===name),c=centre(target.ring);let best=null;
   for(const segment of network.segments){
@@ -17,8 +18,9 @@ export function findDestinations(campus,network){
  }
  return result;
 }
+export const MAX_SCOOTER_SPEED=80/3.6;
 export function stepScooter(state,dt,throttle,steer,onRoad=true){
- const forward=onRoad?9:4,target=throttle>=0?throttle*forward:throttle*2.5;
+ const forward=onRoad?MAX_SCOOTER_SPEED:4,target=throttle>=0?throttle*forward:throttle*2.5;
  const acceleration=throttle===0?5:state.speed*target<0?11:6;
  state.speed+=Math.max(-acceleration*dt,Math.min(acceleration*dt,target-state.speed));
  if(Math.abs(state.speed)<.005)state.speed=0;

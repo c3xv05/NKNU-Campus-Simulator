@@ -13,7 +13,7 @@ for(let z=25;z<75;z+=2){
 }
 assert(smoothRoughness<rawRoughness*.2,'Grading must remove short wavelength bumps');
 assert(network.surfaceHeight(0,190)-network.surfaceHeight(0,10)>10,'Uphill grade must remain');
-for(const [x,z] of [[0,100],[3,100],[-3,100],[0,103],[0,97]])assert(Math.abs(network.surfaceHeight(x,z)-network.surfaceHeight(0,100))<.02,'Intersection apron heights disagree');
+for(const [x,z] of [[0,100],[3,100],[-3,100],[0,103],[0,97]])assert(Math.abs(network.surfaceHeight(x+.001,z)-network.surfaceHeight(x-.001,z))<.01,'Crossing road slope has a height step');
 assert.equal(roadStyle({width:7},{oneway:'yes'}).center,false);
 assert.equal(roadStyle({width:7},{oneway:'no'}).center,true);
 assert.equal(roadStyle({width:7},{lanes:'1'}).center,false);
@@ -25,7 +25,7 @@ const parallel=createRoadNetwork([{osm:3,width:12,line:[[0,0],[0,100]]},{osm:4,w
 for(let z=10;z<90;z+=10)assert(Math.abs(parallel.surfaceHeight(-3,z)-parallel.surfaceHeight(3,z))<1e-7,'Adjacent footpath stole the carriageway height');
 const campus=JSON.parse(fs.readFileSync(new URL('../data/campus.json',import.meta.url))),grid=JSON.parse(fs.readFileSync(new URL('../data/elevation.json',import.meta.url))),tags=JSON.parse(fs.readFileSync(new URL('../data/road-tags.json',import.meta.url)));
 const areas=[...campus.places,...campus.buildings,...campus.water,...campus.courts];
-const terrain=createTerrain(grid,areas),roads=createRoadNetwork(campus.roads,terrain.height,tags);
+const terrain=createTerrain(grid,areas,{levelLink:campus.levelLink}),roads=createRoadNetwork(campus.roads,terrain.rawHeight,tags);
 const protectedAreas=areas.map(area=>{const xs=area.ring.map(p=>p[0]),zs=area.ring.map(p=>p[1]);return{west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs),contains:(x,z)=>ringDistance(x,z,area.ring)===0};});
 roads.gradeTerrain(terrain.mesh,protectedAreas);
 assert.equal(roads.routes.length,campus.roads.length);
@@ -39,7 +39,7 @@ for(const segment of roads.segments){
 }
 const track=campus.places.find(p=>p.name==='操場'),field=track.holes[0].map(([x,z])=>terrain.height(x,z));
 assert(Math.max(...field)-Math.min(...field)<.01,'Road grading must preserve the sports field');
-console.log(`PASS: level cross-sections, ${Math.round((1-smoothRoughness/rawRoughness)*100)}% less synthetic bump noise, uphill grade retained, junction agreement, one-way/path markings, pavement walking height, protected platforms`);
+console.log(`PASS: level cross-sections, ${Math.round((1-smoothRoughness/rawRoughness)*100)}% less synthetic bump noise, uphill grade retained, continuous junction slopes, one-way/path markings, pavement walking height, protected platforms`);
 console.log(`Campus road sections: ${roads.segments.length}; shared junctions: ${roads.junctions.length}`);
 // Exact geometric cutouts prevent terrain showing through graded pavement.
 const {cutRoadsFromGround}=await import('../road-ground.js');

@@ -18,21 +18,43 @@ export function ringDistance(x, z, ring) {
   });
   return inside ? 0 : distance;
 }
-export function createTerrain(grid, areas) {
+export function createTerrain(grid, areas,options={}) {
   const datum = sampleElevation(grid, -268.2, 525.55);
+  const smoothRaw=(x,z)=>{
+    let sum=0,total=0;for(const [dx,dz,w] of [[0,0,4],[-15,0,2],[15,0,2],[0,-15,2],[0,15,2],[-15,-15,1],[-15,15,1],[15,-15,1],[15,15,1]]){sum+=sampleElevation(grid,x+dx,z+dz)*w;total+=w;}return sum/total-datum;
+  };
+  let correction=()=>0;
+  if(options.levelLink){
+    const link=options.levelLink,centre=id=>{const a=areas.find(a=>a.osm===id);if(!a)return null;const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{x:(Math.min(...xs)+Math.max(...xs))/2,z:(Math.min(...zs)+Math.max(...zs))/2};};
+    const from=centre(link.from),to=centre(link.to);
+    if(from&&to){const radius=70,k=Math.exp(-((from.x-to.x)**2+(from.z-to.z)**2)/radius**2),difference=(link.toFloor-link.fromFloor)*link.floorHeight;
+      const amplitude=(difference-(smoothRaw(from.x,from.z)-smoothRaw(to.x,to.z)))/(1-k*k);
+      correction=(x,z)=>amplitude*(Math.exp(-((x-from.x)**2+(z-from.z)**2)/radius**2)-k*Math.exp(-((x-to.x)**2+(z-to.z)**2)/radius**2));
+    }
+  }
+  const rawHeight=(x,z)=>smoothRaw(x,z)+correction(x,z);
   const pads = areas.map(area => {
     const xs = area.ring.map(p=>p[0]), zs = area.ring.map(p=>p[1]);
     const x = (Math.min(...xs)+Math.max(...xs))/2, z = (Math.min(...zs)+Math.max(...zs))/2;
-    return { ring: area.ring, west: Math.min(...xs)-15, east: Math.max(...xs)+15,
-      north: Math.min(...zs)-15, south: Math.max(...zs)+15, height: sampleElevation(grid,x,z)-datum };
+    return { osm:area.osm,kind:area.kind,holes:area.holes||[],depth:area.depth||2.5,ring: area.ring, west: Math.min(...xs)-15, east: Math.max(...xs)+15,
+      north: Math.min(...zs)-15, south: Math.max(...zs)+15, height: rawHeight(x,z) };
   });
+  if(options.levelLink){const link=options.levelLink,from=pads.find(p=>p.osm===link.from),to=pads.find(p=>p.osm===link.to);if(from&&to)from.height=to.height+(link.toFloor-link.fromFloor)*link.floorHeight;}
+  const platformHeight=area=>pads.find(p=>p.osm===area.osm)?.height;
   function shaped(x,z) {
-    const raw = sampleElevation(grid,x,z)-datum;
+    const raw = rawHeight(x,z);
     let strength=0,total=0,target=0;
     for(const pad of pads){
       if(x<pad.west||x>pad.east||z<pad.north||z>pad.south)continue;
       const d=ringDistance(x,z,pad.ring);
-      if(d===0)return pad.height;
+      if(d===0){
+        if(pad.kind==='lake'){
+          if(pad.holes.some(ring=>ringDistance(x,z,ring)===0))return raw;
+          let shore=Infinity;for(let i=0;i<pad.ring.length;i++){const a=pad.ring[i],b=pad.ring[(i+1)%pad.ring.length],dx=b[0]-a[0],dz=b[1]-a[1],u=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/(dx*dx+dz*dz||1)));shore=Math.min(shore,Math.hypot(x-a[0]-dx*u,z-a[1]-dz*u));}
+          const u=Math.min(1,shore/4);return pad.height-pad.depth*u*u*(3-2*u);
+        }
+        return pad.height;
+      }
       const t=Math.max(0,Math.min(1,d/15)),weight=1-t*t*(3-2*t);
       const influence=weight**4/(d*d+.0025);
       strength=Math.max(strength,weight);total+=influence;target+=pad.height*influence;
@@ -54,5 +76,5 @@ export function createTerrain(grid, areas) {
     return u+v<=1 ? h[a]*(1-u-v)+h[a+1]*u+h[a+mesh.columns]*v
       : h[a+1]*(1-v)+h[a+mesh.columns]*(1-u)+h[a+mesh.columns+1]*(u+v-1);
   }
-  return {mesh,height,datum};
+  return {mesh,height,datum,platformHeight,rawHeight};
 }

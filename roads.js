@@ -35,7 +35,7 @@ export function createRoadNetwork(roads,height,tags={}) {
     node.width=Math.max(width,node.width);return node;
   }
   for(const road of roads) {
-    const line=roundedLine(road.line,road.width,connections),points=[];
+    const line=road.entrance?road.line:roundedLine(road.line,road.width,connections),points=[];
     for(let i=1;i<line.length;i++) {
       const a=line[i-1],b=line[i],length=Math.hypot(b[0]-a[0],b[1]-a[1]);
       if(length<.001)continue;
@@ -51,27 +51,16 @@ export function createRoadNetwork(roads,height,tags={}) {
     routes.push({...road,style,points});
   }
   // A shared graph avoids independently graded endpoints at intersections.
-  for(let iteration=0;iteration<100;iteration++) {
+  for(let iteration=0;iteration<300;iteration++) {
     const next=nodes.map(node=>{
       if(!node.neighbours.size)return node.h;
       let sum=0,weight=0;
       for(const other of node.neighbours){const w=1/Math.max(.3,Math.hypot(node.x-other.x,node.z-other.z));sum+=other.h*w;weight+=w;}
-      return node.raw*.025+sum/weight*.975;
+      return node.raw*.006+sum/weight*.994;
     });
     nodes.forEach((node,i)=>node.h=next[i]);
   }
   const junctions=nodes.filter(node=>node.neighbours.size>2).map(node=>({x:node.x,z:node.z,h:node.h,width:node.width,motor:node.vehicleNeighbours.size>2}));
-  // Gentle approaches into one level intersection apron; no cross-road banking.
-  for(const node of nodes){
-    let strength=0,total=0,target=0;
-    for(const joint of junctions){
-      const distance=Math.hypot(node.x-joint.x,node.z-joint.z);
-      const weight=1-ease(joint.width*.85,joint.width*2.4,distance);
-      const influence=weight**4;
-      strength=Math.max(strength,weight);total+=influence;target+=joint.h*influence;
-    }
-    if(total)node.h+=(target/total-node.h)*strength;
-  }
   // Fit a gradient at shared nodes for continuous, shape-preserving cubic grades.
   for(const node of nodes){
     let xx=0,xz=0,zz=0,xh=0,zh=0;
@@ -100,9 +89,10 @@ export function createRoadNetwork(roads,height,tags={}) {
     }
     route.length=distance;
   }
-  function nearest(x,z) {
+  function nearest(x,z,onlyMotor=false) {
     let closest=null,best=Infinity,motor=null,bestMotor=Infinity;
     for(const segment of buckets.get(key(x,z))||[]) {
+      if(onlyMotor&&segment.route.style.path)continue;
       const {a,dx,dz,length,width}=segment;
       const t=clamp(((x-a.x)*dx+(z-a.z)*dz)/(length*length),0,1);
       const d=Math.hypot(x-a.x-dx*t,z-a.z-dz*t);
@@ -125,23 +115,41 @@ export function createRoadNetwork(roads,height,tags={}) {
       return Math.hypot(x-segment.a.x-segment.dx*t,z-segment.a.z-segment.dz*t)<segment.width/2;
     });
   }
-  function surfaceHeight(x,z) {const road=nearest(x,z);return road?road.h:height(x,z);}
+  const surfaceCache=new Map();
+  function surfaceHeight(x,z) {
+    const cacheKey=x.toFixed(3)+','+z.toFixed(3);if(surfaceCache.has(cacheKey))return surfaceCache.get(cacheKey);
+    let total=0,value=0,motorTotal=0,motorValue=0,pathTotal=0,pathValue=0,motorPreference=0,coverage=0;
+    const candidates=buckets.get(key(x,z))||[];
+    // One continuous height field for every overlapping road, never a nearest-segment step.
+    for(const segment of candidates){
+      const {a,dx,dz,length,width}=segment;
+      const t=clamp(((x-a.x)*dx+(z-a.z)*dz)/(length*length),0,1);
+      const distance=Math.hypot(x-a.x-dx*t,z-a.z-dz*t),radius=width/2+12;
+      if(distance>=radius)continue;
+      const delta=segment.b.h-a.h,limit=slope=>delta===0?0:clamp(slope/delta,0,3)*delta;
+      const ma=limit(a.gx*dx+a.gz*dz),mb=limit(segment.b.gx*dx+segment.b.gz*dz);
+      const h=(2*t**3-3*t*t+1)*a.h+(t**3-2*t*t+t)*ma+(-2*t**3+3*t*t)*segment.b.h+(t**3-t*t)*mb;
+      const w=(1-ease(0,radius,distance))**4*length;
+      coverage=Math.max(coverage,1-ease(width/2+3,width/2+12,distance));
+      if(segment.route.style.path){pathTotal+=w;pathValue+=h*w;}
+      else{motorTotal+=w;motorValue+=h*w;motorPreference=Math.max(motorPreference,1-ease(width/2,width/2+6,distance));}
+      total+=w;value+=h*w;
+    }
+    if(!total)return height(x,z);const average=motorTotal?(pathTotal?(pathValue/pathTotal)*(1-motorPreference)+(motorValue/motorTotal)*motorPreference:motorValue/motorTotal):pathValue/pathTotal;const raw=height(x,z),result=raw+(average-raw)*coverage;if(surfaceCache.size<250000)surfaceCache.set(cacheKey,result);return result;
+  }
   function gradeTerrain(mesh,protectedAreas=[]) {
     for(let r=0;r<mesh.rows;r++)for(let c=0;c<mesh.columns;c++){
-      const x=mesh.west+c*mesh.step,z=mesh.north+r*mesh.step,road=nearest(x,z);
-      if(!road)continue;
-      const inner=road.width/2+mesh.step*.8,outer=inner+5;
-      if(road.d>=outer)continue;
-      // Preserve building, water and sports platforms; roads are rendered separately.
+      const x=mesh.west+c*mesh.step,z=mesh.north+r*mesh.step,road=nearest(x,z);if(!road)continue;
+      const inner=road.width/2+mesh.step*1.5,outer=inner+14;if(road.d>=outer)continue;
       if(protectedAreas.some(a=>x>=a.west&&x<=a.east&&z>=a.north&&z<=a.south&&a.contains(x,z)))continue;
       const weight=1-ease(inner,outer,road.d),index=r*mesh.columns+c;
-      mesh.heights[index]+=(road.h-.22-mesh.heights[index])*weight;
+      mesh.heights[index]+=(surfaceHeight(x,z)-.015-mesh.heights[index])*weight;
     }
   }
   function walkHeight(x,z,ground) {
     const road=nearest(x,z);if(!road)return ground;
-    const weight=1-ease(road.width/2,road.width/2+.4,road.d);
-    return ground+(road.h+.06-ground)*weight;
+    const weight=1-ease(road.width/2,road.width/2+2,road.d);
+    return weight<=0?ground:ground+(surfaceHeight(x,z)+.06-ground)*weight;
   }
   return {routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
 }

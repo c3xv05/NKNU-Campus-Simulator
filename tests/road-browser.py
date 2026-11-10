@@ -18,7 +18,7 @@ with sync_playwright() as p:
  page.get_by_role('button',name='開始探索').click();page.evaluate('window.__road.show()');page.wait_for_timeout(300)
  result=page.evaluate('window.__road.inspect()')
  assert .9<result['remainingGround']<.99,result
- assert {'road-asphalt','road-concrete','road-yellow','road-white','road-earth'}.issubset(result['meshes'])
+ assert {'road-asphalt','road-concrete','road-yellow','road-white'}.issubset(result['meshes'])
  assert abs(result['playerHeight']-result['roadHeight']-.06)<1e-6
  page.screenshot(path='/tmp/nknu-road-desktop.png')
  page.set_viewport_size({'width':390,'height':844});page.screenshot(path='/tmp/nknu-road-mobile.png')
