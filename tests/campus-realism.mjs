@@ -7,7 +7,8 @@ const zhili=c.places.find(a=>a.name==='致理大樓'),gauss=c.places.find(a=>a.n
 assert(Math.abs(t.platformHeight(zhili)-t.platformHeight(gauss)-3.6)<1e-8,'Zhili 1F must align with Gauss 2F');
 const link=c.levelLink,level=t.platformHeight(zhili),mid=link.line[0].map((v,i)=>(v+link.line[1][i])/2);
 assert.equal(bridgeHeight(...mid,level,link,level),level+.08);assert.equal(bridgeHeight(...mid,level-3.6,link,level),null,'Walking under a bridge must not snap up a storey');
-for(const building of c.places.filter(a=>['科技大樓','生科 A 館','生科 B 館','致理大樓','高斯大樓','寰宇大樓','圖資大樓'].includes(a.name))){assert(building.floors>=5);assert.equal(building.height,building.floors*building.floorHeight);}
+for(const building of c.places.filter(a=>['科技大樓','生科 A 館','生科 B 館','致理大樓','高斯大樓','寰宇大樓'].includes(a.name))){assert(building.floors>=5);assert.equal(building.height,building.floors*building.floorHeight);}
+assert.equal(c.places.find(a=>a.name==='圖資大樓').floors,2);
 assert(c.buildings.some(a=>a.name==='詠絮樓'&&a.ring.every(p=>p[1]<0)));
 const facilityRows=[c.courts.find(a=>a.sport==='volleyball'),c.buildings.find(a=>a.osm===444902480),c.courts.find(a=>a.sport==='tennis'),c.courts.find(a=>a.sport==='basketball')].map(a=>({name:a.name,z:a.ring.reduce((s,p)=>s+p[1],0)/a.ring.length}));
 assert(facilityRows.every((a,i)=>!i||a.z>facilityRows[i-1].z));assert(c.courts.every(a=>a.covered&&a.canopyHeight>=7));

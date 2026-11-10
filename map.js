@@ -70,7 +70,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   const amenityList=document.getElementById('amenityList')||document.createElement('div');amenityList.id='amenityList';if(!amenityList.parentNode)list.after(amenityList);
   const title=document.createElement('p');title.textContent='場地與設施';amenityList.append(title);
   const seen=new Set();
-  const amenities=[...campus.buildings.filter(a=>a.name),...campus.courts,...campus.water,...(campus.flowerbed?[campus.flowerbed]:[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.gatehouse?[campus.gatehouse]:[])];
+  const amenities=[...campus.buildings.filter(a=>a.name),...campus.courts,...campus.water,...(campus.flowerbed?[campus.flowerbed]:[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.gatehouse?[campus.gatehouse]:[]),...(campus.bioConnection?.stairs?[campus.bioConnection.stairs]:[])];
   for(const area of amenities){
     const identity=area.facility||area.name;if(seen.has(identity))continue;seen.add(identity);
     const x=area.ring.reduce((s,p)=>s+p[0],0)/area.ring.length,z=area.ring.reduce((s,p)=>s+p[1],0)/area.ring.length;
@@ -79,6 +79,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
     button.addEventListener('click',()=>{selected=null;selectedAmenity={...area,x,z};highlight.setAttribute('cx',x);highlight.setAttribute('cy',z);highlight.setAttribute('visibility','visible');selectedLabel.textContent=area.name;selectedLabel.setAttribute('x',x);selectedLabel.setAttribute('y',z-28);selectedLabel.setAttribute('visibility','visible');svg.append(detail);update(true);});amenityList.append(button);
   }
   const link=campus.levelLink;if(link){element('polyline',{points:polygon(link.line),fill:'none',stroke:'#d89a3e','stroke-width':6},svg);element('text',{x:link.line[0][0]-8,y:link.line[0][1]+10,'font-size':15,fill:'#6a481c',stroke:'#fff','stroke-width':3,'paint-order':'stroke'},svg,'致理1F ↔ 高斯2F');}
+  if(campus.bioConnection?.stairs)element('polyline',{points:polygon(campus.bioConnection.stairs.line),fill:'none',stroke:'#b5a88c','stroke-width':4,'stroke-dasharray':'2 2'},svg);
   const playerGroup=element('g',{'pointer-events':'none'});
   element('circle',{r:22,fill:'#fff9'},playerGroup);
   const arrow=element('path',{d:'M 0 -17 L -11 11 L 0 6 L 11 11 Z',fill:'#f4aa24',stroke:'#533c18','stroke-width':2},playerGroup);

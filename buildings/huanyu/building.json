@@ -81,17 +81,22 @@
     "id": "huanyu",
     "osm": 444867694,
     "name": "寰宇大樓",
-    "style": "generic",
+    "style": "academic",
     "frontHint": [
       -153.14705882352942,
       -183.2294117647059
     ],
     "sign": "寰宇大樓",
     "english": " ",
-    "wall": "#b2b1a7",
-    "frame": "#b9b9ae",
-    "glass": "#36545b",
+    "wall": "#a46d59",
+    "frame": "#bbb9ab",
+    "glass": "#3e565d",
     "detailDistance": 145,
-    "reference": "既有校園輪廓；未提供本棟照片，保留簡化外觀。"
+    "reference": "校方實驗室及校園資料確認寰宇大樓位置與樓層用途；依同組教學區作紅磚混凝土構架近似，尚待正面照片校正。",
+    "frontMode": "main-road",
+    "sources": [
+      "https://c.nknu.edu.tw/affair/Page.aspx?Kind=envedu&PN=623&SN=297"
+    ],
+    "confidence": "provisional"
   }
 }

@@ -109,17 +109,22 @@
     "id": "technology",
     "osm": 381961846,
     "name": "科技大樓",
-    "style": "generic",
+    "style": "technology",
     "frontHint": [
       -57.32083333333333,
       -462.2416666666666
     ],
     "sign": "科技大樓",
     "english": " ",
-    "wall": "#b2b1a7",
-    "frame": "#b9b9ae",
-    "glass": "#36545b",
+    "wall": "#d1bbb5",
+    "frame": "#ddd5c8",
+    "glass": "#294854",
     "detailDistance": 145,
-    "reference": "既有校園輪廓；未提供本棟照片，保留簡化外觀。"
+    "reference": "校方影藏歲月70期科技大樓照片：淺粉磁磚、橫向窗組、圓角樓梯塔；以原始幾何近似重建。",
+    "frontMode": "main-road",
+    "sources": [
+      "https://c.nknu.edu.tw/affair/Page.aspx?Kind=dbhp&PN=174&SN=150"
+    ],
+    "confidence": "historical-photo"
   }
 }

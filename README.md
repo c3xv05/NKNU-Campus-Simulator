@@ -108,3 +108,26 @@ python scripts/build-building-catalog.py
 人行道裁掉車道重疊區，交會道路上的標線亦裁切，入口銳角線段已整理；機車上限現為 75 km/h。
 
 新增驗證：`node tests/photo-buildings.mjs`、`python tests/photo-buildings-browser.py`。
+
+## 開發者入口、紀錄與問題回報
+
+封面點「開發者入口」，輸入 `0315`，左側會出現圓形「開發」按鈕。
+可開啟開發者紀錄、問題回報或登出。填寫時自動保存本機草稿，附遊戲座標、視角與裝置資訊，並可下載 JSON 備份。
+「送至 GitHub 儲存」會開啟填好的公開 Issue，需在 GitHub 完成送出；下次可於同一介面讀取。
+程式不把開啟 GitHub 誤標為已同步，也不在公開前端放入 GitHub token。入口碼只控制介面，GitHub 寫入由 GitHub 本身的登入授權。
+
+集中索引：[Issue #9](https://github.com/c3xv05/NKNU-Campus-Simulator/issues/9)。
+後續討論先讀 [開發者紀錄](docs/developer-journal.md) 及含 `<!-- nknu-dev-record -->` 的 Issues。
+未送出的本機草稿不會出現在其他裝置或遠端工具中。
+
+## 建築連接與入口最新校正
+
+- 生科 A/B、致理、高斯、歸燕食巢與霽遠樓只在面向主要幹道的一面設入口與招牌，其他牆面不複製入口。
+- 致理／高斯連接下方補實體基座，下層為連通區，上層接中央平台；生科兩館平台下方也改實體。
+- 生科平台留樓梯井，踏階通往東側向陽路旁出口，可實際上下樓；基座不可穿越。階梯屬建築樓梯，主要道路仍為連續斜坡。
+- 校門兩側採共同高程，花圃邊緣補接合帶；不規則入口圓弧不畫標線。
+- 圖資大樓依官方工程資料修正為地上2層、地下1層；其餘建築研究及待確認項目見 [外觀研究](docs/research/buildings.md)。
+
+[故事備忘](docs/research/story-seeds.md) 保存六項新聞／Dcard 素材，僅供未來討論，沒有新增 NPC 或事件。
+新增驗證：`node tests/campus-connections.mjs`、`node tests/developer-store.mjs`、
+`python tests/developer-browser.py`、`python tests/connected-campus-browser.py`。
