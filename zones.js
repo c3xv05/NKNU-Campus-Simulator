@@ -20,17 +20,17 @@ export function svgElement(tag,attributes,parent,text) {
   if(text!==undefined)e.textContent=text;
   parent.append(e);return e;
 }
-export function drawZoneLayer(svg,campus,onSelect) {
+export function drawZoneLayer(svg,campus,onSelect,records={}) {
   const defs=svgElement('defs',{},svg),clipId='vegetation-zones-clip';
   const clip=svgElement('clipPath',{id:clipId},defs);
   svgElement('polygon',{points:campus.boundary.map(p=>p.join(',')).join(' ')},clip);
-  const layer=svgElement('g',{'aria-label':'待確認植被分區'},svg);
+  const layer=svgElement('g',{'aria-label':'校園植被分區'},svg);
   const boxes=svgElement('g',{'clip-path':`url(#${clipId})`},layer),rectangles=[];
   const labels=svgElement('g',{},layer);
   zones.forEach((zone,index)=>{
     const [west,north,east,south]=zone.box;
-    const group=svgElement('g',{role:'button',tabindex:0,'aria-label':`${zone.id} ${zone.name}，植被待確認`},boxes);
-    const rectangle=svgElement('rect',{x:west,y:north,width:east-west,height:south-north,fill:index%2?'#8c76be':'#d6ac53','fill-opacity':.18,stroke:'#714b22','stroke-width':3,'stroke-dasharray':'8 6',cursor:'pointer'},group);
+    const group=svgElement('g',{role:'button',tabindex:0,'aria-label':`${zone.id} ${zone.name}，${records[zone.id]?.label||'植被待確認'}`},boxes);
+    const rectangle=svgElement('rect',{x:west,y:north,width:east-west,height:south-north,fill:({forest:'#39794c',flowers:'#d9a6bd',weeds:'#a0a35b',mixed:'#7f9a5d'})[records[zone.id]?.type]||'#8995a3','fill-opacity':.18,stroke:'#714b22','stroke-width':3,'stroke-dasharray':'8 6',cursor:'pointer'},group);
     rectangles.push(rectangle);
     const choose=()=>onSelect(zone);
     group.addEventListener('click',choose);

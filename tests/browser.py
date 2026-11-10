@@ -41,7 +41,7 @@ with sync_playwright() as p:
     assert '圖資大樓' in page.locator('#mapSelection').inner_text()
     assert page.locator('#buildingList button.selected').count()==1
     page.locator('#zonesMode').click();assert page.locator('#buildingList button').count()==12
-    page.locator('#buildingList button').filter(has_text='B1').click();assert '植被待確認' in page.locator('#mapSelection').inner_text()
+    page.locator('#buildingList button').filter(has_text='B1').click();assert '樹林' in page.locator('#mapSelection').inner_text()
     page.locator('#buildingsMode').click();assert '圖資大樓' in page.locator('#mapSelection').inner_text()
     before=state();page.keyboard.down('w');page.wait_for_timeout(200);assert state()==before;page.keyboard.up('w')
     page.screenshot(path='/tmp/nknu-mobile-map.png')
@@ -61,10 +61,11 @@ with sync_playwright() as p:
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
     page.locator('#mapOpen').click();page.screenshot(path='/tmp/nknu-landscape-map.png');page.locator('#mapClose').click()
     assert not errors,errors
+    context.close()
     desktop=browser.new_context(viewport={'width':1280,'height':900})
     if os.environ.get('THREE_MODULE_PATH'):
         desktop.route('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js',lambda route:route.fulfill(path=os.environ['THREE_MODULE_PATH'],content_type='text/javascript'))
-    d=desktop.new_page();d.on('pageerror',lambda e:errors.append(str(e)));d.goto('http://127.0.0.1:8000/');d.get_by_role('button',name='開始探索').click()
+    d=desktop.new_page();d.on('pageerror',lambda e:errors.append(str(e)));d.goto('http://127.0.0.1:8000/');d.get_by_role('button',name='開始探索').click(timeout=90000)
     assert not d.locator('#touch').is_visible()
     d.keyboard.press('m');assert d.locator('#mapDialog').evaluate('e=>e.open');d.locator('#buildingList button').first.click();d.screenshot(path='/tmp/nknu-desktop-map.png');d.keyboard.press('Escape')
     assert not errors,errors

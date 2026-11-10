@@ -1,6 +1,6 @@
 # NKNU 燕巢校園模擬器
 
-靜態 Three.js 校園探索，手機搖桿移動、右側拖曳視角；點小地圖或按 M 展開校園圖。
+靜態 Three.js 校園探索，手機搖桿移動、右側拖曳視角；點小地圖或按 M 展開校園圖。左上提供大門、歸燕食巢、致理大樓傳送，並可切換騎機車。
 大地圖可點建築或清單，顯示位置、探索狀態、直線距離及近似高差。
 
 ## 本機執行
@@ -10,7 +10,7 @@ python -m http.server 8000
 ```
 
 開啟 http://localhost:8000/ 。Three.js 由 jsDelivr 載入；地形格網隨網站提供，遊戲中不需呼叫高程 API。
-部署時需一併提供 `index.html`、`map.js`、`terrain.js`、`zones.js`、`zones.html`、`roads.js`、`road-renderer.js`、`road-ground.js` 與 `data/` 內的 JSON 檔案。
+部署時需一併提供根目錄的 HTML、JavaScript 模組與 `data/` 內的 JSON 檔案。
 
 ## 驗證
 
@@ -18,9 +18,11 @@ python -m http.server 8000
 node tests/terrain.mjs
 node tests/zones.mjs
 node tests/roads.mjs
+node tests/travel-landscape.mjs
 python tests/browser.py
 python tests/zones-browser.py
 python tests/road-browser.py
+python tests/campus-features-browser.py
 ```
 
 瀏覽器測試需啟動上述伺服器，並安裝 Python Playwright 與 Chromium。
@@ -35,7 +37,7 @@ python tests/road-browser.py
 ## 植被分區回饋
 
 `zones.html` 提供不必啟動 3D 的分區圖，A 靠校門、D 靠科技大樓，共 12 區。
-遊戲大地圖也能切換「植被分區」。所有植被初始皆為待確認，分區底色只供定位。
+遊戲大地圖也能切換「植被分區」。分區顯示已收到的實地植被回饋，未提供的 B3、C1、D1、D2 保留待確認。
 使用者可填寫分類與備註，草稿僅存於瀏覽器 localStorage；需複製文字貼回對話，
 不會自動傳送或套用到模擬器。植被分區功能本身不會改動地形。
 
@@ -47,3 +49,20 @@ python tests/road-browser.py
 
 鋪面及標線為自行繪製的台灣道路示意樣式。依 OSM 單行及步道資訊，分別使用
 白色單行箭頭、雙黃線、白色邊線與不同步道鋪面；現場標線位置並未逐條測繪。
+
+## 傳送與騎乘
+
+- 點左上「快速傳送」選大門、歸燕食巢、致理大樓；電腦快捷鍵為 1／2／3。
+- 點「騎機車」或按 R 上下車。W／S 加減速與倒車，A／D 轉向；手機搖桿前後加減速、左右轉向，右側拖曳獨立調整視角。
+- 傳送會清除速度及輸入並同步鏡頭，保留探索進度與騎乘狀態。開地圖、切換分頁或視窗失焦會停止移動。
+- 騎乘速度在道路與非道路區域不同，仍會碰撞建築、樹幹、入口花圃與 A1 擋土牆。
+
+## 已套用的植被回饋
+
+A1、A3、B1、B2 為樹林；A2 主要為花田；C2 最北側道路以北為樹林、其餘空地為雜草；
+D3 空地為雜草。C3 在使用者同一則訊息有樹林與雜草兩種描述，暫依最後一句配置為雜草，仍待確認。
+建築、道路、水域、球場與操場會排除植栽。A1 面向師大路設擋土牆，校門內三角區加入尖端朝南的水滴花圃。
+樹種、植株數量、牆高、花圃尺度與 C2 細部分界為可調整的示意實作，未宣稱實測。
+
+道路使用連續三次內插銜接坡度及平滑法線；相鄰路口與平台以連續加權混合，減少階梯感。
+地形顯示格網改為 4 公尺，不代表來源高程精度提高。樹冠遮擋鏡頭時會暫時隱藏，鏡頭也會避開建築。

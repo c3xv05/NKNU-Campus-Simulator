@@ -6,7 +6,7 @@ with sync_playwright() as p:
  page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
  page.goto('http://127.0.0.1:8000/zones.html');page.wait_for_function("document.querySelectorAll('#zoneList button').length===12")
  assert page.locator('#zoneList button').count()==12
- assert page.locator('#vegetation').input_value()=='待確認'
+ assert page.locator('#vegetation').input_value()=='樹林'
  page.get_by_role('button',name='B1 霽遠樓、文萃樓與歸燕食巢周邊',exact=True).click()
  assert 'B1' in page.locator('#zoneTitle').inner_text()
  page.locator('#vegetation').select_option('草地與樹林混合');page.locator('#zoneNote').fill('靠道路是草地，後方是樹林。')
@@ -30,10 +30,10 @@ with sync_playwright() as p:
  context.route('http://127.0.0.1:8000/map-fixture.html',lambda r:r.fulfill(body=fixture,content_type='text/html'))
  m=context.new_page();m.on('pageerror',lambda e:errors.append(str(e)));m.goto('http://127.0.0.1:8000/map-fixture.html');m.wait_for_function('window.ready')
  m.locator('#mapOpen').click();m.locator('#zonesMode').click()
- assert '植被皆待確認' in m.locator('#mapKey').inner_text()
- m.locator('#buildingList button').filter(has_text='B1').click();assert '植被待確認' in m.locator('#mapSelection').inner_text()
+ assert '實地回饋' in m.locator('#mapKey').inner_text()
+ m.locator('#buildingList button').filter(has_text='B1').click();assert '樹林' in m.locator('#mapSelection').inner_text()
  m.locator('#buildingsMode').click();assert '已探索' in m.locator('#mapKey').inner_text()
  assert m.locator('#buildingList button').count()==12
  assert not errors,errors
- print('PASS: 12-zone rendering, no prefilled classification, region selection, feedback text, draft persistence, SVG keyboard selection and mobile layout')
+ print('PASS: 12-zone rendering, confirmed vegetation defaults, region selection, feedback text, draft persistence, SVG keyboard selection and mobile layout')
  b.close()

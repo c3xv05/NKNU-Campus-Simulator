@@ -28,18 +28,20 @@ export function createTerrain(grid, areas) {
   });
   function shaped(x,z) {
     const raw = sampleElevation(grid,x,z)-datum;
-    let bestWeight = 0, value = raw;
-    for (const pad of pads) {
-      if (x<pad.west || x>pad.east || z<pad.north || z>pad.south) continue;
-      const d = ringDistance(x,z,pad.ring);
-      const t = Math.max(0, Math.min(1, (d-3)/12));
-      const weight = 1-t*t*(3-2*t);
-      if (weight>bestWeight) { bestWeight=weight; value=raw+(pad.height-raw)*weight; }
+    let strength=0,total=0,target=0;
+    for(const pad of pads){
+      if(x<pad.west||x>pad.east||z<pad.north||z>pad.south)continue;
+      const d=ringDistance(x,z,pad.ring);
+      if(d===0)return pad.height;
+      const t=Math.max(0,Math.min(1,d/15)),weight=1-t*t*(3-2*t);
+      const influence=weight**4/(d*d+.0025);
+      strength=Math.max(strength,weight);total+=influence;target+=pad.height*influence;
     }
-    return value;
+    return total ? raw+(target/total-raw)*strength : raw;
   }
-  const mesh = {west:grid.west, north:grid.north, step:5,
-    columns:(grid.columns-1)*grid.step/5+1, rows:(grid.rows-1)*grid.step/5+1};
+
+  const mesh = {west:grid.west, north:grid.north, step:4,
+    columns:(grid.columns-1)*grid.step/4+1, rows:(grid.rows-1)*grid.step/4+1};
   mesh.heights = new Float32Array(mesh.columns*mesh.rows);
   for(let r=0;r<mesh.rows;r++) for(let c=0;c<mesh.columns;c++)
     mesh.heights[r*mesh.columns+c] = shaped(mesh.west+c*mesh.step,mesh.north+r*mesh.step);

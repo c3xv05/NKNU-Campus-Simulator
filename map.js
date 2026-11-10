@@ -1,3 +1,4 @@
+import {landcover,coverAt} from './landcover.js';
 import {zones,drawZoneLayer} from './zones.js';
 export function setupCampusMap({campus,places,player,visited,bounds,terrainHeight,datum,clearInput,getYaw,isActive}) {
   const dialog=document.getElementById('mapDialog'),svg=document.getElementById('largeMap');
@@ -18,7 +19,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   const tint=element('g',{'clip-path':'url(#campusClip)'});
   for(let z=bounds.north;z<bounds.south;z+=20) for(let x=bounds.west;x<bounds.east;x+=20){
     const lightness=Math.max(43,Math.min(80,78-(terrainHeight(x,z)+datum-45)*.3));
-    element('rect',{x,y:z,width:20.1,height:20.1,fill:`hsl(95 24% ${lightness}%)`},tint);
+    element('rect',{x,y:z,width:20.1,height:20.1,fill:({forest:'#77956c',flowers:'#c9b28c',weeds:'#a8b37a'})[coverAt(x,z)]||`hsl(95 24% ${lightness}%)`},tint);
   }
   for(const area of campus.water) element('polygon',{points:polygon(area.ring),fill:'#5a9cb2'});
   for(const area of campus.courts) element('polygon',{points:polygon(area.ring),fill:'#809d88'});
@@ -70,7 +71,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
     button.textContent=`${zone.id} · ${zone.name}`;button.setAttribute('aria-pressed','false');
     button.addEventListener('click',()=>chooseZone(zone));return button;
   });
-  const zoneLayer=drawZoneLayer(svg,campus,chooseZone);
+  const zoneLayer=drawZoneLayer(svg,campus,chooseZone,landcover);
   svg.insertBefore(zoneLayer.layer,markerLayer);
   zoneLayer.layer.style.display='none';
   function chooseZone(zone) {
@@ -81,7 +82,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   function setMode(next) {
     mode=next;
     const zoning=mode==='zones';
-    document.getElementById('mapKey').textContent=zoning?'分區底色只供定位；植被皆待確認。':'藍色：未探索 · 綠色：已探索；底色深淺表示近似高低起伏。';
+    document.getElementById('mapKey').textContent=zoning?'植被依實地回饋配置；未提供區域保留待確認。':'藍色：未探索 · 綠色：已探索；底色深淺表示近似高低起伏。';
     zoneLayer.layer.style.display=zoning?'':'none';markerLayer.style.display=zoning?'none':'';detail.style.display=zoning?'none':'';
     document.getElementById('buildingsMode').setAttribute('aria-pressed',String(!zoning));
     document.getElementById('zonesMode').setAttribute('aria-pressed',String(zoning));
@@ -104,8 +105,8 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
     });
     if(mode==='zones'){
       selection.textContent=selectedZone
-        ? `${selectedZone.id}｜${selectedZone.name}。植被待確認；請描述草地、樹林、混合或其他，也可補充道路兩側差異。`
-        : 'A 區靠校門、D 區靠科技大樓，北方朝上。12 區植被皆待確認，分區只作定位，不表示整區都是植被。';
+        ? `${selectedZone.id}｜${selectedZone.name}。${landcover[selectedZone.id]?.label||'植被待確認'}；${landcover[selectedZone.id]?.note||'可補充道路兩側差異。'}`
+        : '北方朝上。已依回饋標示樹林、花田與雜草；B3、C1、D1、D2 保留待確認。C3 暫依最後描述配置為雜草。';
     }else if(selected!==null){
       const place=places[selected],distance=Math.round(Math.hypot(place.x-player.position.x,place.z-player.position.z));
       const difference=Math.round(terrainHeight(place.x,place.z)-player.position.y);
