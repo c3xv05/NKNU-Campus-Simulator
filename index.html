@@ -29,7 +29,8 @@ import {findDestinations,stepScooter} from './travel.js';
 import {createScooter} from './scooter.js';
 import {createAvatar} from './avatar.js';
 import {addSiteDetails} from './site-details.js';
-import {lakeAt,bridgeHeight} from './site-physics.js';
+import {addBuildings,loadBuildingProfiles} from './buildings/renderer.js';
+import {lakeAt,bridgeHeight,platformHeightAt} from './site-physics.js';
 import {createLandscapeLayout,addLandscape} from './landscape.js';
 import {coverAt} from './landcover.js';
 import {setupCampusMap} from './map.js';
@@ -49,6 +50,7 @@ const mat=(c)=>new THREE.MeshStandardMaterial({color:c,roughness:.9});const grou
 const campusResponse = await fetch('./data/campus.json');
 if(!campusResponse.ok) throw new Error('校園資料載入失敗');
 const campus = await campusResponse.json();
+const buildingProfiles=await loadBuildingProfiles();
 
 function textSprite(t){let canvas=document.createElement('canvas');canvas.width=512;canvas.height=112;let c=canvas.getContext('2d');c.fillStyle='#142f42e8';c.beginPath();c.roundRect(3,3,506,105,18);c.fill();c.strokeStyle='#9addcf';c.lineWidth=3;c.stroke();c.fillStyle='white';c.font='bold 33px sans-serif';c.textAlign='center';c.fillText(t,256,70);let tex=new THREE.CanvasTexture(canvas);let spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));spr.scale.set(23,5,1);return spr}
 
@@ -66,13 +68,13 @@ const depth = bounds.south - bounds.north;
 const centerX = (bounds.west + bounds.east) / 2;
 const centerZ = (bounds.north + bounds.south) / 2;
 // Flatten footprints and sports/water platforms, blending back to measured hillsides.
-const terrain = createTerrain(elevationGrid, [...campus.places, ...campus.buildings, ...campus.courts, ...campus.water],{levelLink:campus.levelLink});
+const terrain = createTerrain(elevationGrid, [...campus.places, ...campus.buildings, ...campus.courts, ...campus.water],{levelLink:campus.levelLink,courtyard:campus.courtyard,bioConnection:campus.bioConnection});
 const terrainHeight = terrain.height;
 const roadTagsResponse=await fetch('./data/road-tags.json');
 if(!roadTagsResponse.ok)throw new Error('道路資料載入失敗');
 const roadTags=await roadTagsResponse.json();
 const roadNetwork=createRoadNetwork(campus.roads,terrain.rawHeight,roadTags);
-const protectedPlatforms=[...campus.places,...campus.buildings,...campus.water,...campus.courts].map(area=>{
+const protectedPlatforms=[...campus.places.filter(a=>!a.height),...campus.water,...campus.courts].map(area=>{
   const xs=area.ring.map(p=>p[0]),zs=area.ring.map(p=>p[1]);
   return {west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs),contains:(x,z)=>distanceToRing(x,z,area.ring)===0};
 });
@@ -165,9 +167,11 @@ const waterMaterial = mat(0x56a8c4);
 const labelMeshes = [];
 
 siteDetails=addSiteDetails(THREE,scene,campus,terrain,roadNetwork);cameraObstacles.push(...siteDetails.blockers);
-const roadRendering=addRoads(THREE,scene,roadNetwork);
+const roadRendering=addRoads(THREE,scene,roadNetwork,terrainHeight);
 const cutGround=cutRoadsFromGround(terrain.mesh,[...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points)],terrainGeometry.getAttribute('normal').array);
 const cutGeometry=new THREE.BufferGeometry();
+// Clipping preserves the original triangle interpolation. Resampling new cut points
+// independently produces non-conforming T-junctions and visible cracks.
 cutGeometry.setAttribute('position',new THREE.Float32BufferAttribute(cutGround.positions,3));
 cutGeometry.setAttribute('normal',new THREE.Float32BufferAttribute(cutGround.normals,3));
 const landColors=[];
@@ -179,9 +183,10 @@ for(let i=0;i<cutGround.positions.length;i+=3){
 cutGeometry.setAttribute('color',new THREE.Float32BufferAttribute(landColors,3));groundMat.color.set(0xffffff);groundMat.vertexColors=true;
 ground.geometry.dispose();ground.geometry=cutGeometry;
 campus.courts.forEach(area => surface(area, .07, courtMaterial));
+const buildingRendering=addBuildings(THREE,scene,campus,terrain,buildingProfiles,roadNetwork);cameraObstacles.push(...buildingRendering.blockers);
 places.forEach((place, index) => {
   if (place.height) {
-    surface(place, 0, palette[index % palette.length], place.height);
+    // Building shells and facade details are managed by the building renderer.
   } else {
     surface(place, .08, trackMaterial);
     surface({ ring: place.holes[0] }, .07, fieldMaterial);
@@ -191,18 +196,12 @@ places.forEach((place, index) => {
   labelMeshes.push(label);
   scene.add(label);
 });
-campus.buildings.forEach(building => {surface(building,0,palette[0],building.height);if(building.name){const centre=outlineCenter(building.ring),label=textSprite(building.name);label.position.set(centre.x,terrain.platformHeight(building)+building.height+3,centre.z);labelMeshes.push(label);scene.add(label);}});
+campus.buildings.forEach(building => {if(building.name&&building.osm!==397467187){const centre=outlineCenter(building.ring),label=textSprite(building.name);label.position.set(centre.x,terrain.platformHeight(building)+building.height+3,centre.z);labelMeshes.push(label);scene.add(label);}});
 for(const facility of siteDetails.facilityLabels){const label=textSprite(facility.name);label.scale.set(13,2.8,1);label.position.set(facility.x,facility.y,facility.z);labelMeshes.push(label);scene.add(label);}
 
-const [[gateWestX, gateWestZ], [gateEastX, gateEastZ]] = campus.gate;
-const gateX = (gateWestX + gateEastX) / 2;
-const gateZ = (gateWestZ + gateEastZ) / 2;
-const gateWidth = Math.hypot(gateEastX - gateWestX, gateEastZ - gateWestZ);
-const gateBeam = rect(gateWidth + 1, 1, 2, gateX, terrainHeight(gateX,gateZ) + 7, gateZ, mat(0x335c63));
-gateBeam.rotation.y = Math.atan2(gateWestZ - gateEastZ, gateEastX - gateWestX);
-for (const [x, z] of campus.gate) rect(2, 7, 2, x, terrainHeight(x,z)+3.5, z, mat(0xe4e1cf));
+const [gateX,gateZ]=campus.gatehouse.center;
 const gateLabel = textSprite('高師大燕巢校區 · 校門');
-gateLabel.position.set(gateX, terrainHeight(gateX,gateZ)+12, gateZ);
+gateLabel.position.set(gateX, walkHeight(gateX,gateZ)+6, gateZ);
 labelMeshes.push(gateLabel);
 scene.add(gateLabel);
 
@@ -395,6 +394,8 @@ campus.courts.forEach(area => fillArea(overviewCtx, area, '#809d88'));
 const sidewalkIds=new Set(campus.sidewalkRoadIds||[]);
 for(const road of campus.roads)if(sidewalkIds.has(road.osm)){overviewCtx.beginPath();trace(overviewCtx,road.line,false);overviewCtx.lineWidth=road.width+3.6;overviewCtx.strokeStyle='#e2d7bc';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();}
 campus.roads.forEach(({line,width})=>{overviewCtx.beginPath();trace(overviewCtx,line,false);overviewCtx.lineWidth=width;overviewCtx.strokeStyle=width<=2.5?'#c8c3b4':'#52595a';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();});
+if(campus.courtyard)fillArea(overviewCtx,campus.courtyard,'#d5cebc');
+if(campus.gatehouse)fillArea(overviewCtx,campus.gatehouse,'#8d8073');
 campus.buildings.forEach(area => fillArea(overviewCtx, area, '#778b86'));
 places.forEach(area => {
   if (!area.height) fillArea(overviewCtx, { ring: area.holes[0] }, '#7db67e');
@@ -438,10 +439,10 @@ function movePlayer(dx,dz,radius){
  const steps=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.6));
  for(let i=0;i<steps;i++){
   const x=THREE.MathUtils.clamp(player.position.x+dx/steps,bounds.west,bounds.east),z=THREE.MathUtils.clamp(player.position.z+dz/steps,bounds.north,bounds.south);
-  const linkLevel=siteDetails.bridgeLevel,connection=motion.riding?null:bridgeHeight(x,z,player.position.y,campus.levelLink,linkLevel);
+  const linkLevel=siteDetails.bridgeLevel,connection=motion.riding?null:(platformHeightAt(x,z,player.position.y,campus,terrain)??bridgeHeight(x,z,player.position.y,campus.levelLink,linkLevel)??bridgeHeight(x,z,player.position.y,campus.bioConnection,siteDetails.bioLevel));
   const lake=lakeAt(x,z,campus);
   if(lake){const road=roadNetwork.nearest(x,z);if(!(road&&road.d<road.width/2&&roadNetwork.surfaceHeight(x,z)>terrain.platformHeight(lake)+.2)){motion.speed=0;showToast('前方是湖泊，請沿岸行走');return false;}}
-  const blockedBuilding=obstacles.some(({ring,osm})=>distanceToRing(x,z,ring)<radius&&!(connection!==null&&[campus.levelLink.from,campus.levelLink.to].includes(osm)));
+  const blockedBuilding=obstacles.some(({ring,osm})=>distanceToRing(x,z,ring)<radius&&!(connection!==null&&[campus.levelLink.from,campus.levelLink.to,444867694,campus.bioConnection.from,campus.bioConnection.to].includes(osm)));
   if(blockedBuilding||landscapeLayout.blocked(x,z,radius)||siteDetails.blocked(x,z,radius)){motion.speed=0;return false;}
   player.position.set(x,connection??walkHeight(x,z),z);
  }
@@ -484,7 +485,7 @@ function frame(now){
  const obstruction=cameraRay.intersectObjects(cameraObstacles,false)[0];
  if(obstruction)target=focus.clone().addScaledVector(arm.normalize(),Math.max(.8,obstruction.distance-.6));
  cam.position.lerp(target,1-Math.exp(-dt*9));cam.position.y=Math.max(cam.position.y,terrainHeight(cam.position.x,cam.position.z)+2);
- cam.lookAt(player.position.x,player.position.y+1.1,player.position.z);siteDetails.update(now);landscapeGroup.userData.updateView?.(cam.position,focus);minimap();campusMap.update();renderer.render(scene,cam);
+ cam.lookAt(player.position.x,player.position.y+1.1,player.position.z);siteDetails.update(now);buildingRendering.update(player.position.x,player.position.z,now);landscapeGroup.userData.updateView?.(cam.position,focus);minimap();campusMap.update();renderer.render(scene,cam);
 }
 requestAnimationFrame(frame);
 document.getElementById('play').disabled=false;document.getElementById('play').textContent='開始探索';

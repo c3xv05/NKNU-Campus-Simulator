@@ -27,6 +27,8 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   const sidewalkIds=new Set(campus.sidewalkRoadIds||[]);
   for(const road of campus.roads)if(sidewalkIds.has(road.osm))element('polyline',{points:polygon(road.line),fill:'none',stroke:'#e2d7bc','stroke-width':road.width+3.6,'stroke-linecap':'round','stroke-linejoin':'round'});
   for(const road of campus.roads)element('polyline',{points:polygon(road.line),fill:'none',stroke:road.width<=2.5?'#c8c3b4':'#52595a','stroke-width':road.width,'stroke-linecap':'round','stroke-linejoin':'round'});
+  if(campus.courtyard)element('polygon',{points:polygon(campus.courtyard.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);
+  if(campus.gatehouse)element('polygon',{points:polygon(campus.gatehouse.ring),fill:'#8d8073'},svg);
   for(const area of campus.buildings) element('polygon',{points:polygon(area.ring),fill:'#778b86'});
   places.forEach(area=>{
     element('polygon',{points:polygon(area.ring),fill:area.height?'#33556c':'#a55247'});
@@ -68,7 +70,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   const amenityList=document.getElementById('amenityList')||document.createElement('div');amenityList.id='amenityList';if(!amenityList.parentNode)list.after(amenityList);
   const title=document.createElement('p');title.textContent='場地與設施';amenityList.append(title);
   const seen=new Set();
-  const amenities=[...campus.buildings.filter(a=>a.name),...campus.courts,...campus.water,...(campus.flowerbed?[campus.flowerbed]:[])];
+  const amenities=[...campus.buildings.filter(a=>a.name),...campus.courts,...campus.water,...(campus.flowerbed?[campus.flowerbed]:[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.gatehouse?[campus.gatehouse]:[])];
   for(const area of amenities){
     const identity=area.facility||area.name;if(seen.has(identity))continue;seen.add(identity);
     const x=area.ring.reduce((s,p)=>s+p[0],0)/area.ring.length,z=area.ring.reduce((s,p)=>s+p[1],0)/area.ring.length;

@@ -1,0 +1,45 @@
+{
+  "geometry": {
+    "osm": 397467187,
+    "name": "大門警衛室",
+    "ring": [
+      [
+        -269.8,
+        519.0
+      ],
+      [
+        -265.2,
+        519.0
+      ],
+      [
+        -265.2,
+        532.0
+      ],
+      [
+        -269.8,
+        532.0
+      ]
+    ],
+    "height": 3.3,
+    "floors": 1,
+    "floorHeight": 3.3,
+    "desc": "大門警衛室，北側接水滴花圃尖端，兩側各有車道閘門。"
+  },
+  "appearance": {
+    "id": "gatehouse",
+    "osm": 397467187,
+    "name": "大門警衛室",
+    "style": "gatehouse",
+    "frontHint": [
+      -267.5,
+      525.5
+    ],
+    "sign": "大門警衛室",
+    "english": " ",
+    "wall": "#b2b1a7",
+    "frame": "#b9b9ae",
+    "glass": "#36545b",
+    "detailDistance": 145,
+    "reference": "依使用者最後一張校門衛星圖，移至水滴花圃南端，取代舊輪廓位置。"
+  }
+}

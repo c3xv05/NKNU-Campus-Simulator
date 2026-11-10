@@ -9,7 +9,7 @@ export function entranceBed(){
 }
 export function createLandscapeLayout(campus,network,height){
  let seed=170491;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- const bed=entranceBed(),areas=[...campus.places,...campus.buildings,...campus.water,...campus.courts].map(a=>{const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{...a,west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs)};});
+ const bed=entranceBed(),areas=[...campus.places,...campus.buildings,...campus.water,...campus.courts,...(campus.courtyard?[campus.courtyard]:[])].map(a=>{const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{...a,west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs)};});
  function eligible(x,z,margin=0){
   if(ringDistance(x,z,campus.boundary)!==0)return false;
   const road=network.nearest(x,z);if(road&&road.d<road.width/2+margin)return false;
@@ -30,16 +30,7 @@ export function createLandscapeLayout(campus,network,height){
   if(coverAt(px,pz)==='weeds'&&eligible(px,pz,.5))weeds.push({x:px,z:pz,y:height(px,pz),size:.6+random()*.9,tint:random()});
  }
  for(let z=483;z<519;z+=1.1)for(let x=-277;x< -258;x+=1.1)if(ringDistance(x,z,bed)===0)flowers.push({x,z,y:height(x,z)+.2,size:.65,tint:(Math.round(x+z)%3+3)%3});
- const wall=[];const route=network.routes.find(r=>r.osm===399030880);
- if(route)for(let i=1;i<route.points.length;i++){
-  const a=route.points[i-1],b=route.points[i];if(a.z<185||b.z>475)continue;
-  const len=Math.hypot(b.x-a.x,b.z-a.z)||1;let nx=-(b.z-a.z)/len,nz=(b.x-a.x)/len;if(nx>0){nx=-nx;nz=-nz;}
-  const offset=route.width/2+1.1;
-  const p={x:a.x+nx*offset,z:a.z+nz*offset},q={x:b.x+nx*offset,z:b.z+nz*offset};
-  const near=network.nearest((p.x+q.x)/2,(p.z+q.z)/2);
-  if(near?.segment.route.style.path&&near.d<near.width/2+1)continue;
-  wall.push({a:p,b:q,ha:network.surfaceHeight(a.x,a.z),hb:network.surfaceHeight(b.x,b.z)});
- }
+ const wall=[]; // Retaining walls removed at the user’s request.
  const treeCells=new Map();for(const tree of trees){const key=`${Math.floor(tree.x/15)},${Math.floor(tree.z/15)}`;if(!treeCells.has(key))treeCells.set(key,[]);treeCells.get(key).push(tree);}
  function blocked(x,z,radius=.5){
   if(ringDistance(x,z,bed)<radius)return true;

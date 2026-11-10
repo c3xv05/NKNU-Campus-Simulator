@@ -4,7 +4,7 @@ const pointKey=(x,z)=>`${x.toFixed(3)},${z.toFixed(3)}`;
 export function roadStyle(road,tags={}) {
   const path=['footway','pedestrian','path','steps'].includes(tags.highway)||road.width<=2.5;
   const oneWay=tags.oneway==='yes'||tags.oneway==='1'||tags.oneway==='-1';
-  return {path,oneWay,reverse:tags.oneway==='-1',center:!path&&!oneWay&&tags.lanes!=='1'&&road.width>=6.5,edges:!path&&road.width>=4};
+  return {path,oneWay,reverse:tags.oneway==='-1',center:!road.entrance&&!path&&!oneWay&&tags.lanes!=='1'&&road.width>=6.5,edges:!path&&road.width>=4};
 }
 // Round unconnected bends; retain every original junction position.
 function roundedLine(line,width,connections) {
@@ -146,10 +146,9 @@ export function createRoadNetwork(roads,height,tags={}) {
       mesh.heights[index]+=(surfaceHeight(x,z)-.015-mesh.heights[index])*weight;
     }
   }
+  function integratedHeight(x,z,ground){const road=nearest(x,z);if(!road)return ground;const weight=1-ease(road.width/2+2,road.width/2+16,road.d);return ground+(surfaceHeight(x,z)-ground)*weight;}
   function walkHeight(x,z,ground) {
-    const road=nearest(x,z);if(!road)return ground;
-    const weight=1-ease(road.width/2,road.width/2+2,road.d);
-    return weight<=0?ground:ground+(surfaceHeight(x,z)+.06-ground)*weight;
+    return integratedHeight(x,z,ground)+.035;
   }
-  return {routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
+  return {integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
 }

@@ -18,7 +18,7 @@ export function findDestinations(campus,network){
  }
  return result;
 }
-export const MAX_SCOOTER_SPEED=80/3.6;
+export const MAX_SCOOTER_SPEED=75/3.6;
 export function stepScooter(state,dt,throttle,steer,onRoad=true){
  const forward=onRoad?MAX_SCOOTER_SPEED:4,target=throttle>=0?throttle*forward:throttle*2.5;
  const acceleration=throttle===0?5:state.speed*target<0?11:6;
