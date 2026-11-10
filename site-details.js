@@ -1,3 +1,4 @@
+import {ringDistance} from './terrain.js';
 import {sidewalkSections} from './site-physics.js';
 export function addSiteDetails(THREE,scene,campus,terrain,network){
  const group=new THREE.Group();group.name='campus-site-details';scene.add(group);
@@ -7,7 +8,7 @@ export function addSiteDetails(THREE,scene,campus,terrain,network){
  function meshPositions(positions,mat,name){const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.computeVertexNormals();const mesh=new THREE.Mesh(geometry,mat);mesh.name=name;mesh.receiveShadow=true;group.add(mesh);return mesh;}
  function quad(p,positions){positions.push(...p[0],...p[2],...p[1],...p[1],...p[2],...p[3]);}
  const sidewalks=sidewalkSections(campus,network),sidewalkPositions=[];
- for(const section of sidewalks){const p=section.points.map(([x,z])=>[x,network.surfaceHeight(x,z)+.13,z]);quad([p[0],p[1],p[3],p[2]],sidewalkPositions);}
+ for(const section of sidewalks){const p=section.points.map(([x,z])=>[x,network.surfaceHeight(x,z)+.045,z]);for(let i=1;i<p.length-1;i++)sidewalkPositions.push(...p[0],...p[i],...p[i+1]);}
  const sidewalk=meshPositions(sidewalkPositions,cream,'attached-sidewalks');
  // Lake surfaces have depth in the terrain and physical exclusion in movement.
  const bumpCanvas=document.createElement('canvas');bumpCanvas.width=bumpCanvas.height=128;const ctx=bumpCanvas.getContext('2d'),image=ctx.createImageData(128,128);
@@ -53,19 +54,15 @@ export function addSiteDetails(THREE,scene,campus,terrain,network){
  const floor=box(link.width,.18,length,cx,bridgeLevel,cz,cream,yaw);floor.name='zhili-1f-gauss-2f-connection';
  const roof=box(link.width+.4,.16,length+.5,cx,bridgeLevel+3,cz,steel,yaw);blockers.push(roof);
  for(const side of [-1,1]){const nx=dz/length*side*link.width/2,nz=-dx/length*side*link.width/2;box(.06,1.1,length,cx+nx,bridgeLevel+.65,cz+nz,glass,yaw);}
- // Floor bands and regularly sized windows make storeys legible at human scale.
- const windowTransforms=[];
- for(const building of [...campus.places,...campus.buildings].filter(a=>a.height)){
-  const base=terrain.platformHeight(building),floors=building.floors||Math.max(1,Math.round(building.height/3.6)),fh=building.floorHeight||building.height/floors,ring=building.ring;
-  if(base===undefined)continue;
-  const lines=[];let area=0;for(let i=0;i<ring.length;i++){const a=ring[i],b=ring[(i+1)%ring.length];area+=a[0]*b[1]-b[0]*a[1];}
-  for(let i=0;i<ring.length;i++){
-   const a=ring[i],b=ring[(i+1)%ring.length],dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),sign=area>0?1:-1,nx=dz/(len||1)*sign,nz=-dx/(len||1)*sign;
-   for(let f=1;f<floors;f++)lines.push(a[0]+nx*.04,base+f*fh,a[1]+nz*.04,b[0]+nx*.04,base+f*fh,b[1]+nz*.04);
-   for(let s=2;s<len-1;s+=3.5)for(let f=0;f<floors;f++)windowTransforms.push({x:a[0]+dx*s/len+nx*.06,y:base+f*fh+fh*.53,z:a[1]+dz*s/len+nz*.06,angle:Math.atan2(-dz,dx)});
-  }
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(lines,3));group.add(new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0xcbd3d3})));
- }
- if(windowTransforms.length){const windows=new THREE.InstancedMesh(new THREE.PlaneGeometry(1.3,1.6),new THREE.MeshStandardMaterial({color:0x547d92,roughness:.35,metalness:.15,side:THREE.DoubleSide}),windowTransforms.length),dummy=new THREE.Object3D();windowTransforms.forEach((p,i)=>{dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(0,p.angle,0);dummy.updateMatrix();windows.setMatrixAt(i,dummy.matrix);});windows.name='building-storey-windows';group.add(windows);}
- return{group,sidewalks,blockers,columns,bridgeLevel,facilityLabels,waterMeshes,sidewalkAt(x,z){const r=network.nearest(x,z,true);return r&&(campus.sidewalkRoadIds||[]).includes(r.segment.route.osm)&&r.d>=r.width/2-.1&&r.d<=r.width/2+1.8?network.surfaceHeight(x,z)+.13:null;},update(now){bump.offset.set(now*.000006,Math.sin(now*.0001)*.05);},blocked(x,z,r){return columns.some(p=>Math.hypot(p.x-x,p.z-z)<r+p.radius);}};
+ // The teaching courtyard is one horizontal deck at Gauss 3F / Zhili 2F / Huanyu 2F.
+ const gauss=campus.places.find(a=>a.osm===444867692),courtyardLevel=terrain.platformHeight(gauss)+7.2;
+ function slab(ring,y,name){const shape=new THREE.Shape();ring.forEach(([x,z],i)=>i?shape.lineTo(x,-z):shape.moveTo(x,-z));shape.closePath();const g=new THREE.ExtrudeGeometry(shape,{depth:.28,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,cream);m.position.y=y-.28;m.name=name;m.castShadow=true;m.receiveShadow=true;group.add(m);return m;}
+ if(campus.courtyard){slab(campus.courtyard.ring,courtyardLevel,'teaching-courtyard-platform');const [a,b]=campus.courtyard.ramp,dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),nx=-dz/len*campus.courtyard.width/2,nz=dx/len*campus.courtyard.width/2,start=terrain.height(...a),p=[];quad([[a[0]+nx,start,a[1]+nz],[a[0]-nx,start,a[1]-nz],[b[0]+nx,courtyardLevel,b[1]+nz],[b[0]-nx,courtyardLevel,b[1]-nz]],p);meshPositions(p,cream,'courtyard-access-ramp');}
+ const bio=campus.bioConnection,bioLevel=terrain.platformHeight(campus.places.find(a=>a.osm===bio.from))+3.6;
+ if(bio){const [a,b]=bio.line,dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz),nx=-dz/l*bio.width/2,nz=dx/l*bio.width/2;slab([[a[0]+nx,a[1]+nz],[b[0]+nx,b[1]+nz],[b[0]-nx,b[1]-nz],[a[0]-nx,a[1]-nz]],bioLevel,'biology-central-connection');for(const side of [-1,1])box(.3,1.1,l,(a[0]+b[0])/2+side*nx,bioLevel+.55,(a[1]+b[1])/2+side*nz,cream,Math.atan2(dx,dz));}
+ if(bio?.ramp){const [a,b]=bio.ramp,l=Math.hypot(b[0]-a[0],b[1]-a[1]),nx=-(b[1]-a[1])/l*(bio.accessWidth||4)/2,nz=(b[0]-a[0])/l*(bio.accessWidth||4)/2,start=terrain.height(...a),p=[];quad([[a[0]+nx,start,a[1]+nz],[a[0]-nx,start,a[1]-nz],[b[0]+nx,bioLevel,b[1]+nz],[b[0]-nx,bioLevel,b[1]-nz]],p);meshPositions(p,cream,'biology-access-ramp');}
+ // Guardhouse touches the flowerbed tip; the two barrier arms sit in separate lanes.
+ const guard=campus.gatehouse;if(guard){const [x,z]=guard.center,y=network.surfaceHeight(x,z);box(guard.width,guard.height,guard.depth,x,y+guard.height/2,z,cream).name='entrance-guardhouse';box(guard.width+.8,.25,guard.depth+.8,x,y+guard.height,z,steel);for(const side of [-1,1])box(.04,1.35,guard.depth-2,x+side*(guard.width/2+.025),y+2,z,glass);for(const [gx,gz] of guard.gates){const gy=network.surfaceHeight(gx,gz);box(.35,1.1,.35,gx-2.8,gy+.55,gz,steel);for(let i=0;i<6;i++)box(.9,.12,.13,gx-2.25+i*.9,gy+1.1,gz,i%2?cream:material(0xb74732));}}
+ const sidewalkCells=new Map();for(const section of sidewalks){const xs=section.points.map(p=>p[0]),zs=section.points.map(p=>p[1]);for(let z=Math.floor(Math.min(...zs)/12);z<=Math.floor(Math.max(...zs)/12);z++)for(let x=Math.floor(Math.min(...xs)/12);x<=Math.floor(Math.max(...xs)/12);x++){const key=x+','+z;if(!sidewalkCells.has(key))sidewalkCells.set(key,[]);sidewalkCells.get(key).push(section);}}
+ return{group,sidewalks,blockers,columns,bridgeLevel,courtyardLevel,bioLevel,facilityLabels,waterMeshes,sidewalkAt(x,z){if(network.onMotorRoad(x,z))return null;return(sidewalkCells.get(Math.floor(x/12)+','+Math.floor(z/12))||[]).some(s=>ringDistance(x,z,s.points)<.001)?network.surfaceHeight(x,z)+.045:null;},update(now){bump.offset.set(now*.000006,Math.sin(now*.0001)*.05);},blocked(x,z,r){return (campus.gatehouse&&Math.abs(x-campus.gatehouse.center[0])<campus.gatehouse.width/2+r&&Math.abs(z-campus.gatehouse.center[1])<campus.gatehouse.depth/2+r)||columns.some(p=>Math.hypot(p.x-x,p.z-z)<r+p.radius);}};
 }

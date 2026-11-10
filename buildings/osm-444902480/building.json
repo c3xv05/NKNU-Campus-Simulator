@@ -1,0 +1,44 @@
+{
+  "geometry": {
+    "osm": 444902480,
+    "ring": [
+      [
+        47.1,
+        -262
+      ],
+      [
+        50.6,
+        -254.5
+      ],
+      [
+        -3.8,
+        -229
+      ],
+      [
+        -7.4,
+        -236.5
+      ]
+    ],
+    "name": "球場長條建築",
+    "height": 4.2,
+    "floors": 1,
+    "floorHeight": 4.2
+  },
+  "appearance": {
+    "id": "osm-444902480",
+    "osm": 444902480,
+    "name": "球場長條建築",
+    "style": "generic",
+    "frontHint": [
+      21.625,
+      -245.5
+    ],
+    "sign": "球場長條建築",
+    "english": " ",
+    "wall": "#b2b1a7",
+    "frame": "#b9b9ae",
+    "glass": "#36545b",
+    "detailDistance": 145,
+    "reference": "既有校園輪廓；未提供本棟照片，保留簡化外觀。"
+  }
+}

@@ -40,6 +40,8 @@ export function createTerrain(grid, areas,options={}) {
       north: Math.min(...zs)-15, south: Math.max(...zs)+15, height: rawHeight(x,z) };
   });
   if(options.levelLink){const link=options.levelLink,from=pads.find(p=>p.osm===link.from),to=pads.find(p=>p.osm===link.to);if(from&&to)from.height=to.height+(link.toFloor-link.fromFloor)*link.floorHeight;}
+  if(options.courtyard){const gauss=pads.find(p=>p.osm===444867692),huanyu=pads.find(p=>p.osm===444867694);if(gauss&&huanyu)huanyu.height=gauss.height+3.6;}
+  if(options.bioConnection){const link=options.bioConnection,a=pads.find(p=>p.osm===link.from),b=pads.find(p=>p.osm===link.to);if(a&&b)b.height=a.height;}
   const platformHeight=area=>pads.find(p=>p.osm===area.osm)?.height;
   function shaped(x,z) {
     const raw = rawHeight(x,z);

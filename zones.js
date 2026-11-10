@@ -55,6 +55,8 @@ export function drawReferenceMap(svg,campus) {
   const sidewalkIds=new Set(campus.sidewalkRoadIds||[]);
   campus.roads.filter(r=>sidewalkIds.has(r.osm)).forEach(r=>svgElement('polyline',{points:poly(r.line),fill:'none',stroke:'#e2d7bc','stroke-width':r.width+3.6,'stroke-linecap':'round','stroke-linejoin':'round'},svg));
   campus.roads.forEach(r=>svgElement('polyline',{points:poly(r.line),fill:'none',stroke:r.width<=2.5?'#c8c3b4':'#52595a','stroke-width':r.width,'stroke-linecap':'round','stroke-linejoin':'round'},svg));
+  if(campus.courtyard)svgElement('polygon',{points:poly(campus.courtyard.ring),fill:'#d5cebc'},svg);
+  if(campus.gatehouse)svgElement('polygon',{points:poly(campus.gatehouse.ring),fill:'#8d8073'},svg);
   [...campus.buildings,...campus.places].forEach(a=>{
     svgElement('polygon',{points:poly(a.ring),fill:a.height?'#4d6c7e':'#b08272'},svg);
     (a.holes||[]).forEach(r=>svgElement('polygon',{points:poly(r),fill:'#acbc9d'},svg));

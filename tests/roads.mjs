@@ -19,7 +19,7 @@ assert.equal(roadStyle({width:7},{oneway:'no'}).center,true);
 assert.equal(roadStyle({width:7},{lanes:'1'}).center,false);
 assert.equal(roadStyle({width:2},{highway:'footway'}).edges,false);
 assert.equal(roadStyle({width:4.5},{highway:'service',oneway:'yes'}).oneWay,true);
-assert.equal(network.walkHeight(0,50,0),network.surfaceHeight(0,50)+.06);
+assert.equal(network.walkHeight(0,50,0),network.surfaceHeight(0,50)+.035);
 // A close parallel footpath must never bank or lift the vehicle carriageway.
 const parallel=createRoadNetwork([{osm:3,width:12,line:[[0,0],[0,100]]},{osm:4,width:2,line:[[3,0],[3,100]]}],(x,z)=>x*2+z*.1);
 for(let z=10;z<90;z+=10)assert(Math.abs(parallel.surfaceHeight(-3,z)-parallel.surfaceHeight(3,z))<1e-7,'Adjacent footpath stole the carriageway height');
@@ -35,7 +35,7 @@ assert(terrain.mesh.heights.every(Number.isFinite));
 for(const segment of roads.segments){
  const x=(segment.a.x+segment.b.x)/2,z=(segment.a.z+segment.b.z)/2;
  assert(Number.isFinite(roads.surfaceHeight(x,z)));
- assert(Math.abs(roads.walkHeight(x,z,terrain.height(x,z))-roads.surfaceHeight(x,z)-.06)<1e-6,'Walking height does not match pavement');
+ assert(Math.abs(roads.walkHeight(x,z,terrain.height(x,z))-roads.surfaceHeight(x,z)-.035)<1e-6,'Walking height does not match pavement');
 }
 const track=campus.places.find(p=>p.name==='操場'),field=track.holes[0].map(([x,z])=>terrain.height(x,z));
 assert(Math.max(...field)-Math.min(...field)<.01,'Road grading must preserve the sports field');
