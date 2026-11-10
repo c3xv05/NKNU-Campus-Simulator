@@ -89,16 +89,18 @@ export function createRoadNetwork(roads,height,tags={}) {
     route.length=distance;
   }
   function nearest(x,z) {
-    let closest=null,best=Infinity;
+    let closest=null,best=Infinity,motor=null,bestMotor=Infinity;
     for(const segment of buckets.get(key(x,z))||[]) {
       const {a,dx,dz,length,width}=segment;
       const t=clamp(((x-a.x)*dx+(z-a.z)*dz)/(length*length),0,1);
       const d=Math.hypot(x-a.x-dx*t,z-a.z-dz*t);
       // Compare distance to pavement, so a footpath cannot steal a main-road lane.
       const score=Math.max(0,d-width/2)+d*.001;
-      if(score<best){best=score;closest={segment,t,d,h:a.h+(segment.b.h-a.h)*t,width};}
+      const candidate={segment,t,d,h:a.h+(segment.b.h-a.h)*t,width};
+      if(score<best){best=score;closest=candidate;}
+      if(!segment.route.style.path&&score<bestMotor){bestMotor=score;motor=candidate;}
     }
-    return closest;
+    return motor&&motor.d<=motor.width/2+1e-6?motor:closest;
   }
   function onMotorRoad(x,z){
     return (buckets.get(key(x,z))||[]).some(segment=>{
@@ -122,7 +124,7 @@ export function createRoadNetwork(roads,height,tags={}) {
   }
   function walkHeight(x,z,ground) {
     const road=nearest(x,z);if(!road)return ground;
-    const weight=1-ease(Math.max(0,road.width/2-.3),road.width/2+.4,road.d);
+    const weight=1-ease(road.width/2,road.width/2+.4,road.d);
     return ground+(road.h+.06-ground)*weight;
   }
   return {routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
