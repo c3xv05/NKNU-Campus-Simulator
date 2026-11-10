@@ -29,25 +29,32 @@
     ],
     "name": "圖資大樓",
     "desc": "圖書及資訊服務空間。",
-    "height": 18,
-    "floors": 5,
-    "floorHeight": 3.6
+    "height": 8.4,
+    "floors": 2,
+    "floorHeight": 4.2,
+    "basementFloors": 1
   },
   "appearance": {
     "id": "library",
     "osm": 381963953,
     "name": "圖資大樓",
-    "style": "generic",
+    "style": "library",
     "frontHint": [
       44.416666666666664,
       -45.81666666666666
     ],
     "sign": "圖資大樓",
     "english": " ",
-    "wall": "#b2b1a7",
-    "frame": "#b9b9ae",
-    "glass": "#36545b",
+    "wall": "#c1c7c0",
+    "frame": "#e1e0d4",
+    "glass": "#3c686f",
     "detailDistance": 145,
-    "reference": "既有校園輪廓；未提供本棟照片，保留簡化外觀。"
+    "reference": "校方圖資大樓工程資料：地上2層、地下1層；行政工作報告記載0與1的外牆設計。立面細節仍為近似。",
+    "frontMode": "main-road",
+    "sources": [
+      "https://c.nknu.edu.tw/affair/fckeditor/ckfinder/userfiles/maintain/files/%E5%BB%BA%E7%AF%89%E5%B7%A5%E7%A8%8B.pdf",
+      "https://fm.nknu.edu.tw/up/105-4%E8%A1%8C%E6%94%BF%E6%9C%83%E8%AD%B0%E5%B7%A5%E4%BD%9C%E5%A0%B1%E5%91%8A.pdf"
+    ],
+    "confidence": "official-building-data"
   }
 }

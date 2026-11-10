@@ -37,17 +37,24 @@
     "id": "yongxu",
     "osm": 381735423,
     "name": "詠絮樓",
-    "style": "generic",
+    "style": "dorm-two-tone",
     "frontHint": [
       -145.63333333333333,
       -76.78333333333333
     ],
     "sign": "詠絮樓",
     "english": " ",
-    "wall": "#b2b1a7",
-    "frame": "#b9b9ae",
-    "glass": "#36545b",
+    "wall": "#aa6755",
+    "frame": "#d1d0c6",
+    "glass": "#35464d",
     "detailDistance": 145,
-    "reference": "既有校園輪廓；未提供本棟照片，保留簡化外觀。"
+    "reference": "校方影藏歲月70期詠絮樓初貌：下部紅磚、上部淺色牆、外廊及欄杆。",
+    "frontMode": "main-road",
+    "upperWall": "#e2ded6",
+    "splitAt": 3,
+    "sources": [
+      "https://c.nknu.edu.tw/affair/Page.aspx?Kind=dbhp&PN=174&SN=150"
+    ],
+    "confidence": "historical-photo"
   }
 }

@@ -1,3 +1,4 @@
+import {addConnections} from './connections.js';
 import {ringDistance} from './terrain.js';
 import {sidewalkSections} from './site-physics.js';
 export function addSiteDetails(THREE,scene,campus,terrain,network){
@@ -49,20 +50,10 @@ export function addSiteDetails(THREE,scene,campus,terrain,network){
   }
   facilityLabels.push({name:court.name,x:cx,z:cz,y:roofY+2});
  }
- // Horizontal connection: Zhili 1F and Gauss 2F share the same world elevation.
- const link=campus.levelLink,from=campus.places.find(p=>p.osm===link.from),bridgeLevel=terrain.platformHeight(from),a=link.line[0],b=link.line[1],dx=b[0]-a[0],dz=b[1]-a[1],length=Math.hypot(dx,dz),yaw=Math.atan2(dx,dz),cx=(a[0]+b[0])/2,cz=(a[1]+b[1])/2;
- const floor=box(link.width,.18,length,cx,bridgeLevel,cz,cream,yaw);floor.name='zhili-1f-gauss-2f-connection';
- const roof=box(link.width+.4,.16,length+.5,cx,bridgeLevel+3,cz,steel,yaw);blockers.push(roof);
- for(const side of [-1,1]){const nx=dz/length*side*link.width/2,nz=-dx/length*side*link.width/2;box(.06,1.1,length,cx+nx,bridgeLevel+.65,cz+nz,glass,yaw);}
- // The teaching courtyard is one horizontal deck at Gauss 3F / Zhili 2F / Huanyu 2F.
- const gauss=campus.places.find(a=>a.osm===444867692),courtyardLevel=terrain.platformHeight(gauss)+7.2;
- function slab(ring,y,name){const shape=new THREE.Shape();ring.forEach(([x,z],i)=>i?shape.lineTo(x,-z):shape.moveTo(x,-z));shape.closePath();const g=new THREE.ExtrudeGeometry(shape,{depth:.28,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,cream);m.position.y=y-.28;m.name=name;m.castShadow=true;m.receiveShadow=true;group.add(m);return m;}
- if(campus.courtyard){slab(campus.courtyard.ring,courtyardLevel,'teaching-courtyard-platform');const [a,b]=campus.courtyard.ramp,dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),nx=-dz/len*campus.courtyard.width/2,nz=dx/len*campus.courtyard.width/2,start=terrain.height(...a),p=[];quad([[a[0]+nx,start,a[1]+nz],[a[0]-nx,start,a[1]-nz],[b[0]+nx,courtyardLevel,b[1]+nz],[b[0]-nx,courtyardLevel,b[1]-nz]],p);meshPositions(p,cream,'courtyard-access-ramp');}
- const bio=campus.bioConnection,bioLevel=terrain.platformHeight(campus.places.find(a=>a.osm===bio.from))+3.6;
- if(bio){const [a,b]=bio.line,dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz),nx=-dz/l*bio.width/2,nz=dx/l*bio.width/2;slab([[a[0]+nx,a[1]+nz],[b[0]+nx,b[1]+nz],[b[0]-nx,b[1]-nz],[a[0]-nx,a[1]-nz]],bioLevel,'biology-central-connection');for(const side of [-1,1])box(.3,1.1,l,(a[0]+b[0])/2+side*nx,bioLevel+.55,(a[1]+b[1])/2+side*nz,cream,Math.atan2(dx,dz));}
- if(bio?.ramp){const [a,b]=bio.ramp,l=Math.hypot(b[0]-a[0],b[1]-a[1]),nx=-(b[1]-a[1])/l*(bio.accessWidth||4)/2,nz=(b[0]-a[0])/l*(bio.accessWidth||4)/2,start=terrain.height(...a),p=[];quad([[a[0]+nx,start,a[1]+nz],[a[0]-nx,start,a[1]-nz],[b[0]+nx,bioLevel,b[1]+nz],[b[0]-nx,bioLevel,b[1]-nz]],p);meshPositions(p,cream,'biology-access-ramp');}
+ const connections=addConnections(THREE,group,campus,terrain,network);
+ const {bridgeLevel,courtyardLevel,bioLevel}=connections;blockers.push(...connections.blockers);
  // Guardhouse touches the flowerbed tip; the two barrier arms sit in separate lanes.
  const guard=campus.gatehouse;if(guard){const [x,z]=guard.center,y=network.surfaceHeight(x,z);box(guard.width,guard.height,guard.depth,x,y+guard.height/2,z,cream).name='entrance-guardhouse';box(guard.width+.8,.25,guard.depth+.8,x,y+guard.height,z,steel);for(const side of [-1,1])box(.04,1.35,guard.depth-2,x+side*(guard.width/2+.025),y+2,z,glass);for(const [gx,gz] of guard.gates){const gy=network.surfaceHeight(gx,gz);box(.35,1.1,.35,gx-2.8,gy+.55,gz,steel);for(let i=0;i<6;i++)box(.9,.12,.13,gx-2.25+i*.9,gy+1.1,gz,i%2?cream:material(0xb74732));}}
  const sidewalkCells=new Map();for(const section of sidewalks){const xs=section.points.map(p=>p[0]),zs=section.points.map(p=>p[1]);for(let z=Math.floor(Math.min(...zs)/12);z<=Math.floor(Math.max(...zs)/12);z++)for(let x=Math.floor(Math.min(...xs)/12);x<=Math.floor(Math.max(...xs)/12);x++){const key=x+','+z;if(!sidewalkCells.has(key))sidewalkCells.set(key,[]);sidewalkCells.get(key).push(section);}}
- return{group,sidewalks,blockers,columns,bridgeLevel,courtyardLevel,bioLevel,facilityLabels,waterMeshes,sidewalkAt(x,z){if(network.onMotorRoad(x,z))return null;return(sidewalkCells.get(Math.floor(x/12)+','+Math.floor(z/12))||[]).some(s=>ringDistance(x,z,s.points)<.001)?network.surfaceHeight(x,z)+.045:null;},update(now){bump.offset.set(now*.000006,Math.sin(now*.0001)*.05);},blocked(x,z,r){return (campus.gatehouse&&Math.abs(x-campus.gatehouse.center[0])<campus.gatehouse.width/2+r&&Math.abs(z-campus.gatehouse.center[1])<campus.gatehouse.depth/2+r)||columns.some(p=>Math.hypot(p.x-x,p.z-z)<r+p.radius);}};
+ return{group,sidewalks,blockers,columns,bridgeLevel,courtyardLevel,bioLevel,facilityLabels,waterMeshes,sidewalkAt(x,z){if(network.onMotorRoad(x,z))return null;return(sidewalkCells.get(Math.floor(x/12)+','+Math.floor(z/12))||[]).some(s=>ringDistance(x,z,s.points)<.001)?network.surfaceHeight(x,z)+.045:null;},update(now){bump.offset.set(now*.000006,Math.sin(now*.0001)*.05);},blocked(x,z,r,y){return connections.solidBlocked(x,z,r,y)||(campus.gatehouse&&Math.abs(x-campus.gatehouse.center[0])<campus.gatehouse.width/2+r&&Math.abs(z-campus.gatehouse.center[1])<campus.gatehouse.depth/2+r)||columns.some(p=>Math.hypot(p.x-x,p.z-z)<r+p.radius);}};
 }

@@ -116,6 +116,14 @@ export function createRoadNetwork(roads,height,tags={}) {
     });
   }
   const surfaceCache=new Map();
+  const entranceLevel=height(-267.5,525.5),northEntrance=height(-267.5,475),southEntrance=height(-267.5,555);
+  function sharedEntrance(x,z,h){
+    const wx=ease(-306,-285,x)*(1-ease(-250,-229,x)),wz=ease(458,480,z)*(1-ease(545,565,z)),weight=wx*wz;
+    if(weight<=0)return h;
+    const level=z<519?northEntrance+(entranceLevel-northEntrance)*ease(475,519,z):z>534?entranceLevel+(southEntrance-entranceLevel)*ease(534,555,z):entranceLevel;
+    return h+(level-h)*weight;
+  }
+
   function surfaceHeight(x,z) {
     const cacheKey=x.toFixed(3)+','+z.toFixed(3);if(surfaceCache.has(cacheKey))return surfaceCache.get(cacheKey);
     let total=0,value=0,motorTotal=0,motorValue=0,pathTotal=0,pathValue=0,motorPreference=0,coverage=0;
@@ -135,7 +143,7 @@ export function createRoadNetwork(roads,height,tags={}) {
       else{motorTotal+=w;motorValue+=h*w;motorPreference=Math.max(motorPreference,1-ease(width/2,width/2+6,distance));}
       total+=w;value+=h*w;
     }
-    if(!total)return height(x,z);const average=motorTotal?(pathTotal?(pathValue/pathTotal)*(1-motorPreference)+(motorValue/motorTotal)*motorPreference:motorValue/motorTotal):pathValue/pathTotal;const raw=height(x,z),result=raw+(average-raw)*coverage;if(surfaceCache.size<250000)surfaceCache.set(cacheKey,result);return result;
+    if(!total)return height(x,z);const average=motorTotal?(pathTotal?(pathValue/pathTotal)*(1-motorPreference)+(motorValue/motorTotal)*motorPreference:motorValue/motorTotal):pathValue/pathTotal;const raw=height(x,z),result=sharedEntrance(x,z,raw+(average-raw)*coverage);if(surfaceCache.size<250000)surfaceCache.set(cacheKey,result);return result;
   }
   function gradeTerrain(mesh,protectedAreas=[]) {
     for(let r=0;r<mesh.rows;r++)for(let c=0;c<mesh.columns;c++){
@@ -150,5 +158,5 @@ export function createRoadNetwork(roads,height,tags={}) {
   function walkHeight(x,z,ground) {
     return integratedHeight(x,z,ground)+.035;
   }
-  return {integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
+  return {entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
 }

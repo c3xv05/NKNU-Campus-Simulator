@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>NKNU 燕巢校園探索</title><style>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>NKNU 燕巢校園探索</title><link rel="stylesheet" href="./developer.css"><style>
 *{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:#101b21;color:white;font-family:system-ui,'Noto Sans TC',sans-serif;overflow:hidden}#scene{position:fixed;inset:0}canvas{display:block}button{cursor:pointer;background:#2dd4bf;border:0;border-radius:12px;padding:12px 22px;font:inherit;font-weight:800;color:#062e32}button:focus-visible,a:focus-visible{outline:3px solid #ffdf88;outline-offset:3px}h1{font-size:19px;margin:0 0 3px}small{opacity:.75}#top{position:absolute;top:max(16px,env(safe-area-inset-top));left:16px;background:#0d2238d9;border:1px solid #ffffff33;border-radius:14px;padding:12px 16px;max-width:min(90vw,340px);pointer-events:none}#info{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:#0d2238e8;border:1px solid #ffffff33;border-radius:14px;padding:12px 18px;text-align:center;max-width:92vw;pointer-events:none}#info strong{color:#ffe19b}#mapbox{position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;background:#092237da;padding:8px;border-radius:13px;border:1px solid #ffffff33}#mapOpen{padding:0;background:transparent;color:#d7f6ef;display:grid;gap:5px;width:100%;font-size:11px}#map{width:160px;height:160px;border-radius:8px}#legend{margin-top:6px;font-size:10px;line-height:1.45;text-align:center}a{color:#9ce9db}#status{position:absolute;top:270px;right:16px;font-size:12px;max-width:320px;background:#102d3ccc;padding:7px;border-radius:8px}#start{position:absolute;inset:0;display:grid;place-items:center;background:#071b29bb;backdrop-filter:blur(6px);padding:16px;overflow:auto}#panel{max-width:440px;width:100%;text-align:center;border:1px solid #ffffff40;background:#102a3be8;border-radius:24px;padding:24px;box-shadow:0 20px 60px #0005}#panel h2{font-size:27px;margin:12px 0}#panel p{line-height:1.8;color:#d5e2eb}#notice{font-size:12px;opacity:.75}
 #scene canvas,#touch,#touch button,#joystick{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}#touch{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));display:none;justify-content:space-between;align-items:end;pointer-events:none}#touchright,#joystick{pointer-events:auto}#touchright{display:grid;grid-template-columns:repeat(2,52px);gap:6px;padding-bottom:18px}#touchright button{min-height:52px;padding:12px;background:#103c50e6;color:white;border:1px solid #fff6}#touch button.held{background:#217c88;border-color:#9ff6e8}#interact{grid-column:span 2}#stickArea{text-align:center}#joystick{position:relative;width:132px;height:132px;border-radius:50%;background:radial-gradient(circle,#254c5ac9,#102c3be0);border:2px solid #c1ede666;box-shadow:inset 0 0 25px #061c3e70}#joystick.engaged{border-color:#8cf2d8}#stickKnob{position:absolute;left:50%;top:50%;margin:-25px;width:50px;height:50px;border-radius:50%;background:#c1e6e9dd;border:2px solid #fff9;box-shadow:0 3px 12px #0004;pointer-events:none}#stickHint{font-size:11px;color:#cce5e9;line-height:22px}.stick-cross{position:absolute;inset:0;display:grid;place-items:center;color:#ffffff3d;font-size:48px}
 #mapDialog{color:#e7f1f5;background:#102a38;border:1px solid #729393;border-radius:20px;padding:20px;width:min(960px,96vw);max-height:94dvh;box-shadow:0 20px 70px #0008}#mapDialog::backdrop{background:#04131dd9;backdrop-filter:blur(4px)}.map-heading{position:sticky;top:-14px;z-index:2;background:#102a38;display:flex;justify-content:space-between;gap:12px;align-items:start}.map-heading h2{font-size:22px;margin:0}.map-heading p{font-size:12px;color:#b4d0d6;margin:6px 0 16px}#mapClose{padding:9px 15px;min-height:44px}.map-layout{display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:18px}.map-drawing{background:#b6c7a9;border-radius:12px;overflow:hidden;display:grid;place-items:center}#largeMap{display:block;width:100%;max-height:70dvh;touch-action:pan-y}#largeMap .map-place{cursor:pointer;outline:none}#largeMap .map-place:focus-visible circle{stroke:#fbd06a;stroke-width:6}.map-sidebar{max-height:70dvh;overflow:auto}#mapSelection{margin:0 0 10px;padding:12px;background:#1c3f4b;border-radius:10px;font-size:13px;line-height:1.6}#buildingList{display:grid;gap:5px}#buildingList button{display:flex;align-items:center;gap:9px;background:#193b4b;color:#e6f5f7;padding:9px 10px;font-size:13px;text-align:left;min-height:44px}#buildingList button.selected{background:#396353;box-shadow:inset 0 0 0 2px #f8d479}.place-number{display:grid;place-items:center;min-width:25px;height:25px;background:#2a5a70;border-radius:50%;font-size:11px}.visited .place-number{background:#147466}.map-sources{font-size:11px;color:#b9cdd0;line-height:1.7;margin-top:15px}
@@ -19,6 +19,7 @@
 <div id="touch"><div id="stickArea"><div id="joystick" role="group" aria-label="移動搖桿，拖曳控制方向與速度"><span class="stick-cross">＋</span><div id="stickKnob"></div></div><span id="stickHint">拖曳移動</span></div><div id="touchright"><button id="turnL" type="button">↶</button><button id="turnR" type="button">↷</button><button id="interact" type="button">互動</button></div></div>
 <dialog id="mapDialog" aria-labelledby="mapTitle"><div class="map-heading"><div><h2 id="mapTitle">燕巢校園地圖</h2><p>北方朝上 · ▲ 目前位置 · 點建築或清單查看位置</p></div><button id="mapClose" type="button" aria-label="關閉地圖">✕</button></div><div class="map-tabs" role="group" aria-label="地圖顯示模式"><button id="buildingsMode" type="button" aria-pressed="true">建築地圖</button><button id="zonesMode" type="button" aria-pressed="false">植被分區 A–D</button><a href="./zones.html" target="_blank" rel="noopener">開啟獨立分區圖 ↗</a></div><div class="map-layout"><div class="map-drawing"><svg id="largeMap" viewBox="-455 -580 940 1160" role="img" aria-label="燕巢校區建築與目前位置"></svg></div><div class="map-sidebar"><p id="mapSelection" role="status">選擇建築，在地圖上標示位置</p><div id="buildingList"></div><div class="map-sources"><span id="mapKey">藍色：未探索 · 綠色：已探索<br>底色深淺表示近似高低起伏。</span><br>地形：<a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Mapzen Terrain Tiles</a> / USGS SRTM。衛星高程約 30 公尺級，道路、建築與場地平台經簡化平整，非測量成果。<br>建築位置參考 <a href="https://w3.nknu.edu.tw/images/files/yt_01_map.pdf" target="_blank" rel="noopener">高師大官方校區圖</a>及 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>。</div></div></div></dialog>
 <div id="start"><div id="panel"><div style="font-size:44px">🏫</div><h2>燕巢校園模擬器</h2><p>從校門出發，沿山坡走訪 12 個地標。<br>電腦：WASD 移動、滑鼠拖曳視角、Shift 奔跑、E 互動、M 地圖、R 騎車／下車、1／2／3 傳送。<br>手機：左手拖曳搖桿，右手滑動畫面調整視角；點小地圖查看全校，左上可傳送或切換騎車。騎車時向前推搖桿加速、左右推轉向。</p><button id="play" type="button" disabled>載入校園…</button><p id="notice">校園輪廓源自 OpenStreetMap；地形依 Mapzen／USGS SRTM 高程近似重建，建築高度與場地平台為簡化模型。</p></div></div>
+<script type="module" src="./developer.js"></script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
 import {createTerrain, sampleElevation} from './terrain.js';
@@ -30,6 +31,7 @@ import {createScooter} from './scooter.js';
 import {createAvatar} from './avatar.js';
 import {addSiteDetails} from './site-details.js';
 import {addBuildings,loadBuildingProfiles} from './buildings/renderer.js';
+import {stairHeightAt} from './connections.js';
 import {lakeAt,bridgeHeight,platformHeightAt} from './site-physics.js';
 import {createLandscapeLayout,addLandscape} from './landscape.js';
 import {coverAt} from './landcover.js';
@@ -167,7 +169,7 @@ const waterMaterial = mat(0x56a8c4);
 const labelMeshes = [];
 
 siteDetails=addSiteDetails(THREE,scene,campus,terrain,roadNetwork);cameraObstacles.push(...siteDetails.blockers);
-const roadRendering=addRoads(THREE,scene,roadNetwork,terrainHeight);
+const roadRendering=addRoads(THREE,scene,roadNetwork,terrainHeight,campus);
 const cutGround=cutRoadsFromGround(terrain.mesh,[...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points)],terrainGeometry.getAttribute('normal').array);
 const cutGeometry=new THREE.BufferGeometry();
 // Clipping preserves the original triangle interpolation. Resampling new cut points
@@ -403,6 +405,7 @@ places.forEach(area => {
 });
 const dorm=campus.buildings.find(b=>b.name==='詠絮樓');if(dorm){const c=outlineCenter(dorm.ring);overviewCtx.font='bold 55px system-ui';overviewCtx.textAlign='center';overviewCtx.lineWidth=12;overviewCtx.strokeStyle='#fff';overviewCtx.strokeText('詠絮',c.x,c.z-5);overviewCtx.fillStyle='#173c4d';overviewCtx.fillText('詠絮',c.x,c.z-5);}
 if(campus.levelLink){overviewCtx.beginPath();trace(overviewCtx,campus.levelLink.line,false);overviewCtx.lineWidth=5;overviewCtx.strokeStyle='#dfad4f';overviewCtx.stroke();}
+if(campus.bioConnection?.stairs){overviewCtx.beginPath();trace(overviewCtx,campus.bioConnection.stairs.line,false);overviewCtx.lineWidth=4;overviewCtx.strokeStyle='#b5a88c';overviewCtx.stroke();}
 overviewCtx.restore();
 overviewCtx.fillStyle = '#24382e';
 overviewCtx.font = 'bold 13px system-ui';
@@ -434,16 +437,18 @@ function minimap() {
   ctx.restore();
 }
 
+window.addEventListener('campus-developer-dialog',clearInput);
+window.campusDeveloperContext=()=>({position:{x:+player.position.x.toFixed(2),y:+player.position.y.toFixed(2),z:+player.position.z.toFixed(2)},mode:motion.riding?'騎車':'步行',speedKmh:+(motion.speed*3.6).toFixed(1),view:{yaw:+yaw.toFixed(3),pitch:+pitch.toFixed(3),camera:{x:+cam.position.x.toFixed(2),y:+cam.position.y.toFixed(2),z:+cam.position.z.toFixed(2)}}});
 const campusMap=setupCampusMap({campus,places,player,visited,bounds,terrainHeight:walkHeight,datum:terrain.datum,clearInput,getYaw:()=>yaw,isActive:()=>active});
 function movePlayer(dx,dz,radius){
  const steps=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.6));
  for(let i=0;i<steps;i++){
   const x=THREE.MathUtils.clamp(player.position.x+dx/steps,bounds.west,bounds.east),z=THREE.MathUtils.clamp(player.position.z+dz/steps,bounds.north,bounds.south);
-  const linkLevel=siteDetails.bridgeLevel,connection=motion.riding?null:(platformHeightAt(x,z,player.position.y,campus,terrain)??bridgeHeight(x,z,player.position.y,campus.levelLink,linkLevel)??bridgeHeight(x,z,player.position.y,campus.bioConnection,siteDetails.bioLevel));
+  const linkLevel=siteDetails.bridgeLevel,connection=motion.riding?null:(stairHeightAt(x,z,player.position.y,campus,terrain,roadNetwork)??platformHeightAt(x,z,player.position.y,campus,terrain)??bridgeHeight(x,z,player.position.y,campus.levelLink,linkLevel)??bridgeHeight(x,z,player.position.y,campus.bioConnection,siteDetails.bioLevel));
   const lake=lakeAt(x,z,campus);
   if(lake){const road=roadNetwork.nearest(x,z);if(!(road&&road.d<road.width/2&&roadNetwork.surfaceHeight(x,z)>terrain.platformHeight(lake)+.2)){motion.speed=0;showToast('前方是湖泊，請沿岸行走');return false;}}
   const blockedBuilding=obstacles.some(({ring,osm})=>distanceToRing(x,z,ring)<radius&&!(connection!==null&&[campus.levelLink.from,campus.levelLink.to,444867694,campus.bioConnection.from,campus.bioConnection.to].includes(osm)));
-  if(blockedBuilding||landscapeLayout.blocked(x,z,radius)||siteDetails.blocked(x,z,radius)){motion.speed=0;return false;}
+  if(blockedBuilding||landscapeLayout.blocked(x,z,radius)||siteDetails.blocked(x,z,radius,player.position.y)){motion.speed=0;return false;}
   player.position.set(x,connection??walkHeight(x,z),z);
  }
  return true;
@@ -452,6 +457,7 @@ let previous=performance.now();
 function frame(now){
  requestAnimationFrame(frame);const dt=Math.min((now-previous)/1000,.05);previous=now;
  if(document.hidden)return;
+ if(window.campusDeveloper?.isOpen())return;
  if(document.getElementById('mapDialog').open){campusMap.update();return;}
  if(active){
   const turns=[...heldPointers.values()];yaw+=((turns.some(b=>b.id==='turnL')?1:0)-(turns.some(b=>b.id==='turnR')?1:0))*1.8*dt;

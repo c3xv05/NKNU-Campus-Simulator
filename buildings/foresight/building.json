@@ -58,6 +58,7 @@
     "frame": "#b9b9ae",
     "glass": "#36545b",
     "detailDistance": 145,
-    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。"
+    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。",
+    "frontMode": "main-road"
   }
 }

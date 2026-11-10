@@ -1,6 +1,8 @@
+import {ringDistance} from './terrain.js';
+import {offsetRing} from './building-layout.js';
 import {pavementIndex} from './pavement.js';
 // Original procedural pavement and markings; no external texture assets.
-export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surfaceHeight(x,z)) {
+export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surfaceHeight(x,z),campus=null) {
   const group=new THREE.Group();group.name='campus-roads';scene.add(group);
   const textureCanvas=document.createElement('canvas');textureCanvas.width=128;textureCanvas.height=128;
   const context=textureCanvas.getContext('2d'),image=context.createImageData(128,128);
@@ -15,14 +17,15 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
   const yellow=new THREE.MeshBasicMaterial({color:0xffcc00,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   const earth=new THREE.MeshStandardMaterial({color:0x7f9167,roughness:1,side:THREE.DoubleSide});
   const batches={asphalt:[],concrete:[],white:[],yellow:[],earth:[]};
-  const footprints=[],pavement=pavementIndex(network);let currentRoute=null;
+  const footprints=[],pavement=pavementIndex(network);let currentRoute=null,pavementLift=0;
   const levels={asphalt:.035,concrete:.035,white:.045,yellow:.045};
-  function vertex(x,z,type){return [x,network.surfaceHeight(x,z)+levels[type],z];}
+  function vertex(x,z,type){return [x,network.surfaceHeight(x,z)+levels[type]+pavementLift,z];}
   function quad(points,type){if(type==='white'||type==='yellow'){for(const piece of pavement.clip([points[0],points[1],points[3],points[2]],currentRoute?.osm))for(let i=1;i<piece.length-1;i++)batches[type].push(...vertex(...piece[0],type),...vertex(...piece[i],type),...vertex(...piece[i+1],type));return;}if(type==='asphalt'||type==='concrete')footprints.push([points[0],points[1],points[3],points[2]]);const v=points.map(p=>vertex(p[0],p[1],type));batches[type].push(...v[0],...v[2],...v[1],...v[1],...v[2],...v[3]);}
   function skirt(a,b){
     // A broad sloped shoulder stitches the analytic pavement to the existing
     // triangulated ground, without changing clipped terrain edge interpolation.
     const dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz)||1,mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2;
+    if(campus?.flowerbed&&ringDistance(mx,mz,campus.flowerbed.ring)<1.35)return;
     const nx=-dz/l,nz=dx/l,plus=network.nearest(mx+nx,mz+nz),minus=network.nearest(mx-nx,mz-nz),sign=(plus?.d||0)>(minus?.d||0)?1:-1;
     const outer=p=>[p[0]+nx*sign*.85,p[1]+nz*sign*.85],oa=outer(a),ob=outer(b);
     const polygon=[a,b,ob,oa];
@@ -67,7 +70,7 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
       quad([offset(a,-half),offset(a,half),offset(b,-half),offset(b,half)],type);
       skirt(offset(a,-half),offset(b,-half));skirt(offset(a,half),offset(b,half));
       const crossing=crossings.get(route.osm),centreDistance=(a.distance+b.distance)/2;
-      const interrupted=(route.entrance&&(centreDistance<8||centreDistance>route.length-8||route.osm===293423733))||nearJunction((a.x+b.x)/2,(a.z+b.z)/2)||(crossing!==undefined&&Math.abs(centreDistance-crossing)<2.1);
+      const interrupted=route.entrance||nearJunction((a.x+b.x)/2,(a.z+b.z)/2)||(crossing!==undefined&&Math.abs(centreDistance-crossing)<2.1);
       if(!interrupted&&route.style.center)for(const side of [-1,1]){
         // Two 10 cm yellow lines with a 10 cm gap.
         const t=side*.1;
@@ -79,7 +82,7 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
       }
     }
     for(const p of (route.entrance?[]:[points[0],points.at(-1)]))if(type!=='concrete'||!network.onMotorRoad(p.x,p.z))cap(p.x,p.z,half,type);
-    if(crossings.has(route.osm)&&!route.style.path){
+    if(crossings.has(route.osm)&&!route.style.path&&!route.entrance){
       const p=pointAt(route,Math.min(route.length-4,crossings.get(route.osm)));
       // Taiwan sleeper-style crossing: 40 cm bars, 40 cm gaps, parallel to traffic.
       for(let lateral=-half+.6;lateral+.4<half-.5;lateral+=.8){
@@ -88,7 +91,7 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
         quad(corners,'white');
       }
     }
-    if(route.style.oneWay&&!route.style.path&&route.length>16){
+    if(route.style.oneWay&&!route.style.path&&!route.entrance&&route.length>16){
       const p=pointAt(route,route.length*.5),direction=route.style.reverse?-1:1;
       const dx=p.dx*direction,dz=p.dz*direction;
       const local=(side,forward)=>[p.x-dz*side+dx*forward,p.z+dx*side+dz*forward];
@@ -96,6 +99,9 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
       const arrow=[local(-.65,.3),local(.65,.3),local(0,1.5)];for(const piece of pavement.clip(arrow,currentRoute.osm))for(let i=1;i<piece.length-1;i++)for(const p of [piece[0],piece[i],piece[i+1]])batches.white.push(...vertex(...p,'white'));
     }
   }
+  // Close the last strip of soil between the irregular flowerbed kerb and asphalt.
+  // This apron deliberately carries no painted lines.
+  if(campus?.flowerbed){const inner=offsetRing(campus.flowerbed.ring,.12),outer=offsetRing(campus.flowerbed.ring,1.2);currentRoute=null;pavementLift=.02;for(let i=0;i<inner.length;i++){const j=(i+1)%inner.length;quad([inner[i],outer[i],inner[j],outer[j]],'asphalt');}pavementLift=0;}
   for(const [type,positions] of Object.entries(batches)){
     if(!positions.length)continue;
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));

@@ -91,17 +91,24 @@
     "id": "swallow-dorm",
     "osm": 444912221,
     "name": "燕窩",
-    "style": "generic",
+    "style": "dormitory",
     "frontHint": [
       98.17999999999999,
       -440.12
     ],
     "sign": "燕窩",
     "english": " ",
-    "wall": "#b2b1a7",
-    "frame": "#b9b9ae",
-    "glass": "#36545b",
+    "wall": "#d1c9b9",
+    "frame": "#ddd8cc",
+    "glass": "#4c656e",
     "detailDistance": 145,
-    "reference": "既有校園輪廓；未提供本棟照片，保留簡化外觀。"
+    "reference": "第三學生宿舍施工單位公開專案及校方宿舍資料核對位置用途；窗組、色彩與外廊採保守近似，未當成測量結果。",
+    "frontMode": "main-road",
+    "accent": "#b17e61",
+    "sources": [
+      "https://shinjou.com.tw/?act=project&ad_id=201909050018780&cmd=detail",
+      "https://sso.nknu.edu.tw/Services/Web/Default.aspx?cMenuId=522&cWebIdx=595"
+    ],
+    "confidence": "provisional"
   }
 }

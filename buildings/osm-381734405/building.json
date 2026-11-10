@@ -33,7 +33,7 @@
     "id": "osm-381734405",
     "osm": 381734405,
     "name": "未命名建築",
-    "style": "generic",
+    "style": "utility",
     "frontHint": [
       -188.76666666666665,
       10.0
@@ -44,6 +44,9 @@
     "frame": "#b9b9ae",
     "glass": "#36545b",
     "detailDistance": 145,
-    "reference": "既有校園輪廓；未提供本棟照片，保留簡化外觀。"
+    "reference": "既有校園輪廓；未提供本棟照片，保留簡化外觀。",
+    "frontMode": "main-road",
+    "showEntrance": false,
+    "showSign": false
   }
 }

@@ -28,7 +28,7 @@
     "id": "osm-444902480",
     "osm": 444902480,
     "name": "球場長條建築",
-    "style": "generic",
+    "style": "utility",
     "frontHint": [
       21.625,
       -245.5
@@ -39,6 +39,9 @@
     "frame": "#b9b9ae",
     "glass": "#36545b",
     "detailDistance": 145,
-    "reference": "既有校園輪廓；未提供本棟照片，保留簡化外觀。"
+    "reference": "既有校園輪廓；未提供本棟照片，保留簡化外觀。",
+    "frontMode": "main-road",
+    "showEntrance": false,
+    "showSign": false
   }
 }

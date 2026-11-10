@@ -20,6 +20,7 @@ export function sidewalkSections(campus,network){
 export function platformHeightAt(x,z,currentY,campus,terrain){
  const bio=campus.bioConnection;if(bio?.ramp){const q=projectOnLine(x,z,...bio.ramp);if(q.t>=0&&q.t<=1&&q.distance<(bio.accessWidth||4)/2){const base=terrain.platformHeight(campus.places.find(a=>a.osm===bio.from))+3.6,start=terrain.height(...bio.ramp[0]);return start+(base-start)*q.t;}}
 
+ const upper=terrain.platformHeight(campus.places.find(a=>a.osm===campus.levelLink.from))+3.6;if(campus.levelLink.ring?.length&&ringDistance(x,z,campus.levelLink.ring)===0&&currentY>=upper-.8)return upper+.08;
  const p=campus.courtyard;if(!p)return null;const gauss=campus.places.find(a=>a.osm===444867692),level=terrain.platformHeight(gauss)+7.2;
  const projection=projectOnLine(x,z,...p.ramp);if(projection.t>=0&&projection.t<=1&&projection.distance<p.width/2){const start=terrain.height(...p.ramp[0]),t=projection.t;return start+(level-start)*t;}
  return ringDistance(x,z,p.ring)===0&&currentY>=level-.8?level+.08:null;
