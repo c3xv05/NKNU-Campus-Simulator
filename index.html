@@ -1,20 +1,32 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>NKNU 燕巢校園探索｜MVP</title><style>
-*{box-sizing:border-box}body{margin:0;background:#101b21;color:white;font-family:system-ui,'Noto Sans TC',sans-serif;overflow:hidden}#scene{position:fixed;inset:0}canvas{display:block}#top{position:absolute;top:16px;left:16px;background:#0d2238d9;border:1px solid #ffffff33;border-radius:14px;padding:12px 16px;max-width:min(90vw,340px);pointer-events:none}h1{font-size:19px;margin:0 0 3px}small{opacity:.75}#info{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:#0d2238e8;border:1px solid #ffffff33;border-radius:14px;padding:12px 18px;min-width:260px;text-align:center;max-width:92vw}#info strong{color:#ffe19b}#mapbox{position:absolute;top:16px;right:16px;background:#092237da;padding:9px;border-radius:13px;border:1px solid #ffffff33}#map{width:180px;height:180px;border-radius:8px}#legend{font-size:10px;line-height:1.45;text-align:center}#legend a{color:#ceebf1}#start{position:absolute;inset:0;display:grid;place-items:center;background:#071b29bb;backdrop-filter:blur(6px)}#panel{max-width:440px;width:90vw;text-align:center;border:1px solid #ffffff40;background:#102a3be8;border-radius:24px;padding:28px;box-shadow:0 20px 60px #0005}#panel h2{font-size:27px}button{cursor:pointer;background:#2dd4bf;border:0;border-radius:12px;padding:12px 22px;font-weight:800;color:#062e32}#panel p{line-height:1.8;color:#d5e2eb}#notice{font-size:12px;opacity:.75}#touch{position:absolute;bottom:18px;left:14px;display:none;gap:6px;align-items:end}#touch button{padding:14px;min-width:48px;background:#103c50c9;color:white;border:1px solid #fff6}#dpad{display:grid;grid-template-columns:repeat(3,48px);gap:5px}#dpad .blank{visibility:hidden}#touchright{display:grid;gap:6px}#touchright button{min-width:60px}#status{position:absolute;top:250px;right:16px;font-size:12px;background:#102d3ccc;padding:7px;border-radius:8px}@media (pointer:coarse){#touch{display:flex}#info{bottom:135px}#map{width:125px;height:125px}#status{top:195px}#top{max-width:53vw}#top h1{font-size:15px}}
-
-/* Keep browser gestures out of the game controls, including iOS callouts. */
-#scene canvas,#touch, #touch button{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-#touch button{min-height:52px}#touch button.held{background:#217c88;border-color:#9ff6e8}
-#touch{right:14px;justify-content:space-between;pointer-events:none;bottom:max(18px,env(safe-area-inset-bottom))}
-#dpad,#touchright{pointer-events:auto}#touchright{grid-template-columns:repeat(2,52px);align-self:end}
-#touchright button{min-width:52px;padding:12px}#interact{grid-column:span 2}
-@media (pointer:coarse){#status{max-width:145px;text-align:right}#info{bottom:155px;font-size:13px;min-width:0;width:max-content;pointer-events:none}}
-@media (pointer:coarse) and (max-height:500px){#map{width:80px;height:80px}#legend{font-size:8px}#status{top:140px}#info{bottom:18px;max-width:38vw}#top small{display:none}}
-</style></head><body><div id="scene"></div><div id="top"><h1>🏫 NKNU 燕巢校園探索</h1><small>地理校正版・建築高度與地形為簡化模型</small><div id="progress">已探索 0 / 12 個地標</div></div><div id="mapbox"><canvas id="map" width="220" height="220"></canvas><div id="legend">▲ 你的位置　■ 校園地標<br><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div></div><div id="status">WASD 移動 · 滑鼠拖曳旋轉 · Shift 奔跑 · E 互動</div><div id="info">靠近建築，按 <strong>E</strong> 查看資訊</div><div id="touch"><div id="dpad"><span class="blank"></span><button data-key="KeyW">▲</button><span class="blank"></span><button data-key="KeyA">◀</button><button data-key="KeyS">▼</button><button data-key="KeyD">▶</button></div><div id="touchright"><button id="turnL">↶</button><button id="turnR">↷</button><button id="interact">互動</button></div></div><div id="start"><div id="panel"><div style="font-size:44px">🏫</div><h2>燕巢校園模擬器</h2><p>從校門出發，走訪校園建築、運動場與餐廳，探索 12 個地標。<br>電腦：WASD 移動、滑鼠拖曳旋轉、Shift 奔跑、E 互動。<br>手機：左手長按方向鍵移動，右手滑動畫面調整視角，可同時操作；↶↷ 也可長按轉向。</p><button id="play">開始探索</button><p id="notice">校區輪廓採用 OpenStreetMap，並以國土測繪中心正射影像核對。建築高度及地形為簡化模型。</p></div></div>
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>NKNU 燕巢校園探索</title><style>
+*{box-sizing:border-box}[hidden]{display:none!important}body{margin:0;background:#101b21;color:white;font-family:system-ui,'Noto Sans TC',sans-serif;overflow:hidden}#scene{position:fixed;inset:0}canvas{display:block}button{cursor:pointer;background:#2dd4bf;border:0;border-radius:12px;padding:12px 22px;font:inherit;font-weight:800;color:#062e32}button:focus-visible,a:focus-visible{outline:3px solid #ffdf88;outline-offset:3px}h1{font-size:19px;margin:0 0 3px}small{opacity:.75}#top{position:absolute;top:max(16px,env(safe-area-inset-top));left:16px;background:#0d2238d9;border:1px solid #ffffff33;border-radius:14px;padding:12px 16px;max-width:min(90vw,340px);pointer-events:none}#info{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:#0d2238e8;border:1px solid #ffffff33;border-radius:14px;padding:12px 18px;text-align:center;max-width:92vw;pointer-events:none}#info strong{color:#ffe19b}#mapbox{position:absolute;top:max(16px,env(safe-area-inset-top));right:16px;background:#092237da;padding:8px;border-radius:13px;border:1px solid #ffffff33}#mapOpen{padding:0;background:transparent;color:#d7f6ef;display:grid;gap:5px;width:100%;font-size:11px}#map{width:160px;height:160px;border-radius:8px}#legend{margin-top:6px;font-size:10px;line-height:1.45;text-align:center}a{color:#9ce9db}#status{position:absolute;top:245px;right:16px;font-size:12px;max-width:320px;background:#102d3ccc;padding:7px;border-radius:8px}#start{position:absolute;inset:0;display:grid;place-items:center;background:#071b29bb;backdrop-filter:blur(6px);padding:16px;overflow:auto}#panel{max-width:440px;width:100%;text-align:center;border:1px solid #ffffff40;background:#102a3be8;border-radius:24px;padding:24px;box-shadow:0 20px 60px #0005}#panel h2{font-size:27px;margin:12px 0}#panel p{line-height:1.8;color:#d5e2eb}#notice{font-size:12px;opacity:.75}
+#scene canvas,#touch,#touch button,#joystick{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}#touch{position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));display:none;justify-content:space-between;align-items:end;pointer-events:none}#touchright,#joystick{pointer-events:auto}#touchright{display:grid;grid-template-columns:repeat(2,52px);gap:6px;padding-bottom:18px}#touchright button{min-height:52px;padding:12px;background:#103c50e6;color:white;border:1px solid #fff6}#touch button.held{background:#217c88;border-color:#9ff6e8}#interact{grid-column:span 2}#stickArea{text-align:center}#joystick{position:relative;width:132px;height:132px;border-radius:50%;background:radial-gradient(circle,#254c5ac9,#102c3be0);border:2px solid #c1ede666;box-shadow:inset 0 0 25px #061c3e70}#joystick.engaged{border-color:#8cf2d8}#stickKnob{position:absolute;left:50%;top:50%;margin:-25px;width:50px;height:50px;border-radius:50%;background:#c1e6e9dd;border:2px solid #fff9;box-shadow:0 3px 12px #0004;pointer-events:none}#stickHint{font-size:11px;color:#cce5e9;line-height:22px}.stick-cross{position:absolute;inset:0;display:grid;place-items:center;color:#ffffff3d;font-size:48px}
+#mapDialog{color:#e7f1f5;background:#102a38;border:1px solid #729393;border-radius:20px;padding:20px;width:min(960px,96vw);max-height:94dvh;box-shadow:0 20px 70px #0008}#mapDialog::backdrop{background:#04131dd9;backdrop-filter:blur(4px)}.map-heading{position:sticky;top:-14px;z-index:2;background:#102a38;display:flex;justify-content:space-between;gap:12px;align-items:start}.map-heading h2{font-size:22px;margin:0}.map-heading p{font-size:12px;color:#b4d0d6;margin:6px 0 16px}#mapClose{padding:9px 15px;min-height:44px}.map-layout{display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:18px}.map-drawing{background:#b6c7a9;border-radius:12px;overflow:hidden;display:grid;place-items:center}#largeMap{display:block;width:100%;max-height:70dvh;touch-action:pan-y}#largeMap .map-place{cursor:pointer;outline:none}#largeMap .map-place:focus-visible circle{stroke:#fbd06a;stroke-width:6}.map-sidebar{max-height:70dvh;overflow:auto}#mapSelection{margin:0 0 10px;padding:12px;background:#1c3f4b;border-radius:10px;font-size:13px;line-height:1.6}#buildingList{display:grid;gap:5px}#buildingList button{display:flex;align-items:center;gap:9px;background:#193b4b;color:#e6f5f7;padding:9px 10px;font-size:13px;text-align:left;min-height:44px}#buildingList button.selected{background:#396353;box-shadow:inset 0 0 0 2px #f8d479}.place-number{display:grid;place-items:center;min-width:25px;height:25px;background:#2a5a70;border-radius:50%;font-size:11px}.visited .place-number{background:#147466}.map-sources{font-size:11px;color:#b9cdd0;line-height:1.7;margin-top:15px}
+@media(pointer:coarse){#touch{display:flex}#top{padding:10px;max-width:53vw}#top h1{font-size:15px}#top small{font-size:10px}#progress{font-size:12px;margin-top:4px}#map{width:110px;height:110px}#legend{font-size:8px}#status{top:190px;max-width:140px;text-align:right;font-size:11px}#info{bottom:180px;font-size:13px;width:max-content;min-width:0}#panel{padding:18px}#panel p{font-size:14px}}
+@media(max-width:600px){#mapDialog{padding:14px}.map-layout{grid-template-columns:1fr;gap:12px}#largeMap{max-height:54dvh}.map-sidebar{max-height:none}#buildingList{grid-template-columns:repeat(2,minmax(0,1fr))}#buildingList button{font-size:12px;padding:7px}.map-heading h2{font-size:19px}}
+@media(pointer:coarse) and (max-height:500px){#map{width:72px;height:72px}#legend{display:none}#status{top:127px}#info{bottom:18px;max-width:42vw}#top small{display:none}#joystick{width:110px;height:110px}#touchright{padding-bottom:0}#stickHint{display:none}#panel{max-width:600px;padding:14px}#panel h2{font-size:22px;margin:4px}#panel>div,#notice{display:none}#panel p{margin:8px 0}.map-layout{grid-template-columns:minmax(0,1fr) 220px}#largeMap,.map-sidebar{max-height:62dvh}}
+</style></head>
+<body>
+<div id="scene"></div>
+<div id="top"><h1>🏫 NKNU 燕巢校園探索</h1><small>山坡校園・衛星高程近似地形</small><div id="progress">已探索 0 / 12 個地標</div></div>
+<div id="mapbox"><button id="mapOpen" type="button" aria-label="開啟校園大地圖" aria-haspopup="dialog"><canvas id="map" width="220" height="220"></canvas><span>點擊放大地圖 ⤢</span></button><div id="legend">▲ 你的位置　■ 校園地標<br><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div></div>
+<div id="status"></div><div id="info">靠近建築查看資訊</div>
+<div id="touch"><div id="stickArea"><div id="joystick" role="group" aria-label="移動搖桿，拖曳控制方向與速度"><span class="stick-cross">＋</span><div id="stickKnob"></div></div><span id="stickHint">拖曳移動</span></div><div id="touchright"><button id="turnL" type="button">↶</button><button id="turnR" type="button">↷</button><button id="interact" type="button">互動</button></div></div>
+<dialog id="mapDialog" aria-labelledby="mapTitle"><div class="map-heading"><div><h2 id="mapTitle">燕巢校園地圖</h2><p>北方朝上 · ▲ 目前位置 · 點建築或清單查看位置</p></div><button id="mapClose" type="button" aria-label="關閉地圖">✕</button></div><div class="map-layout"><div class="map-drawing"><svg id="largeMap" viewBox="-455 -580 940 1160" role="img" aria-label="燕巢校區建築與目前位置"></svg></div><div class="map-sidebar"><p id="mapSelection" role="status">選擇建築，在地圖上標示位置</p><div id="buildingList"></div><div class="map-sources">藍色：未探索 · 綠色：已探索<br>底色深淺表示近似高低起伏。<br>地形：<a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Mapzen Terrain Tiles</a> / USGS SRTM。衛星高程約 30 公尺級，建築與場地平台經簡化平整，非測量成果。<br>建築位置參考 <a href="https://w3.nknu.edu.tw/images/files/yt_01_map.pdf" target="_blank" rel="noopener">高師大官方校區圖</a>及 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>。</div></div></div></dialog>
+<div id="start"><div id="panel"><div style="font-size:44px">🏫</div><h2>燕巢校園模擬器</h2><p>從校門出發，沿山坡走訪 12 個地標。<br>電腦：WASD 移動、滑鼠拖曳視角、Shift 奔跑、E 互動、M 地圖。<br>手機：左手拖曳搖桿，右手滑動畫面調整視角；點小地圖查看全校。</p><button id="play" type="button" disabled>載入校園…</button><p id="notice">校園輪廓源自 OpenStreetMap；地形依 Mapzen／USGS SRTM 高程近似重建，建築高度與場地平台為簡化模型。</p></div></div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
+import {createTerrain, sampleElevation} from './terrain.js';
+import {setupCampusMap} from './map.js';
+let active=false;
+const elevationResponse = await fetch('./data/elevation.json');
+if (!elevationResponse.ok) {document.getElementById('notice').textContent='地形資料載入失敗，請重新整理後再試。';throw new Error('Terrain data unavailable');}
+const elevationGrid = await elevationResponse.json();
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bd4ed);scene.fog=new THREE.Fog(0x9bd4ed,220,650);
-const cam=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,900);const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.getElementById('scene').append(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff,0x65845a,2.1));let sun=new THREE.DirectionalLight(0xfff5d5,2.6);sun.position.set(-60,110,70);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-180;sun.shadow.camera.right=180;sun.shadow.camera.top=180;sun.shadow.camera.bottom=-180;scene.add(sun, sun.target);
+const cam=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,900);const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,matchMedia('(pointer:coarse)').matches?1.5:2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.getElementById('scene').append(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff,0x65845a,2.1));let sun=new THREE.DirectionalLight(0xfff5d5,2.6);sun.position.set(-60,110,70);sun.castShadow=true;sun.shadow.mapSize.setScalar(matchMedia('(pointer:coarse)').matches?1024:2048);sun.shadow.camera.left=-180;sun.shadow.camera.right=180;sun.shadow.camera.top=180;sun.shadow.camera.bottom=-180;scene.add(sun, sun.target);
 const mat=(c)=>new THREE.MeshStandardMaterial({color:c,roughness:.9});const groundMat=mat(0x85bb78),roadMat=mat(0x888d91);function rect(w,h,d,x,y,z,m){let mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);return mesh}
 
 // ODbL 1.0 campus geometry derived from OpenStreetMap contributors.
@@ -166,8 +178,25 @@ const width = bounds.east - bounds.west;
 const depth = bounds.south - bounds.north;
 const centerX = (bounds.west + bounds.east) / 2;
 const centerZ = (bounds.north + bounds.south) / 2;
-const ground = rect(width, .3, depth, centerX, -.18, centerZ, groundMat);
-ground.castShadow = false;
+// Flatten footprints and sports/water platforms, blending back to measured hillsides.
+const terrain = createTerrain(elevationGrid, [...campus.places, ...campus.buildings, ...campus.courts, ...campus.water]);
+const terrainHeight = terrain.height;
+const terrainGeometry = new THREE.BufferGeometry();
+const terrainPositions = [], terrainIndices = [];
+const tm = terrain.mesh;
+for (let r=0;r<tm.rows;r++) for(let c=0;c<tm.columns;c++) {
+  terrainPositions.push(tm.west+c*tm.step,tm.heights[r*tm.columns+c],tm.north+r*tm.step);
+}
+for (let r=0;r<tm.rows-1;r++) for(let c=0;c<tm.columns-1;c++) {
+  const a=r*tm.columns+c,b=a+1,d=a+tm.columns+1,c0=a+tm.columns;
+  terrainIndices.push(a,c0,b,b,c0,d);
+}
+terrainGeometry.setAttribute('position',new THREE.Float32BufferAttribute(terrainPositions,3));
+terrainGeometry.setIndex(terrainIndices);
+terrainGeometry.computeVertexNormals();
+const ground = new THREE.Mesh(terrainGeometry,groundMat);
+ground.receiveShadow=true;
+scene.add(ground);
 
 function path(points, PathType) {
   const outline = new PathType();
@@ -183,28 +212,45 @@ function surface(area, y, material, height = 0) {
   const shape = path(area.ring, THREE.Shape);
   shape.holes = (area.holes || []).map(ring => path(ring, THREE.Path));
   const geometry = height
-    ? new THREE.ExtrudeGeometry(shape, { depth: height, bevelEnabled: false })
+    ? new THREE.ExtrudeGeometry(shape, { depth: height + 3, bevelEnabled: false })
     : new THREE.ShapeGeometry(shape);
   geometry.rotateX(-Math.PI / 2);
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.position.y = y;
+  const centre = outlineCenter(area.ring);
+  const base = terrainHeight(centre.x,centre.z);
+  mesh.position.y = y + base - (height ? 3 : 0);
   mesh.castShadow = height > 0;
   mesh.receiveShadow = true;
   scene.add(mesh);
   return mesh;
 }
 
-function makeRoad({ line, width }) {
-  for (let i = 1; i < line.length; i++) {
-    const [x1, z1] = line[i - 1];
-    const [x2, z2] = line[i];
-    const length = Math.hypot(x2 - x1, z2 - z1);
-    if (!length) continue;
-    const segment = rect(width, .05, length + width * .2, (x1 + x2) / 2, .01,
-      (z1 + z2) / 2, roadMat);
-    segment.rotation.y = Math.atan2(x2 - x1, z2 - z1);
-    segment.castShadow = false;
+function makeRoad({line,width}) {
+  const vertices=[],indices=[];
+  for(let i=1;i<line.length;i++) {
+    const [x1,z1]=line[i-1],[x2,z2]=line[i];
+    const length=Math.hypot(x2-x1,z2-z1);
+    if(!length) continue;
+    const dx=-(z2-z1)/length*width/2,dz=(x2-x1)/length*width/2;
+    const steps=Math.ceil(length/2);
+    for(let j=0;j<steps;j++) {
+      const start=vertices.length/3;
+      for(const t of [j/steps,(j+1)/steps]) {
+        const x=x1+(x2-x1)*t,z=z1+(z2-z1)*t;
+        for(const side of [-1,1]) {
+          const px=x+dx*side,pz=z+dz*side;
+          vertices.push(px,terrainHeight(px,pz)+.14,pz);
+        }
+      }
+      indices.push(start,start+2,start+1,start+1,start+2,start+3);
+    }
   }
+  const geometry=new THREE.BufferGeometry();
+  geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));
+  geometry.setIndex(indices);geometry.computeVertexNormals();
+  const material=roadMat;
+  material.side=THREE.DoubleSide;
+  const road=new THREE.Mesh(geometry,material);road.receiveShadow=true;scene.add(road);
 }
 
 function outlineCenter(ring) {
@@ -258,7 +304,7 @@ places.forEach((place, index) => {
     surface({ ring: place.holes[0] }, .07, fieldMaterial);
   }
   const label = textSprite(place.name);
-  label.position.set(place.x, place.height + 6, place.z);
+  label.position.set(place.x, terrainHeight(place.x,place.z) + place.height + 6, place.z);
   labelMeshes.push(label);
   scene.add(label);
 });
@@ -268,22 +314,59 @@ const [[gateWestX, gateWestZ], [gateEastX, gateEastZ]] = campus.gate;
 const gateX = (gateWestX + gateEastX) / 2;
 const gateZ = (gateWestZ + gateEastZ) / 2;
 const gateWidth = Math.hypot(gateEastX - gateWestX, gateEastZ - gateWestZ);
-const gateBeam = rect(gateWidth + 1, 1, 2, gateX, 7, gateZ, mat(0x335c63));
+const gateBeam = rect(gateWidth + 1, 1, 2, gateX, terrainHeight(gateX,gateZ) + 7, gateZ, mat(0x335c63));
 gateBeam.rotation.y = Math.atan2(gateWestZ - gateEastZ, gateEastX - gateWestX);
-for (const [x, z] of campus.gate) rect(2, 7, 2, x, 3.5, z, mat(0xe4e1cf));
+for (const [x, z] of campus.gate) rect(2, 7, 2, x, terrainHeight(x,z)+3.5, z, mat(0xe4e1cf));
 const gateLabel = textSprite('高師大燕巢校區 · 校門');
-gateLabel.position.set(gateX, 12, gateZ);
+gateLabel.position.set(gateX, terrainHeight(gateX,gateZ)+12, gateZ);
 labelMeshes.push(gateLabel);
 scene.add(gateLabel);
 
-const player=new THREE.Group();scene.add(player);const body=rect(1,2,1,0,0,0,mat(0x126b88));scene.remove(body);body.position.set(0,1.5,0);player.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.67,14,12),mat(0xf0c9a0));head.position.y=3;player.add(head);const backpack=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.5,.45),mat(0xf3b256));backpack.position.set(0,1.5,.7);player.add(backpack);player.position.set(-279, 0, 512);
-let yaw=0, pitch=.31, keys={},visited=new Set(),near=null,interactMsgUntil=0;const info=document.getElementById('info');const progress=document.getElementById('progress');function interact(){if(near){visited.add(near.name);info.innerHTML='<strong>'+near.name+'</strong><div>'+near.desc+'</div><small>已解鎖地標 '+visited.size+' / '+places.length+'</small>';progress.textContent='已探索 '+visited.size+' / '+places.length+' 個地標';interactMsgUntil=performance.now()+6500}}window.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.code==='KeyE'&&!e.repeat)interact()});window.addEventListener('keyup',e=>keys[e.code]=false);window.addEventListener('blur',()=>keys={});
+const player=new THREE.Group();scene.add(player);const body=rect(1,2,1,0,0,0,mat(0x126b88));scene.remove(body);body.position.set(0,1.5,0);player.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.67,14,12),mat(0xf0c9a0));head.position.y=3;player.add(head);const backpack=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.5,.45),mat(0xf3b256));backpack.position.set(0,1.5,.7);player.add(backpack);player.position.set(-279, terrainHeight(-279,512), 512);
+cam.position.copy(player.position).add(new THREE.Vector3(0,14,16));
+let yaw=0, pitch=.31, keys={},visited=new Set(),near=null,interactMsgUntil=0;const info=document.getElementById('info');const progress=document.getElementById('progress');function interact(){if(active&&!document.getElementById('mapDialog').open&&near){visited.add(near.name);info.innerHTML='<strong>'+near.name+'</strong><div>'+near.desc+'</div><small>已解鎖地標 '+visited.size+' / '+places.length+'</small>';progress.textContent='已探索 '+visited.size+' / '+places.length+' 個地標';interactMsgUntil=performance.now()+6500}}window.addEventListener('keydown',event=>{
+  if (event.code==='KeyM' && !event.repeat && active) {event.preventDefault();campusMap.toggle();return;}
+  if (!active || document.getElementById('mapDialog').open) return;
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(event.code))event.preventDefault();
+  keys[event.code]=true;if(event.code==='KeyE'&&!event.repeat)interact();
+});
+window.addEventListener('keyup',event=>keys[event.code]=false);
 // Track each finger independently so moving and looking can happen together.
 const heldPointers = new Map();
 let lookPointer = null;
+let stickPointer=null;
+const stick={x:0,z:0};
+const joystick=document.getElementById('joystick'),knob=document.getElementById('stickKnob');
+function resetStick() {
+  stickPointer=null;stick.x=0;stick.z=0;
+  knob.style.transform='translate(0px,0px)';joystick.classList.remove('engaged');
+}
+function updateStick(event) {
+  const box=joystick.getBoundingClientRect(),radius=box.width/2-25;
+  let dx=event.clientX-(box.left+box.width/2),dy=event.clientY-(box.top+box.height/2);
+  const length=Math.hypot(dx,dy),limit=Math.min(1,radius/(length||1));
+  dx*=limit;dy*=limit;
+  knob.style.transform=`translate(${dx}px,${dy}px)`;
+  const magnitude=Math.min(1,length/radius),speed=Math.max(0,(magnitude-.12)/.88);
+  stick.x=length ? dx/(Math.hypot(dx,dy)||1)*speed : 0;
+  stick.z=length ? dy/(Math.hypot(dx,dy)||1)*speed : 0;
+}
+joystick.addEventListener('pointerdown',event=>{
+  if(!active||document.getElementById('mapDialog').open||stickPointer!==null) return;
+  if(event.pointerType==='mouse'&&event.button!==0) return;
+  event.preventDefault();stickPointer=event.pointerId;joystick.setPointerCapture(event.pointerId);
+  joystick.classList.add('engaged');updateStick(event);
+});
+joystick.addEventListener('pointermove',event=>{
+  if(event.pointerId!==stickPointer) return;event.preventDefault();updateStick(event);
+});
+for(const type of ['pointerup','pointercancel','lostpointercapture']) joystick.addEventListener(type,event=>{
+  if(event.pointerId===stickPointer) resetStick();
+});
 const canvas = renderer.domElement;
 function clearInput() {
   keys = {};
+  resetStick();
   heldPointers.clear();
   lookPointer = null;
   document.querySelectorAll('#touch .held').forEach(button => button.classList.remove('held'));
@@ -295,7 +378,7 @@ for (const element of [canvas, document.getElementById('touch')]) {
   element.addEventListener('selectstart', event => event.preventDefault());
 }
 canvas.addEventListener('pointerdown', event => {
-  if (!active || lookPointer || (event.pointerType === 'mouse' && event.button !== 0)) return;
+  if (!active || document.getElementById('mapDialog').open || lookPointer || (event.pointerType === 'mouse' && event.button !== 0)) return;
   event.preventDefault();
   lookPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
   canvas.setPointerCapture(event.pointerId);
@@ -318,7 +401,7 @@ document.querySelectorAll('#touch button').forEach(button => {
   const labels = { KeyW: '前進', KeyS: '後退', KeyA: '向左移動', KeyD: '向右移動', turnL: '向左轉', turnR: '向右轉' };
   button.setAttribute('aria-label', labels[button.dataset.key || button.id] || '查看地標資訊');
   button.addEventListener('pointerdown', event => {
-    if (!active || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    if (!active || document.getElementById('mapDialog').open || (event.pointerType === 'mouse' && event.button !== 0)) return;
     event.preventDefault();
     heldPointers.set(event.pointerId, button);
     button.classList.add('held');
@@ -342,8 +425,8 @@ function pressed(code) {
 const mobile = matchMedia('(pointer:coarse)');
 function updateInstructions() {
   document.getElementById('status').textContent = mobile.matches
-    ? '左手移動 · 右手滑動視角 · 可雙指同時操作'
-    : 'WASD 移動 · 滑鼠拖曳旋轉 · Shift 奔跑 · E 互動';
+    ? '左手搖桿 · 右手滑動視角 · 點小地圖放大'
+    : 'WASD 移動 · 拖曳視角 · Shift 奔跑 · E 互動 · M 地圖';
 }
 updateInstructions();
 mobile.addEventListener('change', updateInstructions);
@@ -382,6 +465,13 @@ overviewCtx.fillRect(0, 0, map.width, map.height);
 overviewCtx.save();
 setMapCoordinates(overviewCtx);
 fillArea(overviewCtx, { ring: campus.boundary }, '#cadab3');
+overviewCtx.save();overviewCtx.beginPath();trace(overviewCtx,campus.boundary);overviewCtx.clip();
+for(let z=bounds.north;z<bounds.south;z+=20) for(let x=bounds.west;x<bounds.east;x+=20) {
+  const elevation=sampleElevation(elevationGrid,x,z);
+  const lightness=THREE.MathUtils.clamp(78-(elevation-45)*.3,43,80);
+  overviewCtx.fillStyle=`hsl(95 24% ${lightness}%)`;overviewCtx.fillRect(x,z,20,20);
+}
+overviewCtx.restore();
 campus.water.forEach(area => fillArea(overviewCtx, area, '#5a9cb2'));
 campus.courts.forEach(area => fillArea(overviewCtx, area, '#809d88'));
 campus.roads.forEach(({ line, width }) => {
@@ -429,11 +519,12 @@ function minimap() {
   ctx.restore();
 }
 
-let previous=performance.now(),active=false;function frame(now){requestAnimationFrame(frame);let dt=Math.min((now-previous)/1000,.05);previous=now;if(active){const turns = [...heldPointers.values()];yaw += ((turns.some(b=>b.id==='turnL')?1:0)-(turns.some(b=>b.id==='turnR')?1:0))*1.8*dt;let f=(pressed('KeyW')||pressed('ArrowUp')?1:0)-(pressed('KeyS')||pressed('ArrowDown')?1:0),side=(pressed('KeyD')||pressed('ArrowRight')?1:0)-(pressed('KeyA')||pressed('ArrowLeft')?1:0);let dir=new THREE.Vector3(side,0,-f);if(dir.lengthSq()>0){dir.normalize().applyAxisAngle(new THREE.Vector3(0,1,0),yaw);let speed=keys.ShiftLeft||keys.ShiftRight?23:12;let next=player.position.clone().addScaledVector(dir,speed*dt);next.x=THREE.MathUtils.clamp(next.x,bounds.west,bounds.east);next.z=THREE.MathUtils.clamp(next.z,bounds.north,bounds.south);let blocked=obstacles.some(({ring})=>distanceToRing(next.x,next.z,ring)<1.3);if(!blocked)player.position.copy(next);player.rotation.y=Math.atan2(-dir.x,-dir.z)}near=places.reduce((best,p)=>{let d=distanceToRing(player.position.x,player.position.z,p.ring);return d<19&&(!best||d<best.d)?{...p,d}:best},null);if(now>interactMsgUntil){const action=mobile.matches?'點右下角「互動」':'按 E';info.innerHTML=near?`靠近 <strong>${near.name}</strong>，${action} 查看介紹`:`靠近建築，${action} 查看資訊`} }
-sun.position.set(player.position.x - 60, 110, player.position.z + 70);
+const campusMap=setupCampusMap({campus,places,player,visited,bounds,terrainHeight,datum:terrain.datum,clearInput,getYaw:()=>yaw,isActive:()=>active});
+let previous=performance.now();function frame(now){requestAnimationFrame(frame);let dt=Math.min((now-previous)/1000,.05);previous=now;if(document.getElementById('mapDialog').open){campusMap.update();return;}if(active){const turns = [...heldPointers.values()];yaw += ((turns.some(b=>b.id==='turnL')?1:0)-(turns.some(b=>b.id==='turnR')?1:0))*1.8*dt;let f=(pressed('KeyW')||pressed('ArrowUp')?1:0)-(pressed('KeyS')||pressed('ArrowDown')?1:0),side=(pressed('KeyD')||pressed('ArrowRight')?1:0)-(pressed('KeyA')||pressed('ArrowLeft')?1:0);let dir=new THREE.Vector3(side+stick.x,0,-f+stick.z);if(dir.lengthSq()>0){if(dir.lengthSq()>1)dir.normalize();dir.applyAxisAngle(new THREE.Vector3(0,1,0),yaw);let speed=keys.ShiftLeft||keys.ShiftRight?23:12;let next=player.position.clone().addScaledVector(dir,speed*dt);next.x=THREE.MathUtils.clamp(next.x,bounds.west,bounds.east);next.z=THREE.MathUtils.clamp(next.z,bounds.north,bounds.south);let blocked=obstacles.some(({ring})=>distanceToRing(next.x,next.z,ring)<1.3);if(!blocked){next.y=terrainHeight(next.x,next.z);player.position.copy(next);}player.rotation.y=Math.atan2(-dir.x,-dir.z)}near=places.reduce((best,p)=>{let d=distanceToRing(player.position.x,player.position.z,p.ring);return d<19&&(!best||d<best.d)?{...p,d}:best},null);if(now>interactMsgUntil){const action=mobile.matches?'點右下角「互動」':'按 E';info.innerHTML=near?`靠近 <strong>${near.name}</strong>，${action} 查看介紹`:`靠近建築，${action} 查看資訊`} }
+sun.position.set(player.position.x - 60, player.position.y+110, player.position.z + 70);
 sun.target.position.copy(player.position);
 for (const label of labelMeshes) {
   label.visible = Math.hypot(label.position.x - player.position.x, label.position.z - player.position.z) < 110;
 }
-let target=player.position.clone().add(new THREE.Vector3(Math.sin(yaw)*16,8+pitch*18,Math.cos(yaw)*16));cam.position.lerp(target,.13);cam.lookAt(player.position.x,2,player.position.z);minimap();renderer.render(scene,cam)}requestAnimationFrame(frame);document.getElementById('play').onclick=()=>{document.getElementById('start').style.display='none';active=true};addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+let target=player.position.clone().add(new THREE.Vector3(Math.sin(yaw)*16,8+pitch*18,Math.cos(yaw)*16));cam.position.lerp(target,.13);cam.position.y=Math.max(cam.position.y,terrainHeight(cam.position.x,cam.position.z)+2);cam.lookAt(player.position.x,player.position.y+2,player.position.z);minimap();campusMap.update();renderer.render(scene,cam)}requestAnimationFrame(frame);document.getElementById('play').disabled=false;document.getElementById('play').textContent='開始探索';document.getElementById('play').onclick=()=>{document.getElementById('start').style.display='none';clearInput();active=true};addEventListener('resize',()=>{clearInput();cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 </script></body></html>
