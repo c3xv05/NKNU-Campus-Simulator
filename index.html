@@ -1,41 +1,362 @@
 <!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>NKNU 燕巢校園探索｜MVP</title><style>
-*{box-sizing:border-box}body{margin:0;background:#101b21;color:white;font-family:system-ui,'Noto Sans TC',sans-serif;overflow:hidden}#scene{position:fixed;inset:0}canvas{display:block}#top{position:absolute;top:16px;left:16px;background:#0d2238d9;border:1px solid #ffffff33;border-radius:14px;padding:12px 16px;max-width:min(90vw,340px);pointer-events:none}h1{font-size:19px;margin:0 0 3px}small{opacity:.75}#info{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:#0d2238e8;border:1px solid #ffffff33;border-radius:14px;padding:12px 18px;min-width:260px;text-align:center;max-width:92vw}#info strong{color:#ffe19b}#mapbox{position:absolute;top:16px;right:16px;background:#092237da;padding:9px;border-radius:13px;border:1px solid #ffffff33}#map{width:180px;height:180px;border-radius:8px}#legend{font-size:11px;opacity:.75;text-align:center}#start{position:absolute;inset:0;display:grid;place-items:center;background:#071b29bb;backdrop-filter:blur(6px)}#panel{max-width:440px;width:90vw;text-align:center;border:1px solid #ffffff40;background:#102a3be8;border-radius:24px;padding:28px;box-shadow:0 20px 60px #0005}#panel h2{font-size:27px}button{cursor:pointer;background:#2dd4bf;border:0;border-radius:12px;padding:12px 22px;font-weight:800;color:#062e32}#panel p{line-height:1.8;color:#d5e2eb}#notice{font-size:12px;opacity:.75}#touch{position:absolute;bottom:18px;left:14px;display:none;gap:6px;align-items:end}#touch button{padding:14px;min-width:48px;background:#103c50c9;color:white;border:1px solid #fff6}#dpad{display:grid;grid-template-columns:repeat(3,48px);gap:5px}#dpad .blank{visibility:hidden}#touchright{display:grid;gap:6px}#touchright button{min-width:60px}#status{position:absolute;top:218px;right:16px;font-size:12px;background:#102d3ccc;padding:7px;border-radius:8px}@media (pointer:coarse){#touch{display:flex}#info{bottom:135px}#map{width:125px;height:125px}#status{top:163px}#top{max-width:53vw}#top h1{font-size:15px}}
-</style></head><body><div id="scene"></div><div id="top"><h1>🏫 NKNU 燕巢校園探索</h1><small>3D 概念原型・建築與相對位置僅供示意</small><div id="progress">已探索 0 / 12 個地標</div></div><div id="mapbox"><canvas id="map" width="220" height="220"></canvas><div id="legend">▲ 你的位置　■ 校園地標</div></div><div id="status">WASD 移動 · 滑鼠拖曳旋轉 · Shift 奔跑 · E 互動</div><div id="info">靠近建築，按 <strong>E</strong> 查看資訊</div><div id="touch"><div id="dpad"><span class="blank"></span><button data-key="KeyW">▲</button><span class="blank"></span><button data-key="KeyA">◀</button><button data-key="KeyS">▼</button><button data-key="KeyD">▶</button></div><div id="touchright"><button id="turnL">↶</button><button id="turnR">↷</button><button id="interact">互動</button></div></div><div id="start"><div id="panel"><div style="font-size:44px">🏫</div><h2>燕巢校園模擬器</h2><p>從校門出發，走訪校園建築、運動場與餐廳，探索 12 個地標。<br>電腦：WASD 移動、滑鼠拖曳旋轉、Shift 奔跑、E 互動。<br>手機：方向按鈕移動、↶↷ 轉向。</p><button id="play">開始探索</button><p id="notice">參考高師大官方校區平面圖；此為初版示意模型，並非精準 3D 實景。</p></div></div>
+*{box-sizing:border-box}body{margin:0;background:#101b21;color:white;font-family:system-ui,'Noto Sans TC',sans-serif;overflow:hidden}#scene{position:fixed;inset:0}canvas{display:block}#top{position:absolute;top:16px;left:16px;background:#0d2238d9;border:1px solid #ffffff33;border-radius:14px;padding:12px 16px;max-width:min(90vw,340px);pointer-events:none}h1{font-size:19px;margin:0 0 3px}small{opacity:.75}#info{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:#0d2238e8;border:1px solid #ffffff33;border-radius:14px;padding:12px 18px;min-width:260px;text-align:center;max-width:92vw}#info strong{color:#ffe19b}#mapbox{position:absolute;top:16px;right:16px;background:#092237da;padding:9px;border-radius:13px;border:1px solid #ffffff33}#map{width:180px;height:180px;border-radius:8px}#legend{font-size:10px;line-height:1.45;text-align:center}#legend a{color:#ceebf1}#start{position:absolute;inset:0;display:grid;place-items:center;background:#071b29bb;backdrop-filter:blur(6px)}#panel{max-width:440px;width:90vw;text-align:center;border:1px solid #ffffff40;background:#102a3be8;border-radius:24px;padding:28px;box-shadow:0 20px 60px #0005}#panel h2{font-size:27px}button{cursor:pointer;background:#2dd4bf;border:0;border-radius:12px;padding:12px 22px;font-weight:800;color:#062e32}#panel p{line-height:1.8;color:#d5e2eb}#notice{font-size:12px;opacity:.75}#touch{position:absolute;bottom:18px;left:14px;display:none;gap:6px;align-items:end}#touch button{padding:14px;min-width:48px;background:#103c50c9;color:white;border:1px solid #fff6}#dpad{display:grid;grid-template-columns:repeat(3,48px);gap:5px}#dpad .blank{visibility:hidden}#touchright{display:grid;gap:6px}#touchright button{min-width:60px}#status{position:absolute;top:250px;right:16px;font-size:12px;background:#102d3ccc;padding:7px;border-radius:8px}@media (pointer:coarse){#touch{display:flex}#info{bottom:135px}#map{width:125px;height:125px}#status{top:195px}#top{max-width:53vw}#top h1{font-size:15px}}
+</style></head><body><div id="scene"></div><div id="top"><h1>🏫 NKNU 燕巢校園探索</h1><small>地理校正版・建築高度與地形為簡化模型</small><div id="progress">已探索 0 / 12 個地標</div></div><div id="mapbox"><canvas id="map" width="220" height="220"></canvas><div id="legend">▲ 你的位置　■ 校園地標<br><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div></div><div id="status">WASD 移動 · 滑鼠拖曳旋轉 · Shift 奔跑 · E 互動</div><div id="info">靠近建築，按 <strong>E</strong> 查看資訊</div><div id="touch"><div id="dpad"><span class="blank"></span><button data-key="KeyW">▲</button><span class="blank"></span><button data-key="KeyA">◀</button><button data-key="KeyS">▼</button><button data-key="KeyD">▶</button></div><div id="touchright"><button id="turnL">↶</button><button id="turnR">↷</button><button id="interact">互動</button></div></div><div id="start"><div id="panel"><div style="font-size:44px">🏫</div><h2>燕巢校園模擬器</h2><p>從校門出發，走訪校園建築、運動場與餐廳，探索 12 個地標。<br>電腦：WASD 移動、滑鼠拖曳旋轉、Shift 奔跑、E 互動。<br>手機：方向按鈕移動、↶↷ 轉向。</p><button id="play">開始探索</button><p id="notice">校區輪廓採用 OpenStreetMap，並以國土測繪中心正射影像核對。建築高度及地形為簡化模型。</p></div></div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bd4ed);scene.fog=new THREE.Fog(0x9bd4ed,140,330);
-const cam=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,600);const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.getElementById('scene').append(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xffffff,0x65845a,2.1));let sun=new THREE.DirectionalLight(0xfff5d5,2.6);sun.position.set(-60,110,70);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-180;sun.shadow.camera.right=180;sun.shadow.camera.top=180;sun.shadow.camera.bottom=-180;scene.add(sun);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bd4ed);scene.fog=new THREE.Fog(0x9bd4ed,220,650);
+const cam=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,900);const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.getElementById('scene').append(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff,0x65845a,2.1));let sun=new THREE.DirectionalLight(0xfff5d5,2.6);sun.position.set(-60,110,70);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-180;sun.shadow.camera.right=180;sun.shadow.camera.top=180;sun.shadow.camera.bottom=-180;scene.add(sun, sun.target);
 const mat=(c)=>new THREE.MeshStandardMaterial({color:c,roughness:.9});const groundMat=mat(0x85bb78),roadMat=mat(0x888d91);function rect(w,h,d,x,y,z,m){let mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);return mesh}
-rect(290,.3,300,0,-.22,0,groundMat);
-function road(points,width=8){for(let i=1;i<points.length;i++){let a=new THREE.Vector3(points[i-1][0],0,points[i-1][1]),b=new THREE.Vector3(points[i][0],0,points[i][1]);let mid=a.clone().add(b).multiplyScalar(.5),v=b.clone().sub(a);let m=rect(width,.07,v.length(),mid.x,.03,mid.z,roadMat);m.rotation.y=Math.atan2(v.x,v.z)}}
-// 圖面北側在 -Z；建物位置為人工概化，不代表測量坐標
-road([[0,137],[0,105],[0,75],[-18,54],[-34,31],[-25,8],[-10,-17],[2,-44],[8,-75],[24,-107]],10);road([[0,71],[24,48],[46,22],[46,-4],[28,-36],[8,-75]],8);road([[-26,8],[-49,-10],[-60,-35],[-42,-66],[4,-73]],7);road([[8,-75],[-12,-101],[-35,-110]],7);
-const places=[
-{name:'科技大樓',x:-57,z:-99,w:26,d:18,h:19,desc:'燕巢校區重要的教學與研究建築。'},
-{name:'燕窩（學生餐廳）',x:-17,z:-111,w:20,d:13,h:8,desc:'校內餐飲與學生交流空間。'},
-{name:'操場',x:36,z:-91,w:44,d:51,h:0,desc:'校園運動與休閒活動區。',kind:'field'},
-{name:'生科大樓 A',x:-52,z:-48,w:19,d:17,h:16,desc:'生命科學相關教學研究空間。'},
-{name:'生科大樓 B',x:-32,z:-30,w:19,d:17,h:15,desc:'生科教學區的一部分。'},
-{name:'致理大樓',x:-10,z:-32,w:17,d:23,h:23,desc:'校內行政及教學活動所在的建築。'},
-{name:'高斯大樓',x:-54,z:-7,w:21,d:18,h:21,desc:'燕巢校區的教學大樓之一。'},
-{name:'寰宇大樓',x:-33,z:9,w:20,d:18,h:19,desc:'燕巢校區的主要建築之一。'},
-{name:'圖資大樓',x:40,z:13,w:32,d:24,h:16,desc:'圖書與資訊資源相關服務空間。'},
-{name:'文萃樓',x:-46,z:47,w:19,d:17,h:13,desc:'校園建築與活動空間。'},
-{name:'歸燕食巢（學生餐廳）',x:-33,z:72,w:23,d:13,h:8,desc:'供學生用餐的校園設施。'},
-{name:'霽遠樓',x:-40,z:94,w:21,d:13,h:15,desc:'校內宿舍生活區之一。'}];
-let buildingMeshes=[];let palette=[0xb9c7d5,0xe0c8a8,0xc8e0de,0xd7bec5,0xe0d6bc,0xb2c5e4];const windowMat=mat(0x42647a);const stripeMat=mat(0xf1efe7);
+
+// ODbL 1.0 campus geometry derived from OpenStreetMap contributors.
+// Local metres, with X east and Z south. Heights and widths are estimates.
+// https://api.openstreetmap.org/api/0.6/map.json?bbox=120.4025,22.7814,120.4116,22.7918
+const campus = {
+  boundary: [[-249.8,526.4],[-207.8,526.3],[-191.5,531.5],[-177.3,533.0],[-126.8,523.6],[-123.2,510.5],[-41.9,424.4],[-13.5,327.2],[-28.2,300.3],[4.9,280.5],[23.3,190.3],[82.9,136.9],[87.7,120.3],[78.3,61.8],[78.1,48.9],[117.9,-51.6],[117.2,-86.9],[100.6,-120.1],[94.3,-141.0],[101.0,-157.6],[113.9,-167.2],[126.4,-169.4],[182.2,-155.9],[269.4,-105.1],[287.9,-81.5],[306.1,-64.1],[331.5,-57.5],[427.3,-59.1],[402.9,-121.6],[368.8,-136.2],[333.9,-175.2],[288.3,-271.7],[287.7,-290.3],[277.3,-308.5],[279.1,-325.8],[265.9,-339.1],[267.4,-351.7],[251.5,-392.8],[242.3,-414.9],[229.4,-405.7],[208.5,-450.6],[175.3,-459.8],[142.2,-481.9],[95.8,-491.8],[70.6,-499.8],[45.4,-533.9],[-1.7,-542.0],[-33.0,-529.4],[-41.4,-524.2],[-44.5,-522.9],[-53.9,-511.0],[-100.3,-502.7],[-148.8,-497.3],[-168.5,-483.5],[-168.7,-471.4],[-165.9,-462.1],[-125.9,-427.6],[-137.2,-394.3],[-161.6,-388.6],[-191.6,-421.1],[-241.9,-404.9],[-268.7,-388.6],[-302.8,-356.2],[-300.4,-318.0],[-311.7,-266.9],[-320.7,-223.1],[-308.9,-192.8],[-303.2,-174.3],[-293.2,-144.6],[-288.2,-125.7],[-288.0,-101.2],[-295.7,-85.8],[-320.7,-58.5],[-332.3,-44.1],[-344.1,-32.2],[-346.4,-20.2],[-348.0,-7.0],[-348.6,9.7],[-348.7,44.1],[-349.1,79.9],[-348.4,105.2],[-352.0,138.9],[-356.5,168.3],[-383.6,192.3],[-416.8,222.3],[-406.3,238.6],[-353.5,213.4],[-337.7,227.0],[-343.8,264.5],[-378.1,310.5],[-386.9,341.1],[-381.8,367.6],[-363.3,383.1],[-330.2,412.9],[-287.1,525.5],[-275.3,525.8],[-261.1,525.3]],
+  roads: [
+    {"osm":218881793,"name":"清心路","width":7,"line":[[92.8,-169.0],[79.7,-225.6],[54.5,-314.3],[29.0,-403.9],[25.3,-422.8],[14.0,-441.5]]},
+    {"osm":218881794,"name":"莘學路","width":7,"line":[[-9.1,206.8],[-18.4,188.8],[-51.5,124.5],[-64.9,98.6],[-74.8,79.4]]},
+    {"osm":218881795,"name":"向陽路","width":7,"line":[[-73.7,-357.9],[-68.3,-349.2],[-28.9,-262.7],[-16.5,-238.8],[31.8,-143.0],[34.4,-136.6]]},
+    {"osm":218881797,"name":"","width":4.5,"line":[[109.2,-179.1],[146.5,-172.3],[178.3,-169.2],[234.0,-233.4],[241.4,-240.8],[252.2,-245.6],[280.9,-267.7]]},
+    {"osm":218881798,"name":"清心路","width":7,"line":[[-249.4,477.0],[-194.5,478.4],[-156.1,469.7],[-140.7,458.8],[-54.6,345.4],[-52.0,332.2],[-58.7,308.1],[-65.2,289.5],[-55.3,268.3],[-40.8,247.1],[-23.9,225.7],[-9.1,206.8],[36.8,168.5],[58.0,148.4],[77.8,129.0],[80.8,119.2],[69.7,59.8],[69.4,50.2],[83.7,11.9],[100.1,-25.2],[113.9,-55.4],[114.7,-80.3],[108.5,-97.7],[98.2,-111.8]]},
+    {"osm":218881799,"name":"環手星月大道","width":7,"line":[[34.4,-136.6],[92.8,-169.0],[109.2,-179.1],[138.6,-193.3],[186.7,-219.9],[211.2,-241.7],[221.9,-271.5],[226.4,-309.7],[224.7,-345.1],[211.3,-381.8],[183.9,-423.9],[168.2,-448.0],[141.0,-470.5],[113.4,-481.5],[87.6,-483.0],[62.2,-477.9],[40.1,-460.2],[14.0,-441.5]]},
+    {"osm":218881800,"name":"師大路四段","width":7,"line":[[-121.2,-311.0],[-112.9,-293.6],[-96.6,-249.2],[-95.3,-245.8],[-93.6,-241.3],[-88.5,-227.3],[-64.8,-162.4],[-50.4,-125.1],[-46.6,-114.7],[-33.3,-96.6],[-22.7,-81.5]]},
+    {"osm":218881805,"name":"","width":7,"line":[[-261.1,525.3],[-249.4,477.0]]},
+    {"osm":293423728,"name":"師大路三段","width":7,"line":[[-22.7,-81.5],[-21.7,-74.9],[-22.8,-44.8],[-26.1,-20.9],[-30.5,-6.0],[-36.7,9.3],[-54.3,54.0],[-74.8,79.4]]},
+    {"osm":293423729,"name":"詠霽路","width":7,"line":[[-121.2,-311.0],[-167.2,-289.1],[-181.2,-275.9],[-193.8,-259.2],[-213.6,-204.9],[-212.4,-171.5],[-204.8,-120.4],[-209.9,-93.6],[-217.2,-68.7],[-237.7,-40.8]]},
+    {"osm":293423731,"name":"清心路","width":7,"line":[[98.2,-111.8],[80.9,-138.7],[92.8,-169.0]]},
+    {"osm":293423732,"name":"","width":7,"line":[[-285.8,472.8],[-285.9,489.0],[-275.3,525.8]]},
+    {"osm":293423733,"name":"","width":7,"line":[[-249.4,477.0],[-259.7,476.2],[-270.1,474.4],[-285.8,472.8]]},
+    {"osm":293423735,"name":"環手星月大道","width":7,"line":[[14.0,-441.5],[4.4,-436.8],[-17.0,-426.7],[-53.6,-405.1],[-64.5,-395.8],[-70.8,-379.3],[-73.7,-357.9],[-121.2,-311.0]]},
+    {"osm":293423736,"name":"","width":7,"line":[[14.0,-441.5],[20.6,-451.6],[23.5,-463.8],[23.5,-470.7],[23.5,-478.9],[10.3,-507.3],[8.5,-511.3],[-6.4,-519.9],[-27.6,-522.3],[-36.1,-521.9],[-44.5,-522.9],[-50.1,-522.7]]},
+    {"osm":381734286,"name":"","width":7,"line":[[-272.2,-20.1],[-269.3,-8.1],[-267.6,8.6],[-270.6,16.7],[-273.7,19.0],[-282.5,21.0],[-291.4,20.2],[-296.3,18.4],[-303.0,13.9],[-309.4,8.9],[-313.2,3.8],[-322.1,-10.0]]},
+    {"osm":381735518,"name":"","width":7,"line":[[-217.2,-68.7],[-208.3,-66.1],[-187.1,-59.7]]},
+    {"osm":382867984,"name":"","width":2.0,"line":[[-217.6,-23.2],[-230.3,-33.6],[-237.7,-40.8]]},
+    {"osm":382867985,"name":"","width":2.0,"line":[[-163.5,-56.0],[-162.4,-53.0],[-177.3,-43.5],[-183.9,-39.3],[-187.8,-34.7]]},
+    {"osm":382867986,"name":"","width":2.0,"line":[[-182.6,-50.2],[-177.3,-43.5],[-167.1,-30.9],[-171.2,-17.3],[-180.6,1.2]]},
+    {"osm":382867988,"name":"","width":2.0,"line":[[-237.9,33.2],[-234.6,30.4]]},
+    {"osm":382867991,"name":"","width":2.0,"line":[[-292.0,24.3],[-290.4,38.4]]},
+    {"osm":382867992,"name":"","width":2.0,"line":[[-197.4,18.2],[-204.4,16.6],[-212.9,9.6]]},
+    {"osm":382869349,"name":"詠霽路","width":7,"line":[[-237.7,-40.8],[-245.7,-33.7],[-248.5,-31.5],[-254.5,-29.5],[-264.5,-23.5],[-266.3,-22.7],[-272.2,-20.1],[-274.1,-19.2],[-304.6,-12.2],[-306.1,-11.8],[-322.1,-10.0],[-339.5,-6.3],[-348.0,-7.0]]},
+    {"osm":383447312,"name":"","width":2.0,"line":[[-234.6,30.4],[-227.5,23.0],[-212.9,9.6],[-196.0,-5.8],[-191.9,-9.6],[-176.1,-24.1],[-183.9,-39.3]]},
+    {"osm":383447313,"name":"","width":2.0,"line":[[-237.9,33.2],[-246.6,39.0],[-262.6,23.4],[-267.7,19.2],[-270.6,16.7]]},
+    {"osm":383447314,"name":"","width":7,"line":[[-264.5,-23.5],[-256.4,-11.3],[-227.5,23.0]]},
+    {"osm":383447316,"name":"","width":2.0,"line":[[-262.7,2.7],[-257.1,0.1],[-256.0,-2.5],[-259.2,-9.7],[-262.3,-10.4],[-264.9,-6.2],[-262.7,2.7],[-263.0,5.9],[-263.4,9.8],[-267.7,19.2],[-283.3,25.1],[-292.0,24.3],[-301.4,19.8],[-307.7,14.3],[-309.4,8.9]]},
+    {"osm":385787556,"name":"","width":2.0,"line":[[-35.0,-438.9],[4.4,-436.8]]},
+    {"osm":396000111,"name":"","width":2.0,"line":[[-309.7,385.5],[-317.2,382.2],[-360.6,369.7],[-370.7,357.7],[-365.7,331.2],[-331.5,282.2],[-316.7,248.8],[-318.2,234.8],[-300.3,182.7],[-305.0,161.7],[-305.1,138.8],[-285.6,101.4],[-191.3,45.8],[-227.5,23.0]]},
+    {"osm":396000112,"name":"","width":2.0,"line":[[-139.0,34.9],[-191.3,45.8],[-268.4,66.4],[-313.0,54.2],[-322.8,52.8]]},
+    {"osm":396000113,"name":"","width":2.0,"line":[[-136.8,31.0],[-129.8,-50.3],[-111.7,-89.9],[-111.0,-108.6],[-120.7,-116.4],[-197.0,-120.6],[-204.8,-120.4]]},
+    {"osm":396000114,"name":"","width":2.0,"line":[[-235.5,203.8],[-246.3,197.0],[-271.6,176.1],[-268.9,150.4],[-139.0,34.9],[-136.8,31.0],[-92.7,-50.6],[-70.5,-61.1],[-32.9,-66.2]]},
+    {"osm":397467185,"name":"","width":4.5,"line":[[-339.5,-6.3],[-345.2,9.7]]},
+    {"osm":399030880,"name":"師大路一段","width":12,"line":[[-235.5,203.8],[-278.4,281.3],[-310.2,356.8],[-311.0,369.4],[-309.7,385.5],[-307.6,405.1],[-303.0,423.0],[-290.2,466.9],[-285.8,472.8]]},
+    {"osm":399030881,"name":"師大路二段","width":7,"line":[[-74.8,79.4],[-91.0,86.6],[-157.2,119.4],[-199.7,142.5],[-231.9,197.1],[-235.5,203.8]]},
+    {"osm":399830913,"name":"","width":7,"line":[[-348.0,-7.0],[-350.8,-5.6]]},
+    {"osm":399830914,"name":"環手星月大道","width":7,"line":[[34.4,-136.6],[8.6,-116.7],[-22.7,-81.5]]},
+    {"osm":399908532,"name":"","width":2.0,"line":[[-313.2,3.8],[-269.3,-8.1]]},
+    {"osm":399908534,"name":"","width":2.0,"line":[[-301.4,-24.9],[-304.6,-12.2]]},
+    {"osm":399908536,"name":"","width":2.0,"line":[[-274.7,-37.9],[-266.3,-22.7]]},
+    {"osm":399908546,"name":"","width":4.5,"line":[[-254.5,-29.5],[-256.7,-48.6],[-255.6,-55.8],[-249.5,-57.3]]},
+    {"osm":418049573,"name":"","width":4.5,"line":[[-64.8,-162.4],[-70.2,-160.6],[-87.6,-155.0]]},
+    {"osm":418049574,"name":"","width":4.5,"line":[[-87.6,-155.0],[-74.4,-116.8],[-58.9,-122.2],[-50.4,-125.1]]},
+    {"osm":418049575,"name":"","width":4.5,"line":[[-87.6,-155.0],[-113.9,-148.0],[-116.7,-158.1]]},
+    {"osm":444864794,"name":"","width":2.0,"line":[[-36.0,-72.8],[-21.7,-74.9],[-8.2,-73.7]]},
+    {"osm":444867697,"name":"","width":2.0,"line":[[-73.9,-262.3],[-71.7,-254.6],[-70.6,-251.1],[-69.6,-247.8],[-68.1,-242.5]]},
+    {"osm":444867698,"name":"","width":2.0,"line":[[-95.3,-245.8],[-89.1,-247.1],[-70.6,-251.1]]},
+    {"osm":444867699,"name":"","width":2.0,"line":[[-93.6,-241.3],[-88.0,-242.8],[-69.6,-247.8]]},
+    {"osm":444867700,"name":"","width":2.0,"line":[[-96.6,-249.2],[-71.7,-254.6]]},
+    {"osm":444867701,"name":"","width":2.0,"line":[[-69.6,-247.8],[-67.8,-248.3],[-68.7,-251.7],[-69.5,-255.1],[-71.7,-254.6]]},
+    {"osm":444867702,"name":"","width":2.0,"line":[[-68.7,-251.7],[-28.9,-262.7]]},
+    {"osm":444867703,"name":"","width":2.0,"line":[[-108.5,-235.0],[-104.6,-222.6]]},
+    {"osm":444867704,"name":"","width":2.0,"line":[[-104.6,-222.6],[-94.1,-225.7],[-88.5,-227.3]]},
+    {"osm":444988441,"name":"","width":2.0,"line":[[-197.9,-8.3],[-196.0,-5.8]]},
+    {"osm":444988442,"name":"","width":2.0,"line":[[-197.9,-8.3],[-191.9,-9.6]]},
+    {"osm":444988443,"name":"","width":2.0,"line":[[-256.4,-11.3],[-230.3,-33.6],[-221.4,-41.2],[-208.3,-66.1]]},
+    {"osm":444988684,"name":"","width":2.0,"line":[[-186.3,-62.5],[-206.4,-69.6],[-199.8,-97.3],[-197.0,-120.6],[-198.6,-146.2],[-205.6,-182.6],[-207.6,-189.9],[-207.8,-202.8],[-186.1,-256.8],[-163.5,-280.7],[-132.9,-294.5],[-125.5,-287.4],[-115.0,-288.1],[-94.1,-225.7],[-74.7,-172.9],[-70.2,-160.6],[-58.9,-122.2],[-36.0,-72.8],[-32.9,-66.2],[-37.0,-9.9],[-76.4,67.2],[-95.5,76.3],[-221.0,136.5],[-231.1,148.2],[-236.8,167.2],[-238.4,180.9],[-243.4,191.0],[-246.3,197.0]]},
+    {"osm":444988685,"name":"","width":2.0,"line":[[-206.4,-69.6],[-208.3,-66.1]]},
+    {"osm":445696811,"name":"","width":2.0,"line":[[-270.1,474.4],[-270.2,466.9],[-283.8,460.1],[-297.9,407.8],[-303.4,368.6],[-298.2,347.1],[-221.7,202.0],[-193.1,147.8],[-87.7,103.4],[-83.3,104.2],[-80.1,104.7],[-67.3,117.3]]},
+    {"osm":445696812,"name":"","width":2.0,"line":[[-311.0,369.4],[-303.4,368.6]]},
+    {"osm":445696814,"name":"","width":2.0,"line":[[-243.4,191.0],[-231.9,197.1],[-221.7,202.0]]},
+    {"osm":445696816,"name":"","width":2.0,"line":[[-95.5,76.3],[-91.0,86.6],[-83.3,104.2]]},
+    {"osm":445696818,"name":"","width":2.0,"line":[[-49.3,110.5],[-52.6,93.6],[-50.1,80.5],[-20.2,5.1],[-13.6,-20.8],[-11.3,-45.6],[-10.7,-51.3],[-9.3,-67.0],[-8.2,-73.7],[-6.8,-79.1],[13.9,-104.4]]},
+    {"osm":445696820,"name":"","width":2.0,"line":[[-80.1,104.7],[-64.9,98.6],[-52.6,93.6]]},
+    {"osm":445696821,"name":"","width":2.0,"line":[[-62.9,129.8],[-51.5,124.5],[-45.5,121.4]]},
+    {"osm":445696822,"name":"","width":2.0,"line":[[-27.8,194.3],[-18.4,188.8],[-15.3,187.3]]},
+    {"osm":445696823,"name":"","width":2.0,"line":[[-26.7,223.5],[-23.9,225.7],[-15.0,233.6]]},
+    {"osm":445696824,"name":"","width":2.0,"line":[[82.6,-166.1],[31.8,-143.0]]},
+    {"osm":445696825,"name":"","width":2.0,"line":[[31.8,-143.0],[0.2,-116.3],[-11.2,-106.9],[-22.7,-102.8],[-35.8,-107.8],[-41.7,-117.8],[-89.1,-247.1],[-107.9,-299.5],[-107.1,-310.3],[-68.3,-349.2]]},
+    {"osm":445696826,"name":"","width":2.0,"line":[[-68.3,-349.2],[-64.3,-359.6],[-63.1,-381.0],[-58.7,-391.8],[6.4,-426.1],[12.2,-424.3],[59.1,-274.7],[60.0,-271.9],[78.5,-212.7],[86.7,-170.3]]},
+    {"osm":445696827,"name":"","width":2.0,"line":[[59.1,-274.7],[-16.5,-238.8]]},
+    {"osm":459920530,"name":"","width":2.0,"line":[[-10.7,-51.3],[-2.5,-51.9],[8.1,-45.0]]},
+    {"osm":459920531,"name":"","width":2.0,"line":[[-8.2,-73.7],[1.4,-63.7]]},
+    {"osm":459920532,"name":"","width":2.0,"line":[[4.4,-69.6],[1.4,-63.7],[-2.5,-51.9],[-0.8,-47.1]]},
+    {"osm":459920533,"name":"","width":2.0,"line":[[-6.8,-79.1],[4.4,-69.6]]},
+    {"osm":459920534,"name":"","width":2.0,"line":[[-11.3,-45.6],[-0.8,-47.1]]},
+    {"osm":492887727,"name":"","width":4.5,"line":[[183.9,-423.9],[174.9,-417.5],[133.8,-433.8],[85.5,-435.3],[78.8,-429.0]]},
+    {"osm":492887729,"name":"","width":4.5,"line":[[178.3,-169.2],[204.9,-147.4],[228.8,-133.8],[248.2,-122.6],[273.7,-116.3],[288.7,-91.0],[305.1,-69.3],[331.1,-60.8],[365.3,-61.4]]},
+    {"osm":492887731,"name":"","width":4.5,"line":[[228.8,-133.8],[256.7,-173.5],[253.7,-197.2],[257.7,-204.3]]},
+    {"osm":495017564,"name":"","width":4.5,"line":[[-116.7,-158.1],[-151.5,-148.3]]},
+    {"osm":565159269,"name":"","width":2.0,"line":[[78.8,-429.0],[64.4,-418.9],[46.6,-407.6],[29.0,-403.9]]},
+    {"osm":565159270,"name":"","width":2.0,"line":[[8.6,-116.7],[13.9,-104.4]]},
+    {"osm":742398750,"name":"","width":2.0,"line":[[-116.7,-158.1],[-134.2,-211.7]]},
+    {"osm":742398751,"name":"","width":2.0,"line":[[-132.1,-220.7],[-131.4,-218.4],[-131.6,-215.9],[-132.6,-213.6],[-134.2,-211.7],[-136.3,-210.6],[-138.6,-210.2],[-141.0,-210.5],[-143.1,-211.6],[-144.8,-213.2],[-145.8,-215.4],[-146.2,-217.8],[-145.7,-220.2],[-144.5,-222.3],[-142.6,-223.9],[-140.3,-224.8],[-137.8,-224.9],[-135.5,-224.2],[-133.5,-222.7],[-132.1,-220.7]]},
+    {"osm":742398752,"name":"","width":2.0,"line":[[-145.8,-215.4],[-161.1,-210.4]]},
+    {"osm":742398753,"name":"","width":2.0,"line":[[-104.6,-222.6],[-131.6,-215.9]]},
+    {"osm":1181959596,"name":"","width":4.5,"line":[[-97.3,-445.7],[-79.2,-390.1],[-70.8,-379.3]]}
+  ],
+  places: [
+    {"osm":381961846,"ring":[[-55.0,-495.6],[-51.8,-481.6],[-55.9,-481.1],[-87.1,-484.3],[-88.5,-478.9],[-92.6,-478.4],[-96.2,-472.5],[-91.2,-470.2],[-92.6,-462.5],[-51.3,-457.6],[-50.9,-453.0],[-61.8,-452.6],[-64.9,-445.8],[-58.1,-442.2],[-55.9,-439.0],[-74.0,-434.0],[-67.7,-414.1],[-35.0,-427.7],[-35.0,-438.9],[-35.0,-443.5],[12.7,-460.3],[-0.6,-496.9],[-41.8,-485.2],[-45.5,-497.9]],"name":"科技大樓","desc":"燕巢校區的教學與研究建築。","height":21},
+    {"osm":444912221,"ring":[[74.8,-463.1],[122.5,-468.0],[124.6,-457.4],[146.2,-459.1],[166.7,-438.2],[167.1,-425.2],[159.4,-425.2],[135.6,-440.0],[123.4,-439.3],[119.7,-449.4],[79.0,-445.2],[80.2,-435.1],[66.5,-433.7],[60.4,-428.8],[63.0,-423.6],[47.7,-411.4],[35.5,-423.6],[52.4,-437.0],[61.6,-448.5],[77.3,-450.6]],"name":"燕窩","desc":"宿舍及學生餐廳。","height":24},
+    {"osm":444902482,"ring":[[116.8,-242.8],[128.3,-245.8],[134.2,-241.1],[152.4,-236.1],[158.7,-235.2],[164.2,-235.6],[169.7,-237.3],[175.7,-239.9],[180.7,-241.5],[185.0,-244.9],[190.1,-247.5],[194.3,-251.3],[198.1,-255.9],[201.9,-261.0],[203.6,-266.5],[204.9,-271.6],[205.7,-277.5],[180.3,-385.4],[168.0,-399.8],[163.4,-404.0],[158.3,-407.4],[152.4,-411.7],[147.3,-414.2],[141.0,-416.3],[131.7,-417.2],[124.5,-416.7],[117.7,-414.6],[111.3,-412.1],[105.4,-408.3],[101.2,-405.3],[97.0,-401.9],[93.6,-398.1],[90.2,-393.1],[87.2,-388.4],[84.3,-384.2]],"holes":[[[98.6,-364.5],[121.3,-269.1],[130.8,-254.5],[136.6,-251.8],[142.0,-249.4],[147.5,-247.7],[152.2,-245.7],[157.0,-245.3],[163.8,-245.0],[170.9,-245.3],[176.3,-247.3],[179.0,-250.7],[182.1,-254.1],[185.5,-256.8],[188.6,-259.6],[192.0,-265.0],[193.0,-270.1],[194.3,-274.8],[194.3,-279.9],[193.0,-285.4],[170.6,-381.8],[165.5,-388.6],[158.3,-395.4],[154.3,-398.1],[150.2,-401.5],[146.5,-403.8],[141.4,-405.2],[133.9,-405.5],[124.7,-404.2],[118.6,-401.8],[111.2,-396.0],[105.4,-389.9],[102.0,-384.5],[99.6,-380.4],[97.9,-374.0]]],"name":"操場","desc":"校園運動場與跑道。","height":0},
+    {"osm":444867696,"ring":[[-91.4,-279.0],[-51.1,-289.3],[-47.7,-276.0],[-59.0,-273.1],[-57.4,-266.6],[-73.9,-262.3],[-76.8,-261.6],[-79.0,-270.0],[-88.4,-267.6]],"name":"生科 A 館","desc":"生命科學教學與研究空間。","height":16},
+    {"osm":444867695,"ring":[[-22.7,-206.7],[-26.4,-218.5],[-39.3,-216.0],[-42.4,-223.9],[-57.2,-220.8],[-64.1,-243.1],[-68.1,-242.5],[-71.1,-242.1],[-62.7,-210.1],[-68.1,-208.3],[-64.1,-196.1]],"name":"生科 B 館","desc":"生物科技系教學與研究空間。","height":15},
+    {"osm":444867693,"ring":[[-155.7,-272.4],[-115.9,-286.7],[-98.7,-238.5],[-108.5,-235.0],[-122.5,-230.0],[-131.6,-255.3],[-145.8,-250.2],[-141.8,-239.0],[-175.0,-227.1],[-183.9,-251.9],[-152.4,-263.2]],"name":"致理大樓","desc":"校內行政與教學活動空間。","height":32},
+    {"osm":444867692,"ring":[[-92.7,-218.5],[-75.2,-168.2],[-112.8,-155.1],[-118.4,-171.4],[-104.3,-176.3],[-116.1,-210.3]],"name":"高斯大樓","desc":"燕巢校區教學大樓。","height":21},
+    {"osm":444867694,"ring":[[-136.4,-185.7],[-135.6,-182.1],[-132.0,-183.2],[-127.9,-174.2],[-132.3,-172.3],[-129.2,-162.4],[-147.1,-155.8],[-147.9,-158.8],[-156.5,-156.0],[-159.8,-165.9],[-170.5,-161.0],[-187.5,-211.0],[-181.5,-213.8],[-182.3,-217.9],[-165.8,-222.8],[-161.1,-210.4],[-150.1,-181.6]],"name":"寰宇大樓","desc":"燕巢校區教學大樓。","height":24},
+    {"osm":381963953,"ring":[[28.0,-90.0],[76.1,-82.7],[71.9,-40.7],[56.1,7.6],[9.5,-16.5],[24.9,-52.6]],"name":"圖資大樓","desc":"圖書及資訊服務空間。","height":16},
+    {"osm":381735221,"ring":[[-253.1,-89.0],[-240.8,-80.5],[-255.6,-55.8],[-262.6,-49.0],[-268.3,-53.0],[-266.1,-56.2],[-272.6,-60.6]],"name":"文萃樓","desc":"校園宿舍。","height":8},
+    {"osm":381732645,"ring":[[-195.1,-43.7],[-187.8,-34.7],[-177.9,-24.8],[-197.9,-8.3],[-223.5,13.3],[-233.0,7.1],[-241.3,-1.5],[-217.6,-23.2]],"name":"歸燕食巢","desc":"校園學生餐廳。","height":14},
+    {"osm":381731688,"ring":[[-315.2,10.9],[-299.4,36.7],[-290.4,38.4],[-279.9,40.3],[-258.5,31.6],[-250.1,43.1],[-279.4,56.6],[-311.6,51.6],[-329.3,14.0]],"name":"霽遠樓","desc":"校園宿舍。","height":18}
+  ],
+  water: [
+    {"osm":396000109,"ring":[[-340.7,343.3],[-330.9,350.7],[-331.7,360.9],[-341.8,362.0],[-352.3,354.6]]},
+    {"osm":396000110,"ring":[[-245.5,144.7],[-234.5,150.3],[-246.2,179.8],[-254.3,182.5],[-259.0,174.4],[-258.6,154.1]]},
+    {"osm":399030882,"ring":[[375.2,-61.6],[393.1,-57.4],[388.7,-59.9],[390.8,-67.1],[391.3,-67.7],[391.6,-69.2],[387.7,-76.8],[386.8,-83.9],[385.0,-93.9],[383.9,-94.3],[362.0,-112.5],[357.0,-119.3],[348.8,-122.8],[351.4,-126.7],[342.9,-126.7],[342.2,-131.9],[346.6,-138.9],[339.8,-144.9],[303.9,-192.0],[293.7,-185.8],[281.2,-181.5],[274.6,-170.5],[301.0,-138.9],[315.7,-121.6],[315.3,-90.6],[327.8,-70.5],[353.6,-64.7],[362.8,-64.1]]},
+    {"osm":382184790,"ring":[[-61.4,-42.7],[-75.7,-25.6],[-71.9,-9.7],[-48.9,3.9],[-41.9,-18.3],[-40.0,-43.0]],"holes":[[[-58.6,-27.5],[-52.6,-27.4],[-49.4,-25.4],[-52.0,-16.4],[-56.3,-8.4],[-62.0,-6.0],[-64.9,-11.7],[-61.9,-20.1]]]}
+  ],
+  courts: [
+    {"osm":444902476,"ring":[[30.5,-301.0],[45.0,-270.5],[8.8,-253.4],[-5.6,-283.9]]},
+    {"osm":444902477,"ring":[[28.1,-239.1],[46.1,-201.2],[76.4,-215.4],[57.0,-253.7]]},
+    {"osm":444902479,"ring":[[46.1,-201.2],[15.3,-186.5],[-2.7,-224.4],[28.1,-239.1]]},
+    {"osm":444902480,"ring":[[47.1,-262.0],[50.6,-254.5],[-3.8,-229.0],[-7.4,-236.5]]},
+    {"osm":444902481,"ring":[[18.9,-185.9],[66.8,-207.4],[83.2,-168.6],[36.9,-148.3]]}
+  ],
+  buildings: [
+    {"osm":381734405,"ring":[[-183.6,-2.2],[-180.6,1.2],[-175.7,6.7],[-192.2,21.2],[-197.4,18.2],[-203.1,14.9]],"height":7},
+    {"osm":381735423,"ring":[[-164.6,-99.9],[-123.5,-89.3],[-132.7,-53.4],[-144.9,-56.5],[-139.6,-77.1],[-168.5,-84.5]],"height":18},
+    {"osm":397467187,"ring":[[-266.8,530.5],[-261.9,530.2],[-261.6,535.0],[-266.6,535.2]],"height":4},
+    {"osm":397467188,"ring":[[-173.2,486.2],[-154.6,495.4],[-175.5,521.6],[-181.4,520.4],[-183.9,523.4],[-198.9,519.9]],"height":8},
+    {"osm":397467189,"ring":[[-59.1,387.4],[-46.7,392.9],[-58.3,418.8],[-70.6,413.3]],"height":6},
+    {"osm":397467190,"ring":[[-337.2,-19.0],[-326.2,-18.7],[-326.4,-10.8],[-337.4,-11.1]],"height":4},
+    {"osm":397467191,"ring":[[-328.6,-28.2],[-315.6,-33.9],[-312.7,-27.2],[-325.7,-21.5]],"height":4}
+  ],
+  gate: [[-275.3,525.8],[-261.1,525.3]]
+};
+
 function textSprite(t){let canvas=document.createElement('canvas');canvas.width=512;canvas.height=112;let c=canvas.getContext('2d');c.fillStyle='#142f42e8';c.beginPath();c.roundRect(3,3,506,105,18);c.fill();c.strokeStyle='#9addcf';c.lineWidth=3;c.stroke();c.fillStyle='white';c.font='bold 33px sans-serif';c.textAlign='center';c.fillText(t,256,70);let tex=new THREE.CanvasTexture(canvas);let spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));spr.scale.set(23,5,1);return spr}
-for(let i=0;i<places.length;i++){const p=places[i];if(p.kind==='field'){rect(p.w,.06,p.d,p.x,.05,p.z,mat(0x376d46));rect(p.w-8,.08,p.d-10,p.x,.11,p.z,mat(0xa25c47));rect(p.w-17,.08,p.d-20,p.x,.17,p.z,mat(0x58a467));}else{let b=rect(p.w,p.h,p.d,p.x,p.h/2,p.z,mat(palette[i%palette.length]));buildingMeshes.push({mesh:b,p});rect(p.w+1,.7,p.d+1,p.x,p.h+.2,p.z,stripeMat);for(let f=3;f<p.h-1;f+=4){for(let k=-p.w/2+3;k<p.w/2-2;k+=5){rect(2,1.9,.15,p.x+k,f,p.z+p.d/2+.12,windowMat)}}}let label=textSprite(p.name);label.position.set(p.x,p.h+5,p.z);scene.add(label)}
-// 校門、池塘、行道樹與遠景山丘
-rect(17,1,2,0,7,130,mat(0x335c63));rect(2,7,2,-8,3.5,130,mat(0xe4e1cf));rect(2,7,2,8,3.5,130,mat(0xe4e1cf));let gate=textSprite('高師大燕巢校區 · 校門');gate.position.set(0,13,130);scene.add(gate);
-for(let [x,z,rx,rz] of [[-17,53,12,8],[77,-88,19,12],[92,76,18,11]]){let pond=new THREE.Mesh(new THREE.CylinderGeometry(1,1,.12,32),mat(0x56a8c4));pond.scale.set(rx,1,rz);pond.position.set(x,.08,z);scene.add(pond)}
-const treeTrunk=mat(0x7e6547),leaf=mat(0x377c4e);function tree(x,z,s=1){rect(.8*s,3*s,.8*s,x,1.5*s,z,treeTrunk);let cr=new THREE.Mesh(new THREE.IcosahedronGeometry(2.5*s,1),leaf);cr.position.set(x,4.3*s,z);cr.castShadow=true;scene.add(cr)}
-let rng=13;function rand(){rng=(rng*1664525+1013904223)>>>0;return rng/4294967296}for(let i=0;i<190;i++){let x=(rand()-.5)*270,z=(rand()-.5)*275;if(Math.abs(x)<11&&z>0&&z<140)continue;if(places.some(p=>Math.abs(x-p.x)<p.w/2+8&&Math.abs(z-p.z)<p.d/2+8))continue;tree(x,z,.7+rand()*.55)}
-const player=new THREE.Group();scene.add(player);const body=rect(1,2,1,0,0,0,mat(0x126b88));scene.remove(body);body.position.set(0,1.5,0);player.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.67,14,12),mat(0xf0c9a0));head.position.y=3;player.add(head);const backpack=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.5,.45),mat(0xf3b256));backpack.position.set(0,1.5,.7);player.add(backpack);player.position.set(0,0,115);
+
+const padding = 30;
+const xLimits = campus.boundary.map(([x]) => x);
+const zLimits = campus.boundary.map(([, z]) => z);
+const bounds = {
+  west: Math.min(...xLimits) - padding,
+  east: Math.max(...xLimits) + padding,
+  north: Math.min(...zLimits) - padding,
+  south: Math.max(...zLimits) + padding
+};
+const width = bounds.east - bounds.west;
+const depth = bounds.south - bounds.north;
+const centerX = (bounds.west + bounds.east) / 2;
+const centerZ = (bounds.north + bounds.south) / 2;
+const ground = rect(width, .3, depth, centerX, -.18, centerZ, groundMat);
+ground.castShadow = false;
+
+function path(points, PathType) {
+  const outline = new PathType();
+  points.forEach(([x, z], i) => {
+    if (i === 0) outline.moveTo(x, -z);
+    else outline.lineTo(x, -z);
+  });
+  outline.closePath();
+  return outline;
+}
+
+function surface(area, y, material, height = 0) {
+  const shape = path(area.ring, THREE.Shape);
+  shape.holes = (area.holes || []).map(ring => path(ring, THREE.Path));
+  const geometry = height
+    ? new THREE.ExtrudeGeometry(shape, { depth: height, bevelEnabled: false })
+    : new THREE.ShapeGeometry(shape);
+  geometry.rotateX(-Math.PI / 2);
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.y = y;
+  mesh.castShadow = height > 0;
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+  return mesh;
+}
+
+function makeRoad({ line, width }) {
+  for (let i = 1; i < line.length; i++) {
+    const [x1, z1] = line[i - 1];
+    const [x2, z2] = line[i];
+    const length = Math.hypot(x2 - x1, z2 - z1);
+    if (!length) continue;
+    const segment = rect(width, .05, length + width * .2, (x1 + x2) / 2, .01,
+      (z1 + z2) / 2, roadMat);
+    segment.rotation.y = Math.atan2(x2 - x1, z2 - z1);
+    segment.castShadow = false;
+  }
+}
+
+function outlineCenter(ring) {
+  let area = 0, x = 0, z = 0;
+  ring.forEach(([ax, az], i) => {
+    const [bx, bz] = ring[(i + 1) % ring.length];
+    const cross = ax * bz - bx * az;
+    area += cross;
+    x += (ax + bx) * cross;
+    z += (az + bz) * cross;
+  });
+  return { x: x / (3 * area), z: z / (3 * area) };
+}
+
+function distanceToRing(x, z, ring) {
+  let inside = false;
+  let distance = Infinity;
+  ring.forEach(([ax, az], i) => {
+    const [bx, bz] = ring[(i + 1) % ring.length];
+    if ((az > z) !== (bz > z) && x < ax + (bx - ax) * (z - az) / (bz - az)) {
+      inside = !inside;
+    }
+    const dx = bx - ax;
+    const dz = bz - az;
+    const lengthSquared = dx * dx + dz * dz;
+    const t = lengthSquared
+      ? THREE.MathUtils.clamp(((x - ax) * dx + (z - az) * dz) / lengthSquared, 0, 1)
+      : 0;
+    distance = Math.min(distance, Math.hypot(x - ax - dx * t, z - az - dz * t));
+  });
+  return inside ? 0 : distance;
+}
+
+const places = campus.places.map(place => ({ ...place, ...outlineCenter(place.ring) }));
+const obstacles = [...places.filter(place => place.height), ...campus.buildings];
+const palette = [0xb9c7d5, 0xe0c8a8, 0xc8e0de, 0xd7bec5, 0xe0d6bc, 0xb2c5e4].map(mat);
+const trackMaterial = mat(0xa25c47);
+const fieldMaterial = mat(0x58a467);
+const courtMaterial = mat(0x517d69);
+const waterMaterial = mat(0x56a8c4);
+const labelMeshes = [];
+
+campus.roads.forEach(makeRoad);
+campus.water.forEach(area => surface(area, .06, waterMaterial));
+campus.courts.forEach(area => surface(area, .07, courtMaterial));
+places.forEach((place, index) => {
+  if (place.height) {
+    surface(place, 0, palette[index % palette.length], place.height);
+  } else {
+    surface(place, .08, trackMaterial);
+    surface({ ring: place.holes[0] }, .07, fieldMaterial);
+  }
+  const label = textSprite(place.name);
+  label.position.set(place.x, place.height + 6, place.z);
+  labelMeshes.push(label);
+  scene.add(label);
+});
+campus.buildings.forEach(building => surface(building, 0, palette[0], building.height));
+
+const [[gateWestX, gateWestZ], [gateEastX, gateEastZ]] = campus.gate;
+const gateX = (gateWestX + gateEastX) / 2;
+const gateZ = (gateWestZ + gateEastZ) / 2;
+const gateWidth = Math.hypot(gateEastX - gateWestX, gateEastZ - gateWestZ);
+const gateBeam = rect(gateWidth + 1, 1, 2, gateX, 7, gateZ, mat(0x335c63));
+gateBeam.rotation.y = Math.atan2(gateWestZ - gateEastZ, gateEastX - gateWestX);
+for (const [x, z] of campus.gate) rect(2, 7, 2, x, 3.5, z, mat(0xe4e1cf));
+const gateLabel = textSprite('高師大燕巢校區 · 校門');
+gateLabel.position.set(gateX, 12, gateZ);
+labelMeshes.push(gateLabel);
+scene.add(gateLabel);
+
+const player=new THREE.Group();scene.add(player);const body=rect(1,2,1,0,0,0,mat(0x126b88));scene.remove(body);body.position.set(0,1.5,0);player.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.67,14,12),mat(0xf0c9a0));head.position.y=3;player.add(head);const backpack=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.5,.45),mat(0xf3b256));backpack.position.set(0,1.5,.7);player.add(backpack);player.position.set(-279, 0, 512);
 let yaw=0, pitch=.31, keys={},visited=new Set(),near=null,interactMsgUntil=0;const info=document.getElementById('info');const progress=document.getElementById('progress');function interact(){if(near){visited.add(near.name);info.innerHTML='<strong>'+near.name+'</strong><div>'+near.desc+'</div><small>已解鎖地標 '+visited.size+' / '+places.length+'</small>';progress.textContent='已探索 '+visited.size+' / '+places.length+' 個地標';interactMsgUntil=performance.now()+6500}}window.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.code==='KeyE'&&!e.repeat)interact()});window.addEventListener('keyup',e=>keys[e.code]=false);window.addEventListener('blur',()=>keys={});
 let dragging=false,lastX=0,lastY=0;renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(e.pointerId)});renderer.domElement.addEventListener('pointerup',()=>dragging=false);renderer.domElement.addEventListener('pointermove',e=>{if(!dragging)return;yaw-=(e.clientX-lastX)*.006;pitch=Math.max(.12,Math.min(.95,pitch+(e.clientY-lastY)*.003));lastX=e.clientX;lastY=e.clientY});document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();keys[b.dataset.key]=true;b.setPointerCapture(e.pointerId)});for(let ev of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(ev,()=>keys[b.dataset.key]=false)});document.getElementById('turnL').addEventListener('pointerdown',()=>yaw+=.25);document.getElementById('turnR').addEventListener('pointerdown',()=>yaw-=.25);document.getElementById('interact').onclick=interact;
-const map=document.getElementById('map'),ctx=map.getContext('2d');function minimap(){const W=map.width,H=map.height,scale=.7;ctx.fillStyle='#b8d5aa';ctx.fillRect(0,0,W,H);ctx.save();ctx.translate(W/2,H/2);ctx.scale(scale,scale);ctx.strokeStyle='#92969b';ctx.lineWidth=11;const roads=[[[0,137],[0,105],[0,75],[-18,54],[-34,31],[-25,8],[-10,-17],[2,-44],[8,-75],[24,-107]],[[0,71],[24,48],[46,22],[46,-4],[28,-36],[8,-75]],[[-26,8],[-49,-10],[-60,-35],[-42,-66],[4,-73]]];for(let rr of roads){ctx.beginPath();rr.forEach(([x,z],i)=>i?ctx.lineTo(x,z):ctx.moveTo(x,z));ctx.stroke()}for(let p of places){ctx.fillStyle=visited.has(p.name)?'#14b8a6':'#33556c';ctx.fillRect(p.x-p.w/2,p.z-p.d/2,p.w,p.d)}ctx.translate(player.position.x,player.position.z);ctx.rotate(-yaw);ctx.fillStyle='#fbbf24';ctx.beginPath();ctx.moveTo(0,-9);ctx.lineTo(-6,6);ctx.lineTo(6,6);ctx.closePath();ctx.fill();ctx.restore();ctx.strokeStyle='#fff8';ctx.strokeRect(1,1,W-2,H-2)}
-let previous=performance.now(),active=false;function frame(now){requestAnimationFrame(frame);let dt=Math.min((now-previous)/1000,.05);previous=now;if(active){let f=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0),side=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0);let dir=new THREE.Vector3(side,0,-f);if(dir.lengthSq()>0){dir.normalize().applyAxisAngle(new THREE.Vector3(0,1,0),yaw);let speed=keys.ShiftLeft||keys.ShiftRight?18:10;let next=player.position.clone().addScaledVector(dir,speed*dt);next.x=THREE.MathUtils.clamp(next.x,-137,137);next.z=THREE.MathUtils.clamp(next.z,-143,143);let blocked=buildingMeshes.some(({p})=>Math.abs(next.x-p.x)<p.w/2+1.3&&Math.abs(next.z-p.z)<p.d/2+1.3);if(!blocked)player.position.copy(next);player.rotation.y=Math.atan2(-dir.x,-dir.z)}near=places.reduce((best,p)=>{let d=Math.hypot(player.position.x-p.x,player.position.z-p.z);return d<19&&(!best||d<best.d)?{...p,d}:best},null);if(now>interactMsgUntil){info.innerHTML=near?`靠近 <strong>${near.name}</strong>，按 <strong>E</strong> 查看介紹`:'靠近建築，按 <strong>E</strong> 查看資訊'} }
+const map = document.getElementById('map');
+const ctx = map.getContext('2d');
+const mapScale = Math.min((map.width - 12) / width, (map.height - 12) / depth);
+const overview = document.createElement('canvas');
+overview.width = map.width;
+overview.height = map.height;
+const overviewCtx = overview.getContext('2d');
+
+function setMapCoordinates(context) {
+  context.translate(map.width / 2, map.height / 2);
+  context.scale(mapScale, mapScale);
+  context.translate(-centerX, -centerZ);
+}
+
+function trace(context, points, close = true) {
+  points.forEach(([x, z], i) => {
+    if (i === 0) context.moveTo(x, z);
+    else context.lineTo(x, z);
+  });
+  if (close) context.closePath();
+}
+
+function fillArea(context, area, color) {
+  context.beginPath();
+  trace(context, area.ring);
+  (area.holes || []).forEach(ring => trace(context, ring));
+  context.fillStyle = color;
+  context.fill('evenodd');
+}
+
+overviewCtx.fillStyle = '#9eae97';
+overviewCtx.fillRect(0, 0, map.width, map.height);
+overviewCtx.save();
+setMapCoordinates(overviewCtx);
+fillArea(overviewCtx, { ring: campus.boundary }, '#cadab3');
+campus.water.forEach(area => fillArea(overviewCtx, area, '#5a9cb2'));
+campus.courts.forEach(area => fillArea(overviewCtx, area, '#809d88'));
+campus.roads.forEach(({ line, width }) => {
+  overviewCtx.beginPath();
+  trace(overviewCtx, line, false);
+  overviewCtx.lineWidth = width + 2;
+  overviewCtx.strokeStyle = '#797e79';
+  overviewCtx.lineCap = 'round';
+  overviewCtx.lineJoin = 'round';
+  overviewCtx.stroke();
+});
+campus.buildings.forEach(area => fillArea(overviewCtx, area, '#778b86'));
+places.forEach(area => {
+  if (!area.height) fillArea(overviewCtx, { ring: area.holes[0] }, '#7db67e');
+  fillArea(overviewCtx, area, area.height ? '#33556c' : '#a55247');
+});
+overviewCtx.restore();
+overviewCtx.fillStyle = '#24382e';
+overviewCtx.font = 'bold 13px system-ui';
+overviewCtx.fillText('N ↑', 8, 17);
+overviewCtx.fillRect(8, map.height - 10, 100 * mapScale, 2);
+overviewCtx.font = '10px system-ui';
+overviewCtx.fillText('100 m', 8, map.height - 15);
+
+function minimap() {
+  ctx.drawImage(overview, 0, 0);
+  ctx.save();
+  setMapCoordinates(ctx);
+  places.forEach(place => {
+    if (visited.has(place.name)) fillArea(ctx, place, '#14b8a6');
+  });
+  ctx.translate(player.position.x, player.position.z);
+  ctx.rotate(-yaw);
+  ctx.scale(1 / mapScale, 1 / mapScale);
+  ctx.beginPath();
+  ctx.moveTo(0, -6);
+  ctx.lineTo(-4, 4);
+  ctx.lineTo(4, 4);
+  ctx.closePath();
+  ctx.fillStyle = '#fbbf24';
+  ctx.strokeStyle = '#273730';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.fill();
+  ctx.restore();
+}
+
+let previous=performance.now(),active=false;function frame(now){requestAnimationFrame(frame);let dt=Math.min((now-previous)/1000,.05);previous=now;if(active){let f=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0),side=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0);let dir=new THREE.Vector3(side,0,-f);if(dir.lengthSq()>0){dir.normalize().applyAxisAngle(new THREE.Vector3(0,1,0),yaw);let speed=keys.ShiftLeft||keys.ShiftRight?23:12;let next=player.position.clone().addScaledVector(dir,speed*dt);next.x=THREE.MathUtils.clamp(next.x,bounds.west,bounds.east);next.z=THREE.MathUtils.clamp(next.z,bounds.north,bounds.south);let blocked=obstacles.some(({ring})=>distanceToRing(next.x,next.z,ring)<1.3);if(!blocked)player.position.copy(next);player.rotation.y=Math.atan2(-dir.x,-dir.z)}near=places.reduce((best,p)=>{let d=distanceToRing(player.position.x,player.position.z,p.ring);return d<19&&(!best||d<best.d)?{...p,d}:best},null);if(now>interactMsgUntil){info.innerHTML=near?`靠近 <strong>${near.name}</strong>，按 <strong>E</strong> 查看介紹`:'靠近建築，按 <strong>E</strong> 查看資訊'} }
+sun.position.set(player.position.x - 60, 110, player.position.z + 70);
+sun.target.position.copy(player.position);
+for (const label of labelMeshes) {
+  label.visible = Math.hypot(label.position.x - player.position.x, label.position.z - player.position.z) < 110;
+}
 let target=player.position.clone().add(new THREE.Vector3(Math.sin(yaw)*16,8+pitch*18,Math.cos(yaw)*16));cam.position.lerp(target,.13);cam.lookAt(player.position.x,2,player.position.z);minimap();renderer.render(scene,cam)}requestAnimationFrame(frame);document.getElementById('play').onclick=()=>{document.getElementById('start').style.display='none';active=true};addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 </script></body></html>
