@@ -81,6 +81,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   function setMode(next) {
     mode=next;
     const zoning=mode==='zones';
+    document.getElementById('mapKey').textContent=zoning?'分區底色只供定位；植被皆待確認。':'藍色：未探索 · 綠色：已探索；底色深淺表示近似高低起伏。';
     zoneLayer.layer.style.display=zoning?'':'none';markerLayer.style.display=zoning?'none':'';detail.style.display=zoning?'none':'';
     document.getElementById('buildingsMode').setAttribute('aria-pressed',String(!zoning));
     document.getElementById('zonesMode').setAttribute('aria-pressed',String(zoning));

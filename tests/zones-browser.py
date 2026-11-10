@@ -25,6 +25,15 @@ with sync_playwright() as p:
  page.screenshot(path='/tmp/nknu-zones-desktop.png',full_page=True)
  page.set_viewport_size({'width':390,'height':844});page.screenshot(path='/tmp/nknu-zones-mobile.png',full_page=True)
  assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+ # Exercise the game's map module without starting a WebGL scene.
+ fixture='<!doctype html><button id="mapOpen">地圖</button><dialog id="mapDialog"><button id="mapClose">關閉</button><button id="buildingsMode">建築</button><button id="zonesMode">分區</button><span id="mapKey"></span><svg id="largeMap"></svg><div id="buildingList"></div><p id="mapSelection"></p></dialog><script type="module">import {setupCampusMap} from \'./map.js\';const campus=await(await fetch(\'./data/campus.json\')).json();const places=campus.places.map(p=>({...p,x:p.ring[0][0],z:p.ring[0][1]}));setupCampusMap({campus,places,player:{position:{x:-279,y:0,z:512}},visited:new Set(),bounds:{west:-446.8,north:-572,east:457.3,south:563},terrainHeight:()=>0,datum:0,clearInput:()=>{},getYaw:()=>0,isActive:()=>true});window.ready=true;</script>'
+ context.route('http://127.0.0.1:8000/map-fixture.html',lambda r:r.fulfill(body=fixture,content_type='text/html'))
+ m=context.new_page();m.on('pageerror',lambda e:errors.append(str(e)));m.goto('http://127.0.0.1:8000/map-fixture.html');m.wait_for_function('window.ready')
+ m.locator('#mapOpen').click();m.locator('#zonesMode').click()
+ assert '植被皆待確認' in m.locator('#mapKey').inner_text()
+ m.locator('#buildingList button').filter(has_text='B1').click();assert '植被待確認' in m.locator('#mapSelection').inner_text()
+ m.locator('#buildingsMode').click();assert '已探索' in m.locator('#mapKey').inner_text()
+ assert m.locator('#buildingList button').count()==12
  assert not errors,errors
  print('PASS: 12-zone rendering, no prefilled classification, region selection, feedback text, draft persistence, SVG keyboard selection and mobile layout')
  b.close()
