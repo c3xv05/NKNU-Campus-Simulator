@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import vm from 'node:vm';
 import {sampleElevation,createTerrain} from '../terrain.js';
 const grid=JSON.parse(fs.readFileSync(new URL('../data/elevation.json',import.meta.url)));
-const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const campus=vm.runInNewContext('('+html.split('const campus = ')[1].split('\n};')[0]+'\n})');
+const campus=JSON.parse(fs.readFileSync(new URL('../data/campus.json',import.meta.url)));
 assert.equal(grid.heights.length,grid.rows*grid.columns);
 assert(grid.heights.every(h=>Number.isFinite(h)&&h>0&&h<300));
 // Survey of the real campus footprint must have meaningful topographic relief.

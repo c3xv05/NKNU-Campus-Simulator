@@ -1,3 +1,4 @@
+import {zones,drawZoneLayer} from './zones.js';
 export function setupCampusMap({campus,places,player,visited,bounds,terrainHeight,datum,clearInput,getYaw,isActive}) {
   const dialog=document.getElementById('mapDialog'),svg=document.getElementById('largeMap');
   const list=document.getElementById('buildingList'),selection=document.getElementById('mapSelection');
@@ -31,6 +32,8 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   element('path',{d:`M ${bounds.east-135} ${bounds.south-30} h 100`,stroke:'#24382e','stroke-width':4});
   element('text',{x:bounds.east-85,y:bounds.south-45,'text-anchor':'middle','font-size':20,fill:'#24382e'},svg,'100 m');
   const markers=[],buttons=[];
+  const markerLayer=element('g',{});
+  let mode='buildings',selectedZone=null;
   let selected=null,lastUpdate=-Infinity;
   const detail=element('g',{'pointer-events':'none'});
   const highlight=element('circle',{r:24,fill:'none',stroke:'#ffcf60','stroke-width':5,visibility:'hidden'},detail);
@@ -47,7 +50,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
     update(true);
   }
   places.forEach((place,index)=>{
-    const group=element('g',{class:'map-place',role:'button',tabindex:0,'aria-label':`${index+1} ${place.name}`});
+    const group=element('g',{class:'map-place',role:'button',tabindex:0,'aria-label':`${index+1} ${place.name}`},markerLayer);
     const circle=element('circle',{cx:place.x,cy:place.z,r:18,fill:'#255b77',stroke:'#fff','stroke-width':3},group);
     element('text',{x:place.x,y:place.z+5,'text-anchor':'middle','font-size':15,'font-weight':800,fill:'#fff','pointer-events':'none'},group,index+1);
     group.addEventListener('click',()=>choose(index));
@@ -62,6 +65,29 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   element('circle',{r:22,fill:'#fff9'},playerGroup);
   const arrow=element('path',{d:'M 0 -17 L -11 11 L 0 6 L 11 11 Z',fill:'#f4aa24',stroke:'#533c18','stroke-width':2},playerGroup);
   const you=element('text',{'text-anchor':'middle','font-size':20,'font-weight':800,fill:'#143344',stroke:'#fff','stroke-width':5,'paint-order':'stroke','pointer-events':'none'},svg,'你在這裡');
+  const zoneButtons=zones.map(zone=>{
+    const button=document.createElement('button');button.type='button';
+    button.textContent=`${zone.id} · ${zone.name}`;button.setAttribute('aria-pressed','false');
+    button.addEventListener('click',()=>chooseZone(zone));return button;
+  });
+  const zoneLayer=drawZoneLayer(svg,campus,chooseZone);
+  svg.insertBefore(zoneLayer.layer,markerLayer);
+  zoneLayer.layer.style.display='none';
+  function chooseZone(zone) {
+    selectedZone=zone;zoneLayer.select(zone.id);
+    zoneButtons.forEach((b,i)=>{b.classList.toggle('selected',zones[i].id===zone.id);b.setAttribute('aria-pressed',String(zones[i].id===zone.id));});
+    update(true);
+  }
+  function setMode(next) {
+    mode=next;
+    const zoning=mode==='zones';
+    zoneLayer.layer.style.display=zoning?'':'none';markerLayer.style.display=zoning?'none':'';detail.style.display=zoning?'none':'';
+    document.getElementById('buildingsMode').setAttribute('aria-pressed',String(!zoning));
+    document.getElementById('zonesMode').setAttribute('aria-pressed',String(zoning));
+    list.replaceChildren(...(zoning?zoneButtons:buttons));update(true);
+  }
+  document.getElementById('buildingsMode').addEventListener('click',()=>setMode('buildings'));
+  document.getElementById('zonesMode').addEventListener('click',()=>setMode('zones'));
   function update(force=false) {
     if(!dialog.open)return;
     const now=performance.now();if(!force&&now-lastUpdate<150)return;lastUpdate=now;
@@ -75,7 +101,11 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
       buttons[index].setAttribute('aria-pressed',String(selected===index));
       buttons[index].setAttribute('aria-label',`${place.name}，${found?'已探索':'未探索'}`);
     });
-    if(selected!==null){
+    if(mode==='zones'){
+      selection.textContent=selectedZone
+        ? `${selectedZone.id}｜${selectedZone.name}。植被待確認；請描述草地、樹林、混合或其他，也可補充道路兩側差異。`
+        : 'A 區靠校門、D 區靠科技大樓，北方朝上。12 區植被皆待確認，分區只作定位，不表示整區都是植被。';
+    }else if(selected!==null){
       const place=places[selected],distance=Math.round(Math.hypot(place.x-player.position.x,place.z-player.position.z));
       const difference=Math.round(terrainHeight(place.x,place.z)-player.position.y);
       const heightText=difference===0?'與目前位置高度相近':`${difference>0?'高於':'低於'}目前位置 ${Math.abs(difference)} 公尺`;
