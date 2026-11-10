@@ -10,15 +10,17 @@ python -m http.server 8000
 ```
 
 開啟 http://localhost:8000/ 。Three.js 由 jsDelivr 載入；地形格網隨網站提供，遊戲中不需呼叫高程 API。
-部署時需一併提供 `index.html`、`map.js`、`terrain.js`、`zones.js`、`zones.html` 與 `data/` 內的兩個 JSON 檔案。
+部署時需一併提供 `index.html`、`map.js`、`terrain.js`、`zones.js`、`zones.html`、`roads.js`、`road-renderer.js`、`road-ground.js` 與 `data/` 內的 JSON 檔案。
 
 ## 驗證
 
 ```sh
 node tests/terrain.mjs
 node tests/zones.mjs
+node tests/roads.mjs
 python tests/browser.py
 python tests/zones-browser.py
+python tests/road-browser.py
 ```
 
 瀏覽器測試需啟動上述伺服器，並安裝 Python Playwright 與 Chromium。
@@ -35,4 +37,13 @@ python tests/zones-browser.py
 `zones.html` 提供不必啟動 3D 的分區圖，A 靠校門、D 靠科技大樓，共 12 區。
 遊戲大地圖也能切換「植被分區」。所有植被初始皆為待確認，分區底色只供定位。
 使用者可填寫分類與備註，草稿僅存於瀏覽器 localStorage；需複製文字貼回對話，
-不會自動傳送或套用到模擬器。本次沒有變更地形高程。
+不會自動傳送或套用到模擬器。植被分區功能本身不會改動地形。
+
+## 道路整平與標線
+
+道路沿共享路網平滑縱坡，橫向維持平整，路口共用高程；路肩以近似挖填方接回地形。
+地面三角形依道路範圍裁切，避免草地穿出路面；角色使用鋪面高程行走。
+保留山坡走勢，並非把全校道路改成水平。原始衛星高程格網未改寫，實際道路坡度仍待實地校正。
+
+鋪面及標線為自行繪製的台灣道路示意樣式。依 OSM 單行及步道資訊，分別使用
+白色單行箭頭、雙黃線、白色邊線與不同步道鋪面；現場標線位置並未逐條測繪。
