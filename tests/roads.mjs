@@ -58,3 +58,11 @@ for(const [footprints,expected] of [
  assert.equal(cut.normals.length,cut.positions.length);
 }
 console.log('PASS: exact cutout area, overlapping road footprints, coincident edges, polygon winding and terrain height/normal preservation');
+
+let largestSmallStep=0;
+for(const s of roads.segments.filter(s=>!s.route.style.path)){
+ const x=(s.a.x+s.b.x)/2,z=(s.a.z+s.b.z)/2,dx=s.dx/s.length*.001,dz=s.dz/s.length*.001;
+ largestSmallStep=Math.max(largestSmallStep,Math.abs(roads.surfaceHeight(x+dx,z+dz)-roads.surfaceHeight(x-dx,z-dz)));
+}
+assert(largestSmallStep<.05,'Unexpected stair-step discontinuity in a vehicle road profile');
+console.log('PASS: no millimetre-scale step discontinuities along sampled campus road centres');

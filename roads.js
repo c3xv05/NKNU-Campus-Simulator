@@ -63,13 +63,25 @@ export function createRoadNetwork(roads,height,tags={}) {
   const junctions=nodes.filter(node=>node.neighbours.size>2).map(node=>({x:node.x,z:node.z,h:node.h,width:node.width,motor:node.vehicleNeighbours.size>2}));
   // Gentle approaches into one level intersection apron; no cross-road banking.
   for(const node of nodes){
-    let best=0,target=node.h;
+    let strength=0,total=0,target=0;
     for(const joint of junctions){
       const distance=Math.hypot(node.x-joint.x,node.z-joint.z);
-      const w=1-ease(joint.width*.85,joint.width*2.4,distance);
-      if(w>best){best=w;target=joint.h;}
+      const weight=1-ease(joint.width*.85,joint.width*2.4,distance);
+      const influence=weight**4;
+      strength=Math.max(strength,weight);total+=influence;target+=joint.h*influence;
     }
-    node.h+=(target-node.h)*best;
+    if(total)node.h+=(target/total-node.h)*strength;
+  }
+  // Fit a gradient at shared nodes for continuous, shape-preserving cubic grades.
+  for(const node of nodes){
+    let xx=0,xz=0,zz=0,xh=0,zh=0;
+    for(const other of node.neighbours){
+      const dx=other.x-node.x,dz=other.z-node.z,dh=other.h-node.h,w=1/Math.max(.01,dx*dx+dz*dz);
+      xx+=dx*dx*w;xz+=dx*dz*w;zz+=dz*dz*w;xh+=dx*dh*w;zh+=dz*dh*w;
+    }
+    const determinant=xx*zz-xz*xz;
+    if(Math.abs(determinant)>1e-7){node.gx=(xh*zz-zh*xz)/determinant;node.gz=(zh*xx-xh*xz)/determinant;}
+    else{const trace=xx+zz;node.gx=xh/(trace||1);node.gz=zh/(trace||1);}
   }
   const cellSize=24,buckets=new Map();
   function key(x,z){return `${Math.floor(x/cellSize)},${Math.floor(z/cellSize)}`;}
@@ -96,7 +108,11 @@ export function createRoadNetwork(roads,height,tags={}) {
       const d=Math.hypot(x-a.x-dx*t,z-a.z-dz*t);
       // Compare distance to pavement, so a footpath cannot steal a main-road lane.
       const score=Math.max(0,d-width/2)+d*.001;
-      const candidate={segment,t,d,h:a.h+(segment.b.h-a.h)*t,width};
+      const delta=segment.b.h-a.h;
+      const limit=slope=>delta===0?0:clamp(slope/delta,0,3)*delta;
+      const ma=limit(a.gx*dx+a.gz*dz),mb=limit(segment.b.gx*dx+segment.b.gz*dz);
+      const h=(2*t**3-3*t*t+1)*a.h+(t**3-2*t*t+t)*ma+(-2*t**3+3*t*t)*segment.b.h+(t**3-t*t)*mb;
+      const candidate={segment,t,d,h,width};
       if(score<best){best=score;closest=candidate;}
       if(!segment.route.style.path&&score<bestMotor){bestMotor=score;motor=candidate;}
     }

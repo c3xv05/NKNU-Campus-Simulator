@@ -93,7 +93,17 @@ export function addRoads(THREE,scene,network) {
     if(!positions.length)continue;
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
     if(type==='asphalt')geometry.setAttribute('uv',new THREE.Float32BufferAttribute(positions.flatMap((v,i)=>i%3===0?[v/5,positions[i+2]/5]:[]),2));
-    geometry.computeVertexNormals();
+    if(type==='earth')geometry.computeVertexNormals();
+    else{
+      const normals=[];
+      for(let i=0;i<positions.length;i+=3){
+        const x=positions[i],z=positions[i+2],e=.25;
+        const gx=(network.surfaceHeight(x+e,z)-network.surfaceHeight(x-e,z))/(2*e);
+        const gz=(network.surfaceHeight(x,z+e)-network.surfaceHeight(x,z-e))/(2*e);
+        const length=Math.hypot(gx,1,gz);normals.push(-gx/length,1/length,-gz/length);
+      }
+      geometry.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));
+    }
     const material={asphalt,concrete,white,yellow,earth}[type],mesh=new THREE.Mesh(geometry,material);
     mesh.name=`road-${type}`;mesh.receiveShadow=true;mesh.renderOrder=type==='white'||type==='yellow'?2:0;group.add(mesh);
   }
