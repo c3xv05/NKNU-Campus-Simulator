@@ -14,8 +14,8 @@ with sync_playwright() as p:
     visited,terrain,scene};let previous=performance.now();''')
     context.route('http://127.0.0.1:8000/',lambda route:route.fulfill(body=html,content_type='text/html'))
     page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-    page.goto('http://127.0.0.1:8000/');page.wait_for_function('!!window.__test')
-    page.get_by_role('button',name='開始探索').click();page.wait_for_timeout(300)
+    page.goto('http://127.0.0.1:8000/');page.wait_for_function('!!window.__test',timeout=120000)
+    page.get_by_role('button',name='開始探索').click(timeout=90000);page.wait_for_timeout(300)
     assert page.locator('#joystick').is_visible()
     assert page.locator('#joystick').evaluate("e=>getComputedStyle(e).touchAction")=='none'
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')

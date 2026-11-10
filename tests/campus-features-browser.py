@@ -6,7 +6,7 @@ with sync_playwright() as p:
  b=p.chromium.launch(executable_path=os.environ.get('CHROMIUM_PATH') or shutil.which('chromium'),headless=True,args=['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
  c=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,device_scale_factor=1)
  if os.environ.get('THREE_MODULE_PATH'):c.route('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js',lambda r:r.fulfill(path=os.environ['THREE_MODULE_PATH'],content_type='text/javascript'))
- html=(ROOT/'index.html').read_text().replace('let previous=performance.now();', '''window.__game={state:()=>({x:player.position.x,y:player.position.y,z:player.position.z,yaw,heading:motion.heading,riding:motion.riding,speed:motion.speed,visible:scooter.visible,visited:visited.size}),destinations,layout:()=>({trees:landscapeLayout.trees.length,flowers:landscapeLayout.flowers.length,weeds:landscapeLayout.weeds.length}),overlook:()=>{window.__overview=true;cam.position.set(-267,walkHeight(-267,500)+65,550);cam.lookAt(-267,walkHeight(-267,500),495);renderer.render(scene,cam);}};let previous=performance.now();''').replace('cam.position.lerp(target,','if(!window.__overview)cam.position.lerp(target,').replace('cam.lookAt(player.position.x,player.position.y+2,player.position.z);','if(!window.__overview)cam.lookAt(player.position.x,player.position.y+2,player.position.z);')
+ html=(ROOT/'index.html').read_text().replace('let previous=performance.now();', '''window.__game={state:()=>({x:player.position.x,y:player.position.y,z:player.position.z,yaw,heading:motion.heading,riding:motion.riding,speed:motion.speed,visible:scooter.visible,visited:visited.size}),destinations,layout:()=>({trees:landscapeLayout.trees.length,flowers:landscapeLayout.flowers.length,weeds:landscapeLayout.weeds.length}),overlook:()=>{window.__overview=true;cam.position.set(-267,walkHeight(-267,500)+65,550);cam.lookAt(-267,walkHeight(-267,500),495);renderer.render(scene,cam);}};let previous=performance.now();''').replace('cam.position.lerp(target,','if(!window.__overview)cam.position.lerp(target,').replace('cam.lookAt(player.position.x,player.position.y+1.1,player.position.z);','if(!window.__overview)cam.lookAt(player.position.x,player.position.y+1.1,player.position.z);')
  c.route('http://127.0.0.1:8000/',lambda r:r.fulfill(body=html,content_type='text/html'))
  page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.on('console',lambda m:errors.append(m.text) if m.type=='error' and ('Shader Error' in m.text or 'VALIDATE_STATUS' in m.text) else None)
  page.goto('http://127.0.0.1:8000/');page.wait_for_function('window.__game',timeout=90000)
@@ -21,7 +21,7 @@ with sync_playwright() as p:
  page.locator('#interact').click();page.wait_for_function('window.__game.state().visited===1')
  travel('zhili');page.wait_for_function("document.querySelector('#info').textContent.includes('致理大樓')")
  assert state()['visited']==1
- page.keyboard.press('1');assert abs(state()['z']-512)<.01
+ page.keyboard.press('1');assert abs(state()['z']-page.evaluate("window.__game.destinations.find(d=>d.id==='gate').z"))<.01
  page.locator('#rideToggle').click();assert state()['riding'] and state()['visible']
  before=state();page.keyboard.down('w');page.wait_for_function('window.__game.state().speed>1')
  page.keyboard.down('d');page.wait_for_function('window.__game.state().heading<-.02');page.keyboard.up('d')

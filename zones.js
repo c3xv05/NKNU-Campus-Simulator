@@ -49,13 +49,17 @@ export function drawReferenceMap(svg,campus) {
   svg.setAttribute('viewBox','-446.8 -572 904.1 1135');
   svgElement('rect',{x:-446.8,y:-572,width:904.1,height:1135,fill:'#dce4da'},svg);
   svgElement('polygon',{points:poly(campus.boundary),fill:'#c7d6bb',stroke:'#6f876a','stroke-width':2},svg);
+  if(campus.flowerbed)svgElement('polygon',{points:poly(campus.flowerbed.ring),fill:'#d69baf'},svg);
   campus.water.forEach(a=>svgElement('polygon',{points:poly(a.ring),fill:'#81b5c4'},svg));
   campus.courts.forEach(a=>svgElement('polygon',{points:poly(a.ring),fill:'#9caaa1'},svg));
-  campus.roads.forEach(r=>svgElement('polyline',{points:poly(r.line),fill:'none',stroke:'#82918a','stroke-width':r.width+2,'stroke-linecap':'round','stroke-linejoin':'round'},svg));
+  const sidewalkIds=new Set(campus.sidewalkRoadIds||[]);
+  campus.roads.filter(r=>sidewalkIds.has(r.osm)).forEach(r=>svgElement('polyline',{points:poly(r.line),fill:'none',stroke:'#e2d7bc','stroke-width':r.width+3.6,'stroke-linecap':'round','stroke-linejoin':'round'},svg));
+  campus.roads.forEach(r=>svgElement('polyline',{points:poly(r.line),fill:'none',stroke:r.width<=2.5?'#c8c3b4':'#52595a','stroke-width':r.width,'stroke-linecap':'round','stroke-linejoin':'round'},svg));
   [...campus.buildings,...campus.places].forEach(a=>{
     svgElement('polygon',{points:poly(a.ring),fill:a.height?'#4d6c7e':'#b08272'},svg);
     (a.holes||[]).forEach(r=>svgElement('polygon',{points:poly(r),fill:'#acbc9d'},svg));
   });
+  const names=new Set();for(const area of [...campus.buildings.filter(a=>a.name),...campus.courts]){if(names.has(area.name))continue;names.add(area.name);const x=area.ring.reduce((s,p)=>s+p[0],0)/area.ring.length,z=area.ring.reduce((s,p)=>s+p[1],0)/area.ring.length;svgElement('text',{x,y:z-12,'text-anchor':'middle','font-size':17,fill:'#193b4c',stroke:'#fff','stroke-width':4,'paint-order':'stroke'},svg,area.name);}
   svgElement('text',{x:-425,y:-525,'font-size':27,'font-weight':800,fill:'#2d433c'},svg,'N ↑');
   svgElement('text',{x:-268,y:550,'text-anchor':'middle','font-size':22,'font-weight':800,fill:'#1e403b'},svg,'校門');
   svgElement('text',{x:-305,y:5,'text-anchor':'middle','font-size':17,'font-weight':700,fill:'#193b4c',stroke:'#fff','stroke-width':4,'paint-order':'stroke'},svg,'霽遠樓');

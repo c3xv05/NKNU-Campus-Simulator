@@ -10,21 +10,15 @@ export function addRoads(THREE,scene,network) {
   texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=2;
   const asphalt=new THREE.MeshStandardMaterial({color:0x3d4248,map:texture,roughness:1,side:THREE.DoubleSide});
   const concrete=new THREE.MeshStandardMaterial({color:0xaaa99e,roughness:1,side:THREE.DoubleSide});
-  const white=new THREE.MeshStandardMaterial({color:0xf2f1df,roughness:1,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
-  const yellow=new THREE.MeshStandardMaterial({color:0xffc928,roughness:1,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  const white=new THREE.MeshBasicMaterial({color:0xffffff,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  const yellow=new THREE.MeshBasicMaterial({color:0xffcc00,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   const earth=new THREE.MeshStandardMaterial({color:0x68715f,roughness:1,side:THREE.DoubleSide});
   const batches={asphalt:[],concrete:[],white:[],yellow:[],earth:[]};
   const footprints=[];
   const levels={asphalt:.06,concrete:.06,white:.08,yellow:.08};
   function vertex(x,z,type){return [x,network.surfaceHeight(x,z)+levels[type],z];}
   function quad(points,type){if(type==='asphalt'||type==='concrete')footprints.push([points[0],points[1],points[3],points[2]]);const v=points.map(p=>vertex(p[0],p[1],type));batches[type].push(...v[0],...v[2],...v[1],...v[1],...v[2],...v[3]);}
-  function skirt(a,b) {
-    const x=(a[0]+b[0])/2,z=(a[1]+b[1])/2,near=network.nearest(x,z);
-    if(near&&near.d<near.width/2-.2)return;
-    const topA=vertex(...a,'asphalt'),topB=vertex(...b,'asphalt');
-    const groundA=[a[0],network.groundHeight(...a),a[1]],groundB=[b[0],network.groundHeight(...b),b[1]];
-    batches.earth.push(...topA,...groundA,...topB,...topB,...groundA,...groundB);
-  }
+  function skirt() {} // Smooth earth shoulders replace the former vertical road skirts.
   function cap(x,z,radius,type){
     const centre=vertex(x,z,type);
     footprints.push(Array.from({length:20},(_,i)=>[x+Math.cos(i*Math.PI/10)*radius,z+Math.sin(i*Math.PI/10)*radius]));
@@ -94,7 +88,7 @@ export function addRoads(THREE,scene,network) {
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
     if(type==='asphalt')geometry.setAttribute('uv',new THREE.Float32BufferAttribute(positions.flatMap((v,i)=>i%3===0?[v/5,positions[i+2]/5]:[]),2));
     if(type==='earth')geometry.computeVertexNormals();
-    else{
+    else if(type==='asphalt'||type==='concrete'){
       const normals=[];
       for(let i=0;i<positions.length;i+=3){
         const x=positions[i],z=positions[i+2],e=.25;

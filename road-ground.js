@@ -1,6 +1,8 @@
 // Subtract convex pavement footprints from ground triangles. No raster masking,
 // so grass cannot poke through a road even beside a protected building platform.
 const area=polygon=>polygon.reduce((sum,p,i)=>{const q=polygon[(i+1)%polygon.length];return sum+p[0]*q[1]-q[0]*p[1];},0);
+const areaXZ=polygon=>Math.abs(polygon.reduce((sum,p,i)=>{const q=polygon[(i+1)%polygon.length];return sum+p[0]*q[2]-q[0]*p[2];},0));
+function clean(polygon){const result=[];for(const p of polygon){const q=result.at(-1);if(!q||Math.hypot(p[0]-q[0],p[2]-q[2])>1e-8)result.push(p);}if(result.length>1&&Math.hypot(result[0][0]-result.at(-1)[0],result[0][2]-result.at(-1)[2])<1e-8)result.pop();return result.length>=3&&areaXZ(result)>1e-8?result:[];}
 function subtract(subject,clip) {
   let inside=subject;const outside=[],orientation=Math.sign(area(clip))||1;
   for(let i=0;i<clip.length&&inside.length>=3;i++){
@@ -15,8 +17,8 @@ function subtract(subject,clip) {
         left.push(point);right.push(point);
       }
     }
-    if(right.length>=3)outside.push(right);
-    inside=left;
+    const exterior=clean(right);if(exterior.length>=3)outside.push(exterior);
+    inside=clean(left);
   }
   return outside;
 }
