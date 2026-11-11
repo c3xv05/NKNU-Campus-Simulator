@@ -1,3 +1,4 @@
+import {mapSidewalkLines} from './sidewalk-layout.js';
 import {setupRoadReview} from './road-review.js';
 import {isDeveloper} from './developer-auth.js';
 import {attachMapGestures,fitMapView} from './map-gestures.js';
@@ -26,8 +27,8 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   if(campus.flowerbed)element('polygon',{points:polygon(campus.flowerbed.ring),fill:'#d69baf',stroke:'#f5e6c6','stroke-width':1},svg);
   for(const area of campus.water) element('polygon',{points:polygon(area.ring),fill:'#5a9cb2'});
   for(const area of campus.courts) element('polygon',{points:polygon(area.ring),fill:'#809d88'});
-  const sidewalkIds=new Set(campus.sidewalkRoadIds||[]);
-  for(const road of campus.roads)if(sidewalkIds.has(road.osm))element('polyline',{points:polygon(road.line),fill:'none',stroke:'#e2d7bc','stroke-width':road.width+3.6,'stroke-linecap':'round','stroke-linejoin':'round'});
+
+  for(const road of mapSidewalkLines(campus))element('polyline',{points:polygon(road.line),fill:'none',stroke:'#e2d7bc','stroke-width':road.width,'stroke-linecap':'round','stroke-linejoin':'round'});
   for(const road of campus.roads)element('polyline',{points:polygon(road.line),fill:'none',stroke:road.width<=2.5?'#c8c3b4':'#52595a','stroke-width':road.width,'stroke-linecap':'round','stroke-linejoin':'round'});
   svgApron(svg,campus);
   if(campus.courtyard)element('polygon',{points:polygon(campus.courtyard.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);
