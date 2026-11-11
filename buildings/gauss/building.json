@@ -48,12 +48,13 @@
     "frame": "#b9b9ae",
     "glass": "#36545b",
     "detailDistance": 145,
-    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。",
+    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。；最新使用者街景照片所示共用入口階梯，獨立定義於building-access，模型尺寸近似。",
     "frontMode": "main-road",
     "frontEdge": 0,
     "frontRoadIds": [
       218881800
-    ]
+    ],
+    "accessReference": "facilities/building-access/layout.json"
   },
   "frontageAlignment": {
     "sourceRing": [

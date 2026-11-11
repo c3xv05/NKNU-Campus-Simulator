@@ -8,6 +8,9 @@ root=Path(__file__).resolve().parents[1]
 js="""import fs from 'node:fs';import{createRoadNetwork}from'./roads.js';import{sidewalkSections}from'./site-physics.js';const c=JSON.parse(fs.readFileSync('data/campus.json')),n=createRoadNetwork(c.roads,()=>0,JSON.parse(fs.readFileSync('data/road-tags.json')),{apron:c.entranceApron,pavedAreas:c.pavedAreas,junctionFillets:c.junctionFillets});process.stdout.write(JSON.stringify(sidewalkSections(c,n).map(s=>s.points)));"""
 polygons=json.loads(subprocess.check_output(['node','--input-type=module','-e',js],cwd=root))
 shape=unary_union([set_precision(Polygon(p),.001) for p in polygons if Polygon(p).area>1e-7]).buffer(0)
+# Stairs have their own stepped surface and support heights, never overlapping tiles.
+c=json.loads((root/'data/campus.json').read_text())
+for s in [c['bioConnection']['stairs']]+c['levelLink'].get('stairs',[]):shape=shape.difference(Polygon(s['ring']))
 parts=list(shape.geoms) if hasattr(shape,'geoms') else [shape]
 shape=unary_union([Polygon(p.exterior,[h for h in p.interiors if Polygon(h).area>=.01]) for p in parts])
 # Remove micrometre clipping slivers; retain curb outlines to within a millimetre.
