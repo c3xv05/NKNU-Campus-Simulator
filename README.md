@@ -139,3 +139,5 @@ python scripts/build-building-catalog.py
 入口路面是使用花圃精確輪廓作孔洞的整片瀝青。重建幾何依序執行 `scripts/build-entrance-apron.py`、`scripts/build-road-regions.py`、`scripts/build-sidewalk-sections.py`，產生檔案隨網站部署；產生環境需 Shapely，網站執行不需要 Python。
 
 新增驗證：`node tests/map-review.mjs`、`python tests/map-mobile-browser.py`、`python tests/developer-browser.py`。
+
+入口 S17 外側新增長條迎賓看板，預設 Welcome、完整校名與校徽。活動文字、配色、圖片及期間由 [facilities/welcome-board/board.json](facilities/welcome-board/board.json) 設定，更新後隨網站發布；換版示例見 [設施說明](facilities/welcome-board/README.md)。

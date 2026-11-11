@@ -35,6 +35,7 @@ import {addSiteDetails} from './site-details.js';
 import {addBuildings,loadBuildingProfiles} from './buildings/renderer.js';
 import {stairHeightAt} from './connections.js';
 import {lakeAt,bridgeHeight,platformHeightAt} from './site-physics.js';
+import {addWelcomeBoard} from './facilities/welcome-board/renderer.js';
 import {createLandscapeLayout,addLandscape} from './landscape.js';
 import {coverAt} from './landcover.js';
 import {setupCampusMap} from './map.js';
@@ -211,6 +212,7 @@ gateLabel.position.set(gateX, walkHeight(gateX,gateZ)+6, gateZ);
 labelMeshes.push(gateLabel);
 scene.add(gateLabel);
 
+const welcomeBoard=await addWelcomeBoard(THREE,scene,walkHeight);cameraObstacles.push(...welcomeBoard.blockers);campus.welcomeBoard={ring:welcomeBoard.ring,name:'校門迎賓看板'};
 const landscapeLayout=createLandscapeLayout(campus,roadNetwork,walkHeight);
 const landscapeGroup=addLandscape(THREE,scene,landscapeLayout,walkHeight);
 const retainingWall=landscapeGroup.getObjectByName('A1-retaining-wall');if(retainingWall)cameraObstacles.push(retainingWall);
@@ -403,6 +405,7 @@ for(const road of mapSidewalkLines(campus)){overviewCtx.beginPath();trace(overvi
 campus.roads.forEach(({line,width})=>{overviewCtx.beginPath();trace(overviewCtx,line,false);overviewCtx.lineWidth=width;overviewCtx.strokeStyle=width<=2.5?'#c8c3b4':'#52595a';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();});
 if(campus.courtyard)fillArea(overviewCtx,campus.courtyard,'#d5cebc');
 if(campus.gatehouse)fillArea(overviewCtx,campus.gatehouse,'#8d8073');
+if(campus.welcomeBoard)fillArea(overviewCtx,campus.welcomeBoard,'#eebd65');
 if(campus.entranceApron?.ring)fillArea(overviewCtx,campus.entranceApron,'#52595a');
 campus.buildings.forEach(area => fillArea(overviewCtx, area, '#778b86'));
 places.forEach(area => {
@@ -462,7 +465,7 @@ function movePlayer(dx,dz,radius){
   const lake=lakeAt(x,z,campus);
   if(lake){const road=roadNetwork.nearest(x,z);if(!(road&&road.d<road.width/2&&roadNetwork.surfaceHeight(x,z)>terrain.platformHeight(lake)+.2)){motion.speed=0;showToast('前方是湖泊，請沿岸行走');return false;}}
   const blockedBuilding=obstacles.some(({ring,osm})=>distanceToRing(x,z,ring)<radius&&!(connection!==null&&[campus.levelLink.from,campus.levelLink.to,444867694,campus.bioConnection.from,campus.bioConnection.to].includes(osm)));
-  if(blockedBuilding||landscapeLayout.blocked(x,z,radius)||siteDetails.blocked(x,z,radius,player.position.y)){motion.speed=0;return false;}
+  if(welcomeBoard.blocked(x,z,radius)||blockedBuilding||landscapeLayout.blocked(x,z,radius)||siteDetails.blocked(x,z,radius,player.position.y)){motion.speed=0;return false;}
   player.position.set(x,connection??walkHeight(x,z),z);
  }
  return true;
