@@ -1,3 +1,4 @@
+import {SIDEWALK_RISE,ROAD_SURFACE_LIFT} from '../sidewalk-layout.js';
 import {selectFront} from '../building-layout.js';
 // Original geometry and procedural materials, derived from the supplied facade references.
 // A building keeps one shell and a few instanced detail batches; distant details are hidden.
@@ -38,7 +39,7 @@ export function addBuildings(THREE,scene,campus,terrain,profiles,network){
   }
   // Pick the front facade from each building's own reference metadata.
   const front=selectFront(a,p,network);
-  if(front&&p.showEntrance!==false){const e=front,x=(e.v[0]+e.q[0])/2,z=(e.v[1]+e.q[1])/2,w=Math.min(e.len*.72,12),entryBase=base+((p.entranceFloor||1)-1)*fh,place=(along,y,out)=>[x+e.dx/e.len*along+e.nx*out,entryBase+y,z+e.dz/e.len*along+e.nz*out];
+  if(front&&p.showEntrance!==false){const e=front,x=(e.v[0]+e.q[0])/2,z=(e.v[1]+e.q[1])/2,w=Math.min(e.len*.72,12),entryBase=p.entranceAtSidewalk&&network?network.surfaceHeight(x,z)+ROAD_SURFACE_LIFT+SIDEWALK_RISE:base+((p.entranceFloor||1)-1)*fh,place=(along,y,out)=>[x+e.dx/e.len*along+e.nx*out,entryBase+y,z+e.dz/e.len*along+e.nz*out];
    box(w,2.7,.2,...place(0,1.35,.25),dark,e.angle);for(const t of [-w/2,w/2])box(.6,3.6,2.4,...place(t,1.8,1.1),frame,e.angle);box(w+1,.45,3.2,...place(0,3.35,1.4),frame,e.angle);
    if(p.style==='canteen'){for(const side of [-1,1])box(.35,5,1,...place(side*1.7,a.height+1.8,.4),frame,e.angle);for(let i=0;i<4;i++)box(3.4,.25,1,...place(0,a.height-.5+i*1.35,.4),frame,e.angle);}
    if(p.style==='brick-frame'){for(const t of [-w/2,w/2])box(.4,fh*2.6,.8,...place(t,fh*2,.6),frame,e.angle);box(w+.7,.7,1.2,...place(0,fh*3.2,.7),frame,e.angle);}

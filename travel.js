@@ -8,6 +8,7 @@ export function findDestinations(campus,network){
   const target=campus.places.find(p=>p.name===name),c=centre(target.ring);let best=null,roadBest=null;
   for(const segment of network.segments){
    if(segment.route.style.path&&id!=='library')continue;
+   if(campus.entranceRoadIds?.[target.osm]&&!campus.entranceRoadIds[target.osm].includes(segment.route.osm))continue;
    const x=(segment.a.x+segment.b.x)/2,z=(segment.a.z+segment.b.z)/2;
    if(buildings.some(b=>ringDistance(x,z,b.ring)<2.5)||campus.water.some(a=>ringDistance(x,z,a.ring)<1))continue;
    const distance=ringDistance(x,z,target.ring),score=distance+Math.hypot(x-c.x,z-c.z)*.02;

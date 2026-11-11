@@ -12,7 +12,7 @@ export function entranceBed(){
 }
 export function createLandscapeLayout(campus,network,height){
  let seed=170491;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- const bed=entranceBed(),areas=[...campus.places,...campus.buildings,...campus.water,...campus.courts,...(campus.pavedAreas||[]),...(campus.junctionFillets||[]),...(campus.sideGate?sidegateWalls(campus.sideGate).map(ring=>({ring})):[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.welcomeBoard?[campus.welcomeBoard]:[])].map(a=>{const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{...a,west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs)};});
+ const bed=entranceBed(),areas=[...campus.places,...campus.buildings,...campus.water,...campus.courts,...(campus.pavedAreas||[]),...(campus.junctionFillets||[]),...(campus.sidewalkFrontages||[]),...(campus.sideGate?sidegateWalls(campus.sideGate).map(ring=>({ring})):[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.welcomeBoard?[campus.welcomeBoard]:[])].map(a=>{const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{...a,west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs)};});
  function eligible(x,z,margin=0){
   if(ringDistance(x,z,campus.boundary)!==0)return false;
   const road=network.nearest(x,z);if(road){const s=road.segment,side=Math.sign((x-s.a.x)*(-s.dz)+(z-s.a.z)*s.dx),walk=(campus.sidewalkRoadIds||[]).includes(s.route.osm)&&sidewalkSides(campus,s.route.osm).includes(side)?SIDEWALK_WIDTH:0;if(road.d<road.width/2+walk+margin)return false;}

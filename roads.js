@@ -111,7 +111,9 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
     }
     return motor&&motor.d<=motor.width/2+1e-6?motor:closest;
   }
+  const edgePavement=(options.edgePavement||[]).map(ring=>({ring,west:Math.min(...ring.map(p=>p[0])),east:Math.max(...ring.map(p=>p[0])),north:Math.min(...ring.map(p=>p[1])),south:Math.max(...ring.map(p=>p[1]))}));
   function onMotorRoad(x,z){
+    if(edgePavement.some(a=>x>=a.west&&x<=a.east&&z>=a.north&&z<=a.south&&ringDistance(x,z,a.ring)===0))return true;
     if((options.junctionFillets||[]).some(a=>ringDistance(x,z,a.ring)===0))return true;
     if((options.pavedAreas||[]).some(a=>ringDistance(x,z,a.ring)===0))return true;
     const apron=options.apron;if(apron?.ring&&ringDistance(x,z,apron.ring)===0&&!(apron.holes||[]).some(h=>ringDistance(x,z,h)===0))return true;
@@ -167,9 +169,9 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
   }
   function integratedHeight(x,z,ground){const road=nearest(x,z);const weight=Math.max(road?1-ease(road.width/2+2,road.width/2+16,road.d):0,...paved.map(a=>pavedWeight(a,x,z)));return ground+(surfaceHeight(x,z)-ground)*weight;}
   function walkHeight(x,z,ground) {
-    return integratedHeight(x,z,ground)+.035;
+    return (onMotorRoad(x,z)?surfaceHeight(x,z):integratedHeight(x,z,ground))+.035;
   }
-  return {junctionFillets:options.junctionFillets||[],pavedAreas:options.pavedAreas||[],apron:options.apron,entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
+  return {edgePavement:options.edgePavement||[],junctionFillets:options.junctionFillets||[],pavedAreas:options.pavedAreas||[],apron:options.apron,entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
 }
 
 export function prepareRoadCurves(roads){const sources=roads.map(r=>({...r,line:r.sourceLine||r.line})),connections=new Map();for(const r of sources)for(const p of r.line){const k=pointKey(...p);connections.set(k,(connections.get(k)||0)+1);}return sources.map(r=>({...r,sourceLine:r.line,line:r.entrance?r.line:roundedLine(r.line,r.width,connections),curvesPrepared:true}));}

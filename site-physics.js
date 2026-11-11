@@ -18,6 +18,7 @@ export function sidewalkSections(campus,network){
    }
   }
  }
+ for(const f of campus.sidewalkFrontages||[]){let pieces=pavement.clip(f.ring);for(const b of buildings)pieces=pieces.flatMap(p=>subtract(p.map(([x,z])=>[x,0,z]),b.ring).map(q=>q.map(([x,,z])=>[x,z])));for(const points of pieces)sections.push({road:f.road,points,across:{x:0,z:0,nx:1,nz:0,inner:0}});}
  return sections;
 }
 export function platformHeightAt(x,z,currentY,campus,terrain){
