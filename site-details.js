@@ -4,7 +4,6 @@ import {addSidegate} from './facilities/s24-sidegate/renderer.js';
 import {addCarports} from './facilities/s23-carport/renderer.js';
 import {addConnections} from './connections.js';
 import {ringDistance} from './terrain.js';
-import {sidewalkSections} from './site-physics.js';
 export function addSiteDetails(THREE,scene,campus,terrain,network){
  const group=new THREE.Group();group.name='campus-site-details';scene.add(group);
  const blockers=[],columns=[],waterMeshes=[];const material=(color)=>new THREE.MeshStandardMaterial({color,roughness:.9,side:THREE.DoubleSide});
@@ -12,7 +11,7 @@ export function addSiteDetails(THREE,scene,campus,terrain,network){
  function box(w,h,d,x,y,z,mat,angle=0){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.rotation.y=angle;mesh.castShadow=true;mesh.receiveShadow=true;group.add(mesh);return mesh;}
  function meshPositions(positions,mat,name){const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.computeVertexNormals();const mesh=new THREE.Mesh(geometry,mat);mesh.name=name;mesh.receiveShadow=true;group.add(mesh);return mesh;}
  function quad(p,positions){positions.push(...p[0],...p[2],...p[1],...p[1],...p[2],...p[3]);}
- const sidewalks=sidewalkSections(campus,network),sidewalkSurface=createSidewalkSurface(network,sidewalkPlan,terrain.height);
+ const sidewalks=(sidewalkPlan.footprints||sidewalkPlan.triangles).map(points=>({points})),sidewalkSurface=createSidewalkSurface(network,sidewalkPlan,terrain.height);
  const tileCanvas=document.createElement('canvas');tileCanvas.width=tileCanvas.height=256;const tileCtx=tileCanvas.getContext('2d');tileCtx.fillStyle='#eeeeea';tileCtx.fillRect(0,0,256,256);tileCtx.fillStyle='#b4b9b6';for(const [x,z] of [[64,32],[192,160]])tileCtx.fillRect(x,z,32,64);tileCtx.strokeStyle='#b9bebc';tileCtx.lineWidth=1.5;for(let i=0;i<=256;i+=32){tileCtx.beginPath();tileCtx.moveTo(i,0);tileCtx.lineTo(i,256);tileCtx.moveTo(0,i);tileCtx.lineTo(256,i);tileCtx.stroke();}
  const tileTexture=new THREE.CanvasTexture(tileCanvas);tileTexture.wrapS=tileTexture.wrapT=THREE.RepeatWrapping;tileTexture.colorSpace=THREE.SRGBColorSpace;tileTexture.anisotropy=4;const tileMaterial=new THREE.MeshStandardMaterial({color:0xffffff,map:tileTexture,roughness:.95,side:THREE.DoubleSide});
  tileMaterial.onBeforeCompile=shader=>{shader.vertexShader='attribute float sidewalkEdgeDistance; varying float vSidewalkEdgeDistance;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvSidewalkEdgeDistance=sidewalkEdgeDistance;');shader.fragmentShader='varying float vSidewalkEdgeDistance;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\nif(vSidewalkEdgeDistance<0.22)diffuseColor.rgb=vec3(0.52,0.55,0.54);');};tileMaterial.customProgramCacheKey=()=> 'level-white-tiles-grey-edge-v2';

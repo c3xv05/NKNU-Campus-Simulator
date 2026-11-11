@@ -63,6 +63,12 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
     });
     nodes.forEach((node,i)=>node.h=next[i]);
   }
+  // Pool adjacent grade violations without reversing the user-confirmed uphill direction.
+  for(const route of routes.filter(r=>r.uphillGrade)){
+    let distance=0;const blocks=[];
+    route.points.forEach((p,i)=>{if(i)distance+=Math.hypot(p.x-route.points[i-1].x,p.z-route.points[i-1].z);const w=(i===0||i===route.points.length-1)?10000:1;blocks.push({items:[{p,distance}],weight:w,value:(p.h-route.uphillGrade.minimumSlope*distance)*w});while(blocks.length>1){const b=blocks.at(-1),a=blocks.at(-2);if(a.value/a.weight<=b.value/b.weight)break;blocks.splice(-2,2,{items:[...a.items,...b.items],weight:a.weight+b.weight,value:a.value+b.value});}});
+    for(const b of blocks)for(const {p,distance} of b.items)p.h=b.value/b.weight+route.uphillGrade.minimumSlope*distance;
+  }
   const junctions=nodes.filter(node=>node.neighbours.size>2).map(node=>({x:node.x,z:node.z,h:node.h,width:node.width,motor:node.vehicleNeighbours.size>2}));
   // Fit a gradient at shared nodes for continuous, shape-preserving cubic grades.
   for(const node of nodes){
@@ -153,7 +159,16 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
     }
     if(!total)return height(x,z);let motorGrade=motorValue/(motorTotal||1);if(motorTotal){const mx=fx/motorTotal,mz=fz/motorTotal,mh=fh/motorTotal,xx=fxx/motorTotal-mx*mx+.5,xz=fxz/motorTotal-mx*mz,zz=fzz/motorTotal-mz*mz+.5,xh=fxh/motorTotal-mx*mh,zh=fzh/motorTotal-mz*mh,det=xx*zz-xz*xz;let gx=(xh*zz-zh*xz)/det,gz=(zh*xx-xh*xz)/det;const slope=Math.hypot(gx,gz);if(slope>.3){gx*=.3/slope;gz*=.3/slope;}motorGrade=mh-gx*mx-gz*mz;}const average=motorTotal?(pathTotal?(pathValue/pathTotal)*(1-motorPreference)+motorGrade*motorPreference:motorGrade):pathValue/pathTotal;const raw=height(x,z),result=sharedEntrance(x,z,raw+(average-raw)*coverage);if(surfaceCache.size<250000)surfaceCache.set(cacheKey,result);return result;
   }
-  const roadSurfaceHeight=fittedRoadSurfaceHeight;
+  // Keep road and adjacent walkway cross sections level, retaining the uphill grade.
+  const levelSections=segments.filter(s=>s.route.levelCrossfall),levelBuckets=new Map();
+  for(const s of levelSections){const margin=s.width/2+SIDEWALK_WIDTH+13;for(let iz=Math.floor((Math.min(s.a.z,s.b.z)-margin)/cellSize);iz<=Math.floor((Math.max(s.a.z,s.b.z)+margin)/cellSize);iz++)for(let ix=Math.floor((Math.min(s.a.x,s.b.x)-margin)/cellSize);ix<=Math.floor((Math.max(s.a.x,s.b.x)+margin)/cellSize);ix++){const k=ix+','+iz;if(!levelBuckets.has(k))levelBuckets.set(k,[]);levelBuckets.get(k).push(s);}}
+  function roadSurfaceHeight(x,z){
+    const h=fittedRoadSurfaceHeight(x,z);let best=null;
+    for(const s of levelBuckets.get(key(x,z))||[]){const t=clamp(((x-s.a.x)*s.dx+(z-s.a.z)*s.dz)/(s.length*s.length),0,1),px=s.a.x+s.dx*t,pz=s.a.z+s.dz*t,d=Math.hypot(x-px,z-pz);if(!best||d<best.d)best={s,t,px,pz,d};}
+    if(!best)return h;const {s,t,px,pz,d}=best,weight=(1-ease(s.width/2+SIDEWALK_WIDTH+1,s.width/2+SIDEWALK_WIDTH+13,d))*(.9+.1*ease(0,25,Math.min(s.distance+t*s.length,s.route.length-s.distance-t*s.length)));if(!weight)return h;
+    const along=((x-px)*s.dx+(z-pz)*s.dz)/s.length,grade=(fittedRoadSurfaceHeight(px+s.dx/s.length,pz+s.dz/s.length)-fittedRoadSurfaceHeight(px-s.dx/s.length,pz-s.dz/s.length))/2;
+    const target=fittedRoadSurfaceHeight(px,pz)+along*grade;return h+(target-h)*weight;
+  }
   const paved=(options.pavedAreas||[]).map(a=>({...a,level:roadSurfaceHeight(...a.anchor),west:Math.min(...a.ring.map(p=>p[0])),east:Math.max(...a.ring.map(p=>p[0])),north:Math.min(...a.ring.map(p=>p[1])),south:Math.max(...a.ring.map(p=>p[1]))}));
   function pavedWeight(a,x,z){if(x<a.west-12||x>a.east+12||z<a.north-12||z>a.south+12)return 0;return 1-ease(0,12,ringDistance(x,z,a.ring));}
   function ungriddedSurfaceHeight(x,z){let h=roadSurfaceHeight(x,z);for(const a of paved){const w=pavedWeight(a,x,z);if(w)h+=(a.level-h)*w;}return h;}

@@ -83,7 +83,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   const amenityList=document.getElementById('amenityList')||document.createElement('div');amenityList.id='amenityList';if(!amenityList.parentNode)list.after(amenityList);
   const title=document.createElement('p');title.textContent='場地與設施';amenityList.append(title);
   const seen=new Set();
-  const amenities=[...campus.buildings.filter(a=>a.name),...campus.courts,...campus.water,...(campus.flowerbed?[campus.flowerbed]:[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.gatehouse?[campus.gatehouse]:[]),...(campus.bioConnection?.stairs?[campus.bioConnection.stairs]:[])];
+  const amenities=[...campus.buildings.filter(a=>a.name?.includes('警衛室')),...campus.courts,...campus.water];
   for(const area of amenities){
     const identity=area.facility||area.name;if(seen.has(identity))continue;seen.add(identity);
     const x=area.ring.reduce((s,p)=>s+p[0],0)/area.ring.length,z=area.ring.reduce((s,p)=>s+p[1],0)/area.ring.length;

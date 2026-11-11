@@ -5,7 +5,7 @@ from shapely.geometry import Polygon,LineString,Point
 from shapely.ops import unary_union
 root=Path(__file__).resolve().parents[1];c=json.loads((root/'data/campus.json').read_text());tags=json.loads((root/'data/road-tags.json').read_text())
 campus=Polygon(c['boundary']).buffer(0);roads=[r for r in c['roads'] if r['width']>2.5]
-pavement=unary_union([LineString(r['line']).buffer(r['width']/2,cap_style=2,join_style=1) for r in roads if not r.get('entrance')]+[Polygon(c['entranceApron']['ring'],c['entranceApron']['holes'])]+[Polygon(a['ring']) for a in c.get('pavedAreas',[])+c.get('junctionFillets',[])]);land=campus.difference(pavement)
+pavement=unary_union([LineString(r['line']).buffer(r['width']/2,cap_style=2,join_style=1) for r in roads if not r.get('entrance')]+[Polygon(c['entranceApron']['ring'],c['entranceApron']['holes'])]+[Polygon(a['ring']).buffer(0) for a in c.get('pavedAreas',[])+c.get('junctionFillets',[])]);land=campus.difference(pavement)
 regions=[p for p in land.geoms if p.area>100];regions.sort(key=lambda p:(-p.representative_point().y,p.representative_point().x))
 def ring(points):return [[round(x,3),round(y,3)] for x,y in list(points)[:-1]]
 places=[p for p in c['places'] if p.get('name')];result=[]
