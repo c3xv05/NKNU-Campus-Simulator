@@ -148,3 +148,10 @@ https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=K0040014
 
 新聞及 Dcard 六項溫和素材附連結、年代、來源類別與虛構玩法界線，存於 [docs/research/story-seeds.md](docs/research/story-seeds.md)。
 僅研究備忘，未加入 NPC／事件，不直接重製真人、貼文對話或照片。
+
+## 2026-11-11 校內路名與街廓核對
+
+- [高師大燕巢校區官方地圖](https://w3.nknu.edu.tw/images/files/yt_01_map.pdf)：清心路、環手星月大道、師大路二／三／四段、向陽路、詠霽路。
+- [校方 69 周年校慶交通車時刻表](https://news.nknu.edu.tw/nknu_News/nknuMgt/UploadFile/News/FF2081B63C581FC0AB4EB056A12CA8A4AF8EFC94/1121103%E4%BA%A4%E9%80%9A%E8%BB%8A%E6%99%82%E5%88%BB%E8%A1%A8%2869%E5%91%A8%E5%B9%B4%E6%A0%A1%E6%85%B6%29-%E4%BF%AE%E6%AD%A3.pdf)：交叉核對師大路、詠霽路、環手星月大道、清心路。
+- 路線幾何及師大路一段分段沿用 OSM，標籤位置為模型近似；莘學路尚未取得官方佐證，不列於一般地圖的已核實路名。
+- 新植被街廓由模型車道鋪面邊界計算，非地籍分區；所有 R 區待使用者重新確認，未直接沿用矩形分區答案。

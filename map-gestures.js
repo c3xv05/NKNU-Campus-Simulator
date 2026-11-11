@@ -1,0 +1,17 @@
+export function clampView(v,base,maxZoom=6){const w=Math.max(base.width/maxZoom,Math.min(base.width,v.width)),h=w*base.height/base.width;return{x:Math.max(base.x,Math.min(base.x+base.width-w,v.x)),y:Math.max(base.y,Math.min(base.y+base.height-h,v.y)),width:w,height:h};}
+export function attachMapGestures(element,{base,getView,setView,toWorld,maxZoom=6}){
+ const points=new Map();let moved=false,multi=false,suppressUntil=0;element.style.touchAction='none';element.style.userSelect='none';
+ function world(p,v){if(toWorld)return toWorld(p,v);const matrix=element.getScreenCTM();if(matrix){const q=new DOMPoint(p.x,p.y).matrixTransform(matrix.inverse());return{x:q.x,y:q.y};}const r=element.getBoundingClientRect();return{x:v.x+(p.x-r.left)/r.width*v.width,y:v.y+(p.y-r.top)/r.height*v.height};}
+ function center(){const p=[...points.values()];return{x:p.reduce((s,p)=>s+p.x,0)/p.length,y:p.reduce((s,p)=>s+p.y,0)/p.length};}
+ function distance(){const p=[...points.values()];return p.length<2?0:Math.hypot(p[1].x-p[0].x,p[1].y-p[0].y);}
+ function apply(v){setView(clampView(v,base,maxZoom));}
+ element.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&e.button!==0)return;if(!points.size){moved=false;multi=false;}points.set(e.pointerId,{x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY});if(points.size>1){multi=true;moved=true;for(const id of points.keys())try{element.setPointerCapture(id);}catch{}e.preventDefault();}});
+ element.addEventListener('pointermove',e=>{const p=points.get(e.pointerId);if(!p)return;const oldCenter=center(),oldDistance=distance();p.x=e.clientX;p.y=e.clientY;if(points.size===1&&!moved&&Math.hypot(p.x-p.startX,p.y-p.startY)<6)return;moved=true;try{element.setPointerCapture(e.pointerId);}catch{}e.preventDefault();const nextCenter=center(),v=getView(),a=world(oldCenter,v),b=world(nextCenter,v),pan={...v,x:v.x+a.x-b.x,y:v.y+a.y-b.y};let factor=1;if(points.size>1&&oldDistance>0){const d=distance();if(d>0)factor=oldDistance/d;}apply({x:a.x-(a.x-pan.x)*factor,y:a.y-(a.y-pan.y)*factor,width:v.width*factor,height:v.height*factor});});
+ function end(e){if(!points.has(e.pointerId))return;if(moved||multi||e.type==='pointercancel')suppressUntil=performance.now()+450;points.delete(e.pointerId);try{if(element.hasPointerCapture(e.pointerId))element.releasePointerCapture(e.pointerId);}catch{}}
+ window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end);
+ element.addEventListener('click',e=>{if(performance.now()<suppressUntil&&e.detail!==0){e.preventDefault();e.stopImmediatePropagation();}},true);
+ function zoom(factor,point){const v=getView(),p=point||{x:v.x+v.width/2,y:v.y+v.height/2};apply({x:p.x-(p.x-v.x)*factor,y:p.y-(p.y-v.y)*factor,width:v.width*factor,height:v.height*factor});}
+ element.addEventListener('wheel',e=>{e.preventDefault();zoom(Math.exp(e.deltaY*.002),world({x:e.clientX,y:e.clientY},getView()));},{passive:false});
+ return{zoomIn:()=>zoom(.75),zoomOut:()=>zoom(1/.75),reset:()=>{points.clear();setView({...base});},get scale(){return base.width/getView().width;},cancel:()=>points.clear()};
+}
+export function fitMapView(points,base,padding=35,maxZoom=6){const xs=points.map(p=>p[0]),ys=points.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),width=Math.min(base.width,Math.max(maxX-minX+padding*2,(maxY-minY+padding*2)*base.width/base.height,base.width/maxZoom));return clampView({x:(minX+maxX-width)/2,y:(minY+maxY-width*base.height/base.width)/2,width,height:width*base.height/base.width},base,maxZoom);}

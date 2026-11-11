@@ -40,8 +40,8 @@ with sync_playwright() as p:
     page.locator('#buildingList button').filter(has_text='圖資大樓').click()
     assert '圖資大樓' in page.locator('#mapSelection').inner_text()
     assert page.locator('#buildingList button.selected').count()==1
-    page.locator('#zonesMode').click();assert page.locator('#buildingList button').count()==12
-    page.locator('#buildingList button').filter(has_text='B1').click();assert '樹林' in page.locator('#mapSelection').inner_text()
+    assert not page.locator('#zonesMode').is_visible();page.evaluate("async()=>{(await import('./developer-auth.js')).loginDeveloper('0315')}");page.locator('#zonesMode').click();assert page.locator('#buildingList button').count()==12
+    page.locator('#buildingList button').filter(has_text='R04').click();assert '植被' in page.locator('#mapSelection').inner_text()
     page.locator('#buildingsMode').click();assert '圖資大樓' in page.locator('#mapSelection').inner_text()
     before=state();page.keyboard.down('w');page.wait_for_timeout(200);assert state()==before;page.keyboard.up('w')
     page.screenshot(path='/tmp/nknu-mobile-map.png')

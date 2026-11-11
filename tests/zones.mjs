@@ -1,18 +1,6 @@
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import {zones} from '../zones.js';
-import {ringDistance} from '../terrain.js';
-const campus=JSON.parse(fs.readFileSync(new URL('../data/campus.json',import.meta.url)));
-assert.equal(zones.length,12);
-assert.equal(new Set(zones.map(z=>z.id)).size,12);
-for(const zone of zones){
- const [w,n,e,s]=zone.box,[x,z]=zone.label;
- assert(w<e&&n<s);assert(x>w&&x<e&&z>n&&z<s,`${zone.id} label outside its sector`);
- assert.equal(ringDistance(x,z,campus.boundary),0,`${zone.id} label outside campus`);
-}
-// Each interior location gets exactly one sector, without holes or overlap.
-for(let z=-560;z<550;z+=11)for(let x=-435;x<445;x+=13){
- if(ringDistance(x,z,campus.boundary)>0)continue;
- assert.equal(zones.filter(q=>{const[w,n,e,s]=q.box;return x>=w&&x<e&&z>=n&&z<s;}).length,1,`Coverage at ${x},${z}`);
-}
-console.log('PASS: 12 unique sectors, labels inside campus, complete non-overlapping campus coverage');
+import assert from 'node:assert/strict';import fs from 'node:fs';import {zones} from '../zones.js';import {ringDistance} from '../terrain.js';
+const c=JSON.parse(fs.readFileSync(new URL('../data/campus.json',import.meta.url))),inside=(x,z,p)=>ringDistance(x,z,p.ring)===0&&!(p.holes||[]).some(h=>ringDistance(x,z,h)===0);
+assert.equal(zones.length,12);assert.equal(new Set(zones.map(z=>z.id)).size,12);
+for(const z of zones){assert(/^R\d{2}$/.test(z.id));assert(!z.box,'New regions must be polygons, not a rectangular grid');assert(z.ring.length>=3);assert(inside(...z.label,z),z.id+' label is outside its road-bounded polygon');assert.equal(ringDistance(...z.label,c.boundary),0);assert.equal(z.status,'unconfirmed');for(const id of z.roadIds)assert(c.roads.some(r=>r.osm===id));}
+let samples=0;for(let z=-540;z<530;z+=9)for(let x=-410;x<425;x+=11){const found=zones.filter(p=>inside(x,z,p));assert(found.length<=1,'Regions overlap');if(found.length)samples++;}assert(samples>2000);
+console.log('PASS: 12 unique road-bounded polygon regions, interior labels, no rectangular boxes, non-overlap and no inherited A1-D3 answers');

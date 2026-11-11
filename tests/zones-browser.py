@@ -1,39 +1,26 @@
-import json,os,shutil
+from pathlib import Path
+import re,json,shutil
 from playwright.sync_api import sync_playwright
+root=Path(__file__).resolve().parents[1]
 with sync_playwright() as p:
- b=p.chromium.launch(executable_path=os.environ.get('CHROMIUM_PATH') or shutil.which('chromium'),headless=True,args=['--no-sandbox'])
- context=b.new_context(viewport={'width':1280,'height':1000})
- page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
- page.goto('http://127.0.0.1:8000/zones.html');page.wait_for_function("document.querySelectorAll('#zoneList button').length===12")
- assert page.locator('#zoneList button').count()==12
- assert page.locator('#vegetation').input_value()=='樹林'
- page.get_by_role('button',name='B1 霽遠樓、文萃樓與歸燕食巢周邊',exact=True).click()
- assert 'B1' in page.locator('#zoneTitle').inner_text()
- page.locator('#vegetation').select_option('草地與樹林混合');page.locator('#zoneNote').fill('靠道路是草地，後方是樹林。')
- assert 'B1' in page.locator('#replyText').input_value()
- assert '靠道路是草地' in page.locator('#replyText').input_value()
- page.reload();page.wait_for_function("document.querySelectorAll('#zoneList button').length===12")
- page.get_by_role('button',name='B1 霽遠樓、文萃樓與歸燕食巢周邊',exact=True).click()
- assert page.locator('#vegetation').input_value()=='草地與樹林混合'
- assert '後方是樹林' in page.locator('#zoneNote').input_value()
- # Direct SVG interaction must select the matching zone.
- page.locator('#zoneMap [aria-label="C1 教學區西側山坡，植被待確認"]').focus();page.keyboard.press('Enter')
- assert 'C1' in page.locator('#zoneTitle').inner_text()
- assert page.locator('#vegetation').input_value()=='待確認'
- # Capture the default map without implying any classification.
- page.evaluate('localStorage.clear()');page.reload();page.wait_for_function("document.querySelectorAll('#zoneList button').length===12")
- page.screenshot(path='/tmp/nknu-zones-desktop.png',full_page=True)
- page.set_viewport_size({'width':390,'height':844});page.screenshot(path='/tmp/nknu-zones-mobile.png',full_page=True)
- assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
- # Exercise the game's map module without starting a WebGL scene.
- fixture='<!doctype html><button id="mapOpen">地圖</button><dialog id="mapDialog"><button id="mapClose">關閉</button><button id="buildingsMode">建築</button><button id="zonesMode">分區</button><span id="mapKey"></span><svg id="largeMap"></svg><div id="buildingList"></div><p id="mapSelection"></p></dialog><script type="module">import {setupCampusMap} from \'./map.js\';const campus=await(await fetch(\'./data/campus.json\')).json();const places=campus.places.map(p=>({...p,x:p.ring[0][0],z:p.ring[0][1]}));setupCampusMap({campus,places,player:{position:{x:-279,y:0,z:512}},visited:new Set(),bounds:{west:-446.8,north:-572,east:457.3,south:563},terrainHeight:()=>0,datum:0,clearInput:()=>{},getYaw:()=>0,isActive:()=>true});window.ready=true;</script>'
- context.route('http://127.0.0.1:8000/map-fixture.html',lambda r:r.fulfill(body=fixture,content_type='text/html'))
- m=context.new_page();m.on('pageerror',lambda e:errors.append(str(e)));m.goto('http://127.0.0.1:8000/map-fixture.html');m.wait_for_function('window.ready')
- m.locator('#mapOpen').click();m.locator('#zonesMode').click()
- assert '實地回饋' in m.locator('#mapKey').inner_text()
- m.locator('#buildingList button').filter(has_text='B1').click();assert '樹林' in m.locator('#mapSelection').inner_text()
- m.locator('#buildingsMode').click();assert '已探索' in m.locator('#mapKey').inner_text()
- assert m.locator('#buildingList button').count()==12
- assert not errors,errors
- print('PASS: 12-zone rendering, confirmed vegetation defaults, region selection, feedback text, draft persistence, SVG keyboard selection and mobile layout')
- b.close()
+ b=p.chromium.launch(executable_path=shutil.which('chromium'),headless=True,args=['--no-sandbox']);c=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True)
+ # Keep the production HTML/CSS/authentication modules, omit only WebGL initialization.
+ script="""import {setupCampusMap} from './map.js';const campus=await(await fetch('./data/campus.json')).json();const places=campus.places.map(p=>({...p,x:p.ring.reduce((s,p)=>s+p[0],0)/p.ring.length,z:p.ring.reduce((s,p)=>s+p[1],0)/p.ring.length}));window.testMap=setupCampusMap({campus,places,player:{position:{x:-275,y:0,z:512}},visited:new Set(),bounds:{west:-446.8,north:-572,east:457.3,south:563},terrainHeight:()=>0,datum:90,clearInput:()=>{},getYaw:()=>0,isActive:()=>true});document.getElementById('start').style.display='none';window.ready=true;"""
+ html=(root/'index.html').read_text();html=re.sub(r'<script type="module">[\s\S]*?</script>','<script type="module">'+script+'</script>',html)
+ c.route('http://127.0.0.1:8000/map-fixture.html',lambda r:r.fulfill(body=html,content_type='text/html'))
+ page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto('http://127.0.0.1:8000/map-fixture.html');page.wait_for_function('window.ready');page.locator('#mapOpen').click()
+ assert not page.locator('#zonesMode').is_visible();assert not page.locator('#sidewalksMode').is_visible();assert not page.locator('#vegetationEditorLink').is_visible();assert page.locator('.road-name-labels text').count()>=8
+ session=c.new_cdp_session(page);box=page.locator('#largeMap').bounding_box();cx=box['x']+box['width']/2;cy=box['y']+min(box['height']/2,150)
+ def touch(kind,points):session.send('Input.dispatchTouchEvent',{'type':kind,'touchPoints':[{'id':id,'x':x,'y':y} for id,x,y in points]})
+ view=lambda:page.locator('#largeMap').get_attribute('viewBox').split()
+ start=list(map(float,view()));touch('touchStart',[(1,cx-28,cy),(2,cx+28,cy)]);touch('touchMove',[(1,cx-65,cy),(2,cx+65,cy)]);touch('touchEnd',[]);after=list(map(float,view()));assert after[2]<start[2]*.7,(start,after);assert page.locator('#mapDialog').evaluate('e=>e.open')
+ page.wait_for_timeout(500);touch('touchStart',[(3,cx,cy)]);touch('touchMove',[(3,cx+35,cy+10)]);touch('touchEnd',[]);pan=list(map(float,view()));assert abs(pan[0]-after[0])>1;page.get_by_role('button',name='重設地圖',exact=True).click();assert abs(float(view()[2])-start[2])<.001
+ page.evaluate("async()=>{(await import('./developer-auth.js')).loginDeveloper('0315')}");assert page.locator('#zonesMode').is_visible();page.locator('#zonesMode').click();assert page.locator('#buildingList button').count()==12;assert page.locator('.developer-regions path').count()==12
+ page.locator('.review-category').select_option('forest');page.locator('.review-note').fill('R01 只是測試草稿')
+ page.locator('#sidewalksMode').click();assert page.locator('#buildingList button').count()==35;assert 'S01' in page.locator('#mapSelection').inner_text();page.locator('.review-locate').click();assert float(view()[2])<1680;page.locator('.review-category').select_option('right');page.locator('.review-note').fill('生科館側');page.locator('.review-note').focus();page.keyboard.type('M');assert page.locator('#mapDialog').evaluate('e=>e.open');page.locator('.review-next').click();assert 'S02' in page.locator('#mapSelection').inner_text()
+ page.reload();page.wait_for_function('window.ready');page.locator('#mapOpen').click();page.locator('#sidewalksMode').click();assert page.locator('.review-category').input_value()=='right';assert page.locator('.review-note').input_value()=='生科館側M';page.screenshot(path='/tmp/nknu-sidewalk-review-mobile.png')
+ page.locator('.review-submit').click();assert page.locator('#devPanel').evaluate('e=>e.open');assert 'S01' in page.locator('#devRecordBody').input_value() and 'R01' in page.locator('#devRecordBody').input_value();page.get_by_role('button',name='關閉開發者工具',exact=True).click();page.locator('#mapOpen').click();page.locator('#zonesMode').click()
+ page.evaluate("async()=>{(await import('./developer-auth.js')).logoutDeveloper()}");assert not page.locator('#zonesMode').is_visible();assert not page.locator('.road-review').is_visible();assert page.locator('.developer-regions').evaluate('e=>getComputedStyle(e).display')=='none'
+ page.goto('http://127.0.0.1:8000/zones.html');assert page.locator('#lock').is_visible();assert not page.locator('#reviewPage').is_visible()
+ page.evaluate("async()=>{(await import('./developer-auth.js')).loginDeveloper('0315')}");page.reload();page.wait_for_function("document.querySelectorAll('#zoneList button').length===12");page.locator('#regionsTab').click();page.screenshot(path='/tmp/nknu-road-regions-mobile.png');page.set_viewport_size({'width':1100,'height':850});page.screenshot(path='/tmp/nknu-road-regions-desktop.png');page.locator('#reviewLogout').click();assert not page.locator('#reviewPage').is_visible();assert not errors,errors
+ print('PASS: developer-only regions and sidewalk review, logout revocation, real SVG pinch/pan/reset, official road labels, 35 questions, M-key typing, revision-safe draft reload and developer-report handoff');b.close()
