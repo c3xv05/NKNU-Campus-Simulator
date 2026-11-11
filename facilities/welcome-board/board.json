@@ -1,7 +1,10 @@
 {
   "id": "entrance-welcome-board",
   "name": "校門迎賓看板",
-  "position": [-267.5, 465],
+  "position": [
+    -267.5,
+    465
+  ],
   "width": 18,
   "height": 2.8,
   "bottom": 1.0,
@@ -16,9 +19,18 @@
     "foreground": "#fff4d5",
     "accent": "#eebd65",
     "artwork": null,
-    "emblem": {"src": "./nknu-emblem.png", "crop": [40, 35, 205, 200]}
+    "emblem": {
+      "src": "./nknu-emblem.png",
+      "crop": [
+        40,
+        35,
+        205,
+        200
+      ]
+    }
   },
   "campaigns": {},
-  "reference": "使用者於 2026-11-11 確認：S17 外側有長條看板，平時顯示 Welcome、學校全名及校徽，可配合活動更換。位置、尺寸、支架與配色為近似。",
-  "emblemSource": "https://w3.nknu.edu.tw/img/nknu-logo-nbg.png"
+  "reference": "使用者於 2026-11-11 確認：S17 外側有長條看板，平時顯示 Welcome、學校全名及校徽，可配合活動更換。位置、尺寸、支架與配色為近似。 使用者補充看板切齊道路邊緣，前緣改依入口鋪面外邊界定位。",
+  "emblemSource": "https://w3.nknu.edu.tw/img/nknu-logo-nbg.png",
+  "placement": "entrance-road-edge"
 }

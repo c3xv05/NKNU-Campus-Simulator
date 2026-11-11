@@ -15,12 +15,14 @@ with sync_playwright() as p:
  state=lambda:page.evaluate('window.__game.state()')
  def travel(id):
   page.locator('#travelMenu summary').click();page.locator('[data-travel="'+id+'"]').click()
-  target=page.evaluate('id=>window.__game.destinations.find(d=>d.id===id)',id);actual=state()
+  target=page.evaluate('id=>{const d=window.__game.destinations.find(d=>d.id===id);return window.__game.state().riding&&d.roadArrival?d.roadArrival:d;}',id);actual=state()
   assert abs(actual['x']-target['x'])<.01 and abs(actual['z']-target['z'])<.01
  travel('canteen');page.wait_for_function("document.querySelector('#info').textContent.includes('歸燕食巢')")
  page.locator('#interact').click();page.wait_for_function('window.__game.state().visited===1')
  travel('zhili');page.wait_for_function("document.querySelector('#info').textContent.includes('致理大樓')")
  assert state()['visited']==1
+ travel('library');page.wait_for_function("document.querySelector('#info').textContent.includes('圖資大樓')")
+ travel('technology');page.wait_for_function("document.querySelector('#info').textContent.includes('科技大樓')")
  page.keyboard.press('1');assert abs(state()['z']-page.evaluate("window.__game.destinations.find(d=>d.id==='gate').z"))<.01
  page.locator('#rideToggle').click();assert state()['riding'] and state()['visible']
  before=state();page.keyboard.down('w');page.wait_for_function('window.__game.state().speed>1')
@@ -42,11 +44,12 @@ with sync_playwright() as p:
  assert state()['yaw']<oldYaw
  session.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]})
  travel('canteen');assert state()['riding'] and state()['speed']==0
+ travel('library');assert state()['riding'] and state()['speed']==0;arrival=page.evaluate("window.__game.destinations.find(d=>d.id==='library').roadArrival");assert abs(state()['x']-arrival['x'])<.01 and abs(state()['z']-arrival['z'])<.01
  page.screenshot(path='/tmp/nknu-scooter-mobile.png')
  page.locator('#rideToggle').click();assert not state()['visible'] and not state()['riding']
  page.screenshot(path='/tmp/nknu-forest-mobile.png')
  page.keyboard.press('1');page.screenshot(path='/tmp/nknu-gate-mobile.png')
  page.set_viewport_size({'width':1100,'height':800});page.evaluate('window.__game.overlook()');page.screenshot(path='/tmp/nknu-entrance-overview.png')
  assert not errors,errors
- print(json.dumps({'result':'PASS','checks':['three safe teleports','nearby landmark interaction','progress preserved','scooter toggle acceleration steering','independent camera while riding','map brakes and pauses','riding state preserved through teleport','forest and flowerbed screenshots','no JavaScript errors'],'landscape':page.evaluate('window.__game.layout()')},ensure_ascii=False))
+ print(json.dumps({'result':'PASS','checks':['five safe teleports and riding-specific library arrival','nearby landmark interaction','progress preserved','scooter toggle acceleration steering','independent camera while riding','map brakes and pauses','riding state preserved through teleport','forest and flowerbed screenshots','no JavaScript errors'],'landscape':page.evaluate('window.__game.layout()')},ensure_ascii=False))
  b.close()
