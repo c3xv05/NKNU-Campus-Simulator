@@ -16,7 +16,7 @@
 <div id="scene"></div>
 <div id="top"><h1>🏫 NKNU 燕巢校園探索</h1><small>山坡校園・衛星高程近似地形</small><div id="progress">已探索 0 / 12 個地標</div></div>
 <div id="mapbox"><button id="mapOpen" type="button" aria-label="開啟校園大地圖" aria-haspopup="dialog"><canvas id="map" width="220" height="220"></canvas><span>點擊大地圖 · 雙指縮放</span></button><button id="miniMapReset" type="button" hidden>復原小地圖</button><div id="legend">▲ 你的位置　■ 校園地標<br>藍色：湖泊 · 米白：人行道<br><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div></div>
-<div id="tools"><details id="travelMenu"><summary>快速傳送</summary><button type="button" data-travel="gate">1 · 大門</button><button type="button" data-travel="canteen">2 · 歸燕食巢</button><button type="button" data-travel="zhili">3 · 致理大樓</button></details><button id="rideToggle" type="button" aria-pressed="false">🛵 騎機車</button><span id="speed" hidden>0 km/h</span></div><div id="travelToast" role="status"></div><div id="status"></div><div id="info">靠近建築查看資訊</div>
+<div id="tools"><details id="travelMenu"><summary>快速傳送</summary><button type="button" data-travel="gate">1 · 大門</button><button type="button" data-travel="canteen">2 · 歸燕食巢</button><button type="button" data-travel="zhili">3 · 致理大樓</button><button type="button" data-travel="library">4 · 圖資大樓</button><button type="button" data-travel="technology">5 · 科技大樓</button></details><button id="rideToggle" type="button" aria-pressed="false">🛵 騎機車</button><span id="speed" hidden>0 km/h</span></div><div id="travelToast" role="status"></div><div id="status"></div><div id="info">靠近建築查看資訊</div>
 <div id="touch"><div id="stickArea"><div id="joystick" role="group" aria-label="移動搖桿，拖曳控制方向與速度"><span class="stick-cross">＋</span><div id="stickKnob"></div></div><span id="stickHint">拖曳移動</span></div><div id="touchright"><button id="turnL" type="button">↶</button><button id="turnR" type="button">↷</button><button id="interact" type="button">互動</button></div></div>
 <dialog id="mapDialog" aria-labelledby="mapTitle"><div class="map-heading"><div><h2 id="mapTitle">燕巢校園地圖</h2><p>北方朝上 · ▲ 目前位置 · 點建築或清單查看位置</p></div><button id="mapClose" type="button" aria-label="關閉地圖">✕</button></div><div class="map-tabs" role="group" aria-label="地圖顯示模式"><button id="buildingsMode" type="button" aria-pressed="true">建築地圖</button><button id="zonesMode" type="button" aria-pressed="false" hidden>道路植被分區</button><a id="vegetationEditorLink" href="./zones.html" hidden>開啟校正工作頁 ↗</a></div><div class="map-layout"><div class="map-drawing"><svg id="largeMap" viewBox="-455 -580 940 1160" role="img" aria-label="燕巢校區建築與目前位置"></svg></div><div class="map-sidebar"><p id="mapSelection" role="status">選擇建築，在地圖上標示位置</p><div id="buildingList"></div><div class="map-sources"><span id="mapKey">藍色：未探索 · 綠色：已探索<br>底色深淺表示近似高低起伏。</span><br>地形：<a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Mapzen Terrain Tiles</a> / USGS SRTM。衛星高程約 30 公尺級，道路、建築與場地平台經簡化平整，非測量成果。<br>建築位置參考 <a href="https://w3.nknu.edu.tw/images/files/yt_01_map.pdf" target="_blank" rel="noopener">高師大官方校區圖</a>及 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>。</div></div></div></dialog>
 <div id="start"><div id="panel"><div style="font-size:44px">🏫</div><h2>燕巢校園模擬器</h2><p>從校門出發，沿山坡走訪 12 個地標。<br>電腦：WASD 移動、滑鼠拖曳視角、Shift 奔跑、E 互動、M 地圖、R 騎車／下車、1／2／3 傳送。<br>手機：左手拖曳搖桿，右手滑動畫面調整視角；點小地圖查看全校，左上可傳送或切換騎車。騎車時向前推搖桿加速、左右推轉向。</p><button id="play" type="button" disabled>載入校園…</button><p id="notice">校園輪廓源自 OpenStreetMap；地形依 Mapzen／USGS SRTM 高程近似重建，建築高度與場地平台為簡化模型。</p></div></div>
@@ -212,7 +212,7 @@ gateLabel.position.set(gateX, walkHeight(gateX,gateZ)+6, gateZ);
 labelMeshes.push(gateLabel);
 scene.add(gateLabel);
 
-const welcomeBoard=await addWelcomeBoard(THREE,scene,walkHeight);cameraObstacles.push(...welcomeBoard.blockers);campus.welcomeBoard={ring:welcomeBoard.ring,name:'校門迎賓看板'};
+const welcomeBoard=await addWelcomeBoard(THREE,scene,walkHeight,campus);cameraObstacles.push(...welcomeBoard.blockers);campus.welcomeBoard={ring:welcomeBoard.ring,name:'校門迎賓看板'};
 const landscapeLayout=createLandscapeLayout(campus,roadNetwork,walkHeight);
 const landscapeGroup=addLandscape(THREE,scene,landscapeLayout,walkHeight);
 const retainingWall=landscapeGroup.getObjectByName('A1-retaining-wall');if(retainingWall)cameraObstacles.push(retainingWall);
@@ -225,7 +225,8 @@ let toastUntil=0;
 function showToast(text){const toast=document.getElementById('travelToast');toast.textContent=text;toast.classList.add('visible');toastUntil=performance.now()+2200;}
 function teleport(id){
  if(!active||document.getElementById('mapDialog').open)return;
- const destination=destinations.find(d=>d.id===id);if(!destination)return;
+ const place=destinations.find(d=>d.id===id);if(!place)return;
+ const destination=motion.riding&&place.roadArrival?{...place,...place.roadArrival}:place;
  clearInput();motion.speed=0;
  let facing=destination.yaw;
  if(motion.riding&&id!=='gate'){const nearest=roadNetwork.nearest(destination.x,destination.z);if(nearest){const sign=nearest.segment.route.style.reverse?-1:1;facing=Math.atan2(-nearest.segment.dx*sign,-nearest.segment.dz*sign);}}
@@ -249,7 +250,7 @@ let yaw=0, pitch=.31, keys={},visited=new Set(),near=null,nearLake=null,interact
   if (event.code==='KeyM' && !event.repeat && active) {event.preventDefault();campusMap.toggle();return;}
   if (!active || document.getElementById('mapDialog').open) return;
   if(event.code==='KeyR'&&!event.repeat){event.preventDefault();toggleRide();return;}
-  if(['Digit1','Digit2','Digit3'].includes(event.code)&&!event.repeat){event.preventDefault();teleport(destinations[Number(event.code.at(-1))-1].id);return;}
+  if(['Digit1','Digit2','Digit3','Digit4','Digit5'].includes(event.code)&&!event.repeat){event.preventDefault();teleport(destinations[Number(event.code.at(-1))-1].id);return;}
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(event.code))event.preventDefault();
   keys[event.code]=true;if(event.code==='KeyE'&&!event.repeat)interact();
 });
