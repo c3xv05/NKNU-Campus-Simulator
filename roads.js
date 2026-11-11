@@ -153,14 +153,14 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
   function surfaceHeight(x,z){let h=roadSurfaceHeight(x,z);for(const a of paved){const w=pavedWeight(a,x,z);if(w)h+=(a.level-h)*w;}return h;}
   function gradeTerrain(mesh,protectedAreas=[]) {
     for(let r=0;r<mesh.rows;r++)for(let c=0;c<mesh.columns;c++){
-      const x=mesh.west+c*mesh.step,z=mesh.north+r*mesh.step,road=nearest(x,z);if(!road)continue;
-      const inner=road.width/2+mesh.step*1.5,outer=inner+14;if(road.d>=outer)continue;
+      const x=mesh.west+c*mesh.step,z=mesh.north+r*mesh.step,road=nearest(x,z);if(!road&&!paved.some(a=>pavedWeight(a,x,z)>0))continue;
+      const inner=(road?.width||0)/2+mesh.step*1.5,outer=inner+14;if((road?.d??Infinity)>=outer&&!paved.some(a=>pavedWeight(a,x,z)>0))continue;
       if(protectedAreas.some(a=>x>=a.west&&x<=a.east&&z>=a.north&&z<=a.south&&a.contains(x,z)))continue;
-      const weight=Math.max(1-ease(inner,outer,road.d),...paved.map(a=>pavedWeight(a,x,z))),index=r*mesh.columns+c;
+      const weight=Math.max(1-ease(inner,outer,road?.d??Infinity),...paved.map(a=>pavedWeight(a,x,z))),index=r*mesh.columns+c;
       mesh.heights[index]+=(surfaceHeight(x,z)-.015-mesh.heights[index])*weight;
     }
   }
-  function integratedHeight(x,z,ground){const road=nearest(x,z);if(!road)return ground;const weight=Math.max(1-ease(road.width/2+2,road.width/2+16,road.d),...paved.map(a=>pavedWeight(a,x,z)));return ground+(surfaceHeight(x,z)-ground)*weight;}
+  function integratedHeight(x,z,ground){const road=nearest(x,z);const weight=Math.max(road?1-ease(road.width/2+2,road.width/2+16,road.d):0,...paved.map(a=>pavedWeight(a,x,z)));return ground+(surfaceHeight(x,z)-ground)*weight;}
   function walkHeight(x,z,ground) {
     return integratedHeight(x,z,ground)+.035;
   }

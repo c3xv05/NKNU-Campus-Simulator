@@ -1,3 +1,4 @@
+import {addCarports} from './facilities/s23-carport/renderer.js';
 import {addConnections} from './connections.js';
 import {ringDistance} from './terrain.js';
 import {sidewalkSections} from './site-physics.js';
@@ -50,6 +51,7 @@ export function addSiteDetails(THREE,scene,campus,terrain,network){
   }
   facilityLabels.push({name:court.name,x:cx,z:cz,y:roofY+2});
  }
+ const carports=addCarports(THREE,group,campus,network);blockers.push(...carports.blockers);columns.push(...carports.columns);
  const connections=addConnections(THREE,group,campus,terrain,network);
  const {bridgeLevel,courtyardLevel,bioLevel}=connections;blockers.push(...connections.blockers);
  // Guardhouse touches the flowerbed tip; the two barrier arms sit in separate lanes.
