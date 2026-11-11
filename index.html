@@ -24,6 +24,7 @@
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
 import {createTerrain, sampleElevation} from './terrain.js';
+import {mapSidewalkLines} from './sidewalk-layout.js';
 import {createRoadNetwork} from './roads.js';
 import {addRoads} from './road-renderer.js';
 import {cutRoadsFromGround} from './road-ground.js';
@@ -397,8 +398,8 @@ overviewCtx.restore();
 campus.water.forEach(area => fillArea(overviewCtx, area, '#3e96b7'));
 if(campus.flowerbed)fillArea(overviewCtx,campus.flowerbed,'#d69baf');
 campus.courts.forEach(area => fillArea(overviewCtx, area, '#809d88'));
-const sidewalkIds=new Set(campus.sidewalkRoadIds||[]);
-for(const road of campus.roads)if(sidewalkIds.has(road.osm)){overviewCtx.beginPath();trace(overviewCtx,road.line,false);overviewCtx.lineWidth=road.width+3.6;overviewCtx.strokeStyle='#e2d7bc';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();}
+
+for(const road of mapSidewalkLines(campus)){overviewCtx.beginPath();trace(overviewCtx,road.line,false);overviewCtx.lineWidth=road.width;overviewCtx.strokeStyle='#e2d7bc';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();}
 campus.roads.forEach(({line,width})=>{overviewCtx.beginPath();trace(overviewCtx,line,false);overviewCtx.lineWidth=width;overviewCtx.strokeStyle=width<=2.5?'#c8c3b4':'#52595a';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();});
 if(campus.courtyard)fillArea(overviewCtx,campus.courtyard,'#d5cebc');
 if(campus.gatehouse)fillArea(overviewCtx,campus.gatehouse,'#8d8073');

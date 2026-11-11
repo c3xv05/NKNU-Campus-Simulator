@@ -1,3 +1,4 @@
+import {sidewalkSides} from './sidewalk-layout.js';
 import {routeSections,pavementIndex} from './pavement.js';
 import {ringDistance} from './terrain.js';
 export function inLake(x,z,area){return ringDistance(x,z,area.ring)===0&&!(area.holes||[]).some(r=>ringDistance(x,z,r)===0);}
@@ -8,7 +9,7 @@ export function sidewalkSections(campus,network){
  const ids=new Set(campus.sidewalkRoadIds||[]),sections=[],pavement=pavementIndex(network);
  for(const route of network.routes){if(!ids.has(route.osm))continue;const nodes=routeSections(route);
   for(let i=1;i<nodes.length;i++){const a=nodes[i-1],b=nodes[i];
-   for(const side of [-1,1]){
+   for(const side of sidewalkSides(campus,route.osm)){
     const at=(p,offset)=>[p.x+p.nx*offset,p.z+p.nz*offset],inner=side*route.width/2,outer=side*(route.width/2+1.8),points=[at(a,inner),at(a,outer),at(b,outer),at(b,inner)];
     const mid=points.reduce((s,p)=>[s[0]+p[0]/4,s[1]+p[1]/4],[0,0]);if(route.entrance&&campus.flowerbed&&ringDistance(...mid,campus.flowerbed.ring)<1)continue;
     for(const polygon of pavement.clip(points))sections.push({road:route.osm,points:polygon});
