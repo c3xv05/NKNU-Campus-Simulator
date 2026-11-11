@@ -1,4 +1,5 @@
-import {sidewalkSides} from './sidewalk-layout.js';
+import {subtract} from './road-ground.js';
+import {sidewalkSides,SIDEWALK_WIDTH} from './sidewalk-layout.js';
 import {routeSections,pavementIndex} from './pavement.js';
 import {ringDistance} from './terrain.js';
 export function inLake(x,z,area){return ringDistance(x,z,area.ring)===0&&!(area.holes||[]).some(r=>ringDistance(x,z,r)===0);}
@@ -6,13 +7,14 @@ export function lakeAt(x,z,campus){return campus.water.find(a=>inLake(x,z,a));}
 export function projectOnLine(x,z,a,b){const dx=b[0]-a[0],dz=b[1]-a[1],length=Math.hypot(dx,dz),t=((x-a[0])*dx+(z-a[1])*dz)/(length*length||1);return{t,distance:Math.abs((x-a[0])*dz-(z-a[1])*dx)/(length||1),length};}
 export function bridgeHeight(x,z,currentY,link,level){if(!link)return null;const p=projectOnLine(x,z,...link.line);return p.t>=0&&p.t<=1&&p.distance<link.width/2&&currentY>=level-.7?level+.08:null;}
 export function sidewalkSections(campus,network){
+ const buildings=(campus.walkObstacles||[...campus.places,...campus.buildings].filter(b=>b.height)).map(b=>({ring:b.ring,west:Math.min(...b.ring.map(p=>p[0])),east:Math.max(...b.ring.map(p=>p[0])),north:Math.min(...b.ring.map(p=>p[1])),south:Math.max(...b.ring.map(p=>p[1]))}));
  const ids=new Set(campus.sidewalkRoadIds||[]),sections=[],pavement=pavementIndex(network);
  for(const route of network.routes){if(!ids.has(route.osm))continue;const nodes=routeSections(route);
   for(let i=1;i<nodes.length;i++){const a=nodes[i-1],b=nodes[i];
    for(const side of sidewalkSides(campus,route.osm)){
-    const at=(p,offset)=>[p.x+p.nx*offset,p.z+p.nz*offset],inner=side*route.width/2,outer=side*(route.width/2+1.8),points=[at(a,inner),at(a,outer),at(b,outer),at(b,inner)];
+    const at=(p,offset)=>[p.x+p.nx*offset,p.z+p.nz*offset],inner=side*route.width/2,outer=side*(route.width/2+SIDEWALK_WIDTH),points=[at(a,inner),at(a,outer),at(b,outer),at(b,inner)];
     const mid=points.reduce((s,p)=>[s[0]+p[0]/4,s[1]+p[1]/4],[0,0]);if(route.entrance&&campus.flowerbed&&ringDistance(...mid,campus.flowerbed.ring)<1)continue;
-    for(const polygon of pavement.clip(points))sections.push({road:route.osm,points:polygon});
+    let pieces=pavement.clip(points);const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]),w=Math.min(...xs),e=Math.max(...xs),n=Math.min(...zs),s=Math.max(...zs);for(const b of buildings)if(b.west<=e&&b.east>=w&&b.north<=s&&b.south>=n)pieces=pieces.flatMap(p=>subtract(p.map(([x,z])=>[x,0,z]),b.ring).map(q=>q.map(([x,,z])=>[x,z])));for(const polygon of pieces)sections.push({road:route.osm,points:polygon,across:{x:a.x,z:a.z,nx:a.nx*side,nz:a.nz*side,inner:route.width/2}});
    }
   }
  }
