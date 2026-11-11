@@ -138,18 +138,20 @@
     "height": 10.5,
     "floors": 3,
     "floorHeight": 3.5,
-    "desc": "歸燕食巢南側半圓形三層建築，直邊平行餐廳後側；名稱及細部外觀待核對。"
+    "desc": "暫名飛燕：歸燕食巢後方半圓形三層建築，與食巢、詠絮樓位於共同平面。",
+    "name": "飛燕",
+    "mapLabel": true
   },
   "appearance": {
     "id": "osm-381734405",
     "osm": 381734405,
-    "name": "未命名建築",
+    "name": "飛燕",
     "style": "utility",
     "frontHint": [
       -188.76666666666665,
       10.0
     ],
-    "sign": "未命名建築",
+    "sign": "飛燕",
     "english": " ",
     "wall": "#d2c4b2",
     "frame": "#d7d6cd",

@@ -31,8 +31,8 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   for(const area of campus.water) element('polygon',{points:polygon(area.ring),fill:'#5a9cb2'});
   for(const area of campus.courts) element('polygon',{points:polygon(area.ring),fill:'#809d88'});
 
-  drawPlanSvg(svg,sidewalkPlan,'#e5e5dd');
   for(const road of campus.roads.filter(r=>r.width<=2.5))element('polyline',{points:polygon(road.line),fill:'none',stroke:road.width<=2.5?'#c8c3b4':'#52595a','stroke-width':road.width,'stroke-linecap':'round','stroke-linejoin':'round'});
+  drawPlanSvg(svg,sidewalkPlan,'#e5e5dd');
   for(const area of [...(campus.pavedAreas||[]),...(campus.junctionFillets||[])])element('polygon',{points:polygon(area.ring),fill:'#52595a','aria-label':area.name},svg);
   drawPlanSvg(svg,motorPavementPlan,'#52595a');
   for(const area of campus.carports||[])element('polygon',{points:polygon(area.ring),fill:area.roofColor,'aria-label':area.name},svg);
@@ -41,7 +41,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   if(campus.courtyard)element('polygon',{points:polygon(campus.courtyard.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);
   if(campus.welcomeBoard)element('polygon',{points:polygon(campus.welcomeBoard.ring),fill:'#eebd65','aria-label':'校門迎賓看板'},svg);
   if(campus.gatehouse)element('polygon',{points:polygon(campus.gatehouse.ring),fill:'#8d8073'},svg);
-  for(const area of campus.buildings) element('polygon',{points:polygon(area.ring),fill:'#778b86'});
+  for(const area of campus.buildings){element('polygon',{points:polygon(area.ring),fill:'#778b86'});if(area.mapLabel){const x=area.ring.reduce((s,p)=>s+p[0],0)/area.ring.length,z=area.ring.reduce((s,p)=>s+p[1],0)/area.ring.length;element('text',{x,y:z,'font-size':17,'text-anchor':'middle',fill:'#173c4d',stroke:'#fff','stroke-width':3,'paint-order':'stroke'},svg,area.name);}}
   places.forEach(area=>{
     element('polygon',{points:polygon(area.ring),fill:area.height?'#33556c':'#a55247'});
     if(!area.height)element('polygon',{points:polygon(area.holes[0]),fill:'#7db67e'});

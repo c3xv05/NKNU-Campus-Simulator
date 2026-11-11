@@ -54,14 +54,18 @@
     "frame": "#b9b9ae",
     "glass": "#36545b",
     "detailDistance": 145,
-    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。",
+    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。；入口置於完整臨路立面中央，基座對齊門前平台。",
     "frontMode": "main-road",
     "frontEdge": 6,
     "frontRoadIds": [
       293423729,
       382869349
     ],
-    "entranceAtSidewalk": true
+    "entranceAtSidewalk": true,
+    "frontEdges": [
+      6,
+      7
+    ]
   },
   "frontageAlignment": {
     "sourceRing": [

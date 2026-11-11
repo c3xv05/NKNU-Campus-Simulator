@@ -1,3 +1,4 @@
+import {createSiteLevels} from './site-levels.js';
 import {widthAtDistance} from './road-width.js';
 import {gradeGrid} from './grade-grid.js';
 import {SIDEWALK_WIDTH} from './sidewalk-layout.js';
@@ -170,14 +171,16 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
     const along=((x-px)*s.dx+(z-pz)*s.dz)/s.length,grade=(fittedRoadSurfaceHeight(px+s.dx/s.length,pz+s.dz/s.length)-fittedRoadSurfaceHeight(px-s.dx/s.length,pz-s.dz/s.length))/2;
     const target=fittedRoadSurfaceHeight(px,pz)+along*grade;return h+(target-h)*weight;
   }
+  const siteLevels=createSiteLevels(height);
   const paved=(options.pavedAreas||[]).map(a=>({...a,level:roadSurfaceHeight(...a.anchor),west:Math.min(...a.ring.map(p=>p[0])),east:Math.max(...a.ring.map(p=>p[0])),north:Math.min(...a.ring.map(p=>p[1])),south:Math.max(...a.ring.map(p=>p[1]))}));
   function pavedWeight(a,x,z){if(x<a.west-12||x>a.east+12||z<a.north-12||z>a.south+12)return 0;return 1-ease(0,12,ringDistance(x,z,a.ring));}
-  function ungriddedSurfaceHeight(x,z){let h=roadSurfaceHeight(x,z);for(const a of paved){const w=pavedWeight(a,x,z);if(w)h+=(a.level-h)*w;}return h;}
+  function ungriddedSurfaceHeight(x,z){let h=roadSurfaceHeight(x,z);for(const a of paved){const w=pavedWeight(a,x,z);if(w)h+=(a.level-h)*w;}return siteLevels.heightAt(x,z,h);}
   const surfaceHeight=options.sharedGradeGrid?gradeGrid(ungriddedSurfaceHeight,undefined,{smooth:true}):ungriddedSurfaceHeight;
   function gradeTerrain(mesh,protectedAreas=[]) {
     for(let r=0;r<mesh.rows;r++)for(let c=0;c<mesh.columns;c++){
       const x=mesh.west+c*mesh.step,z=mesh.north+r*mesh.step,road=nearest(x,z);if(!road&&!paved.some(a=>pavedWeight(a,x,z)>0))continue;
       const inner=(road?.width||0)/2+mesh.step*1.5,outer=inner+14;if((road?.d??Infinity)>=outer&&!paved.some(a=>pavedWeight(a,x,z)>0))continue;
+      if(siteLevels.levelAt(x,z)!==null)continue;
       if(protectedAreas.some(a=>x>=a.west&&x<=a.east&&z>=a.north&&z<=a.south&&a.contains(x,z)))continue;
       const weight=Math.max(1-ease(inner,outer,road?.d??Infinity),...paved.map(a=>pavedWeight(a,x,z))),index=r*mesh.columns+c;
       mesh.heights[index]+=(surfaceHeight(x,z)-.015-mesh.heights[index])*weight;
@@ -185,9 +188,10 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
   }
   function integratedHeight(x,z,ground){const road=nearest(x,z);const weight=Math.max(road?1-ease(road.width/2+2,road.width/2+16,road.d):0,...paved.map(a=>pavedWeight(a,x,z)));return ground+(surfaceHeight(x,z)-ground)*weight;}
   function walkHeight(x,z,ground) {
+    const level=siteLevels.levelAt(x,z);if(level!==null&&!onMotorRoad(x,z))return level+.185;
     return (onMotorRoad(x,z)?surfaceHeight(x,z):integratedHeight(x,z,ground))+.035;
   }
-  return {edgePavement:options.edgePavement||[],junctionFillets:options.junctionFillets||[],pavedAreas:options.pavedAreas||[],apron:options.apron,entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
+  return {siteLevels:siteLevels.areas,siteLevelAt:siteLevels.levelAt,edgePavement:options.edgePavement||[],junctionFillets:options.junctionFillets||[],pavedAreas:options.pavedAreas||[],apron:options.apron,entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
 }
 
 export function prepareRoadCurves(roads){const sources=roads.map(r=>({...r,line:r.sourceLine||r.line})),connections=new Map();for(const r of sources)for(const p of r.line){const k=pointKey(...p);connections.set(k,(connections.get(k)||0)+1);}return sources.map(r=>({...r,sourceLine:r.line,line:r.preservedLine||(r.entrance?r.line:roundedLine(r.line,r.width,connections)),curvesPrepared:true}));}

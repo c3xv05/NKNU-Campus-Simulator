@@ -48,13 +48,18 @@
     "frame": "#d1d0c6",
     "glass": "#35464d",
     "detailDistance": 145,
-    "reference": "校方影藏歲月70期詠絮樓初貌：下部紅磚、上部淺色牆、外廊及欄杆。",
+    "reference": "校方影藏歲月70期詠絮樓初貌：下部紅磚、上部淺色牆、外廊及欄杆。；面向使用者已確認的S21樓前臨停前庭，基座採共同平台。",
     "frontMode": "main-road",
     "upperWall": "#e2ded6",
     "splitAt": 3,
     "sources": [
       "https://c.nknu.edu.tw/affair/Page.aspx?Kind=dbhp&PN=174&SN=150"
     ],
-    "confidence": "historical-photo"
+    "confidence": "historical-photo",
+    "frontEdge": 3,
+    "frontRoadIds": [
+      381735518
+    ],
+    "entranceAtSidewalk": true
   }
 }

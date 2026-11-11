@@ -1,3 +1,6 @@
+import {ringDistance} from './planar.js';
+export {ringDistance} from './planar.js';
+import {createSiteLevels} from './site-levels.js';
 import {yongjiHeightAdjustment} from './terrain-calibration.js';
 // Pure terrain sampling shared by rendering, collision height and tests.
 export function sampleElevation(grid, x, z) {
@@ -7,17 +10,6 @@ export function sampleElevation(grid, x, z) {
   const u = gx - c, v = gz - r, a = r * grid.columns + c;
   return (grid.heights[a] * (1-u) + grid.heights[a+1] * u) * (1-v)
     + (grid.heights[a+grid.columns] * (1-u) + grid.heights[a+grid.columns+1] * u) * v;
-}
-export function ringDistance(x, z, ring) {
-  let inside = false, distance = Infinity;
-  ring.forEach(([ax, az], i) => {
-    const [bx, bz] = ring[(i+1) % ring.length];
-    if ((az > z) !== (bz > z) && x < ax + (bx-ax)*(z-az)/(bz-az)) inside = !inside;
-    const dx = bx-ax, dz = bz-az, length = dx*dx+dz*dz;
-    const t = length ? Math.max(0, Math.min(1, ((x-ax)*dx+(z-az)*dz)/length)) : 0;
-    distance = Math.min(distance, Math.hypot(x-ax-dx*t, z-az-dz*t));
-  });
-  return inside ? 0 : distance;
 }
 export function createTerrain(grid, areas,options={}) {
   const datum = sampleElevation(grid, -268.2, 525.55);
@@ -34,12 +26,13 @@ export function createTerrain(grid, areas,options={}) {
       correction=(x,z)=>amplitude*(Math.exp(-((x-from.x)**2+(z-from.z)**2)/radius**2)-k*Math.exp(-((x-to.x)**2+(z-to.z)**2)/radius**2));
     }
   }
-  const rawHeight=(x,z)=>baseRaw(x,z)+correction(x,z);
+  const unlevelledHeight=(x,z)=>baseRaw(x,z)+correction(x,z),siteLevels=createSiteLevels(unlevelledHeight);
+  const rawHeight=(x,z)=>siteLevels.heightAt(x,z,unlevelledHeight(x,z));
   const pads = areas.map(area => {
     const xs = area.ring.map(p=>p[0]), zs = area.ring.map(p=>p[1]);
     const x = (Math.min(...xs)+Math.max(...xs))/2, z = (Math.min(...zs)+Math.max(...zs))/2;
     return { osm:area.osm,kind:area.kind,holes:area.holes||[],depth:area.depth||2.5,ring: area.ring, west: Math.min(...xs)-15, east: Math.max(...xs)+15,
-      north: Math.min(...zs)-15, south: Math.max(...zs)+15, height: rawHeight(x,z) };
+      north: Math.min(...zs)-15, south: Math.max(...zs)+15, height: siteLevels.levelAt(x,z)!==null?siteLevels.levelAt(x,z)+.185:rawHeight(x,z) };
   });
   if(options.levelLink){const link=options.levelLink,from=pads.find(p=>p.osm===link.from),to=pads.find(p=>p.osm===link.to);if(from&&to)from.height=to.height+(link.toFloor-link.fromFloor)*link.floorHeight;}
   if(options.courtyard){const gauss=pads.find(p=>p.osm===444867692),huanyu=pads.find(p=>p.osm===444867694);if(gauss&&huanyu)huanyu.height=gauss.height+3.6;}
@@ -63,7 +56,7 @@ export function createTerrain(grid, areas,options={}) {
       const influence=weight**4/(d*d+.0025);
       strength=Math.max(strength,weight);total+=influence;target+=pad.height*influence;
     }
-    return total ? raw+(target/total-raw)*strength : raw;
+    return siteLevels.heightAt(x,z,total ? raw+(target/total-raw)*strength : raw,true);
   }
 
   const mesh = {west:grid.west, north:grid.north, step:4,

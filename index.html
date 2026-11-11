@@ -406,8 +406,8 @@ if(campus.flowerbed)fillArea(overviewCtx,campus.flowerbed,'#d69baf');
 campus.courts.forEach(area => fillArea(overviewCtx, area, '#809d88'));
 [...(campus.pavedAreas||[]),...(campus.junctionFillets||[])].forEach(area=>fillArea(overviewCtx,area,'#52595a'));
 
-for(const rings of sidewalkPlan.regions)fillArea(overviewCtx,{ring:rings[0],holes:rings.slice(1)},'#e5e5dd');
 campus.roads.filter(r=>r.width<=2.5).forEach(({line,width})=>{overviewCtx.beginPath();trace(overviewCtx,line,false);overviewCtx.lineWidth=width;overviewCtx.strokeStyle=width<=2.5?'#c8c3b4':'#52595a';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();});
+for(const rings of sidewalkPlan.regions)fillArea(overviewCtx,{ring:rings[0],holes:rings.slice(1)},'#e5e5dd');
 for(const rings of motorPavementPlan.regions)fillArea(overviewCtx,{ring:rings[0],holes:rings.slice(1)},'#52595a');
 if(campus.courtyard)fillArea(overviewCtx,campus.courtyard,'#d5cebc');
 if(campus.gatehouse)fillArea(overviewCtx,campus.gatehouse,'#8d8073');
@@ -420,6 +420,7 @@ places.forEach(area => {
   if (!area.height) fillArea(overviewCtx, { ring: area.holes[0] }, '#7db67e');
   fillArea(overviewCtx, area, area.height ? '#33556c' : '#a55247');
 });
+for(const a of campus.buildings.filter(a=>a.mapLabel)){const c=outlineCenter(a.ring);overviewCtx.font='bold 50px system-ui';overviewCtx.textAlign='center';overviewCtx.lineWidth=10;overviewCtx.strokeStyle='#fff';overviewCtx.strokeText(a.name,c.x,c.z);overviewCtx.fillStyle='#173c4d';overviewCtx.fillText(a.name,c.x,c.z);}
 const dorm=campus.places.find(b=>b.name==='詠絮樓');if(dorm){const c=outlineCenter(dorm.ring);overviewCtx.font='bold 55px system-ui';overviewCtx.textAlign='center';overviewCtx.lineWidth=12;overviewCtx.strokeStyle='#fff';overviewCtx.strokeText('詠絮',c.x,c.z-5);overviewCtx.fillStyle='#173c4d';overviewCtx.fillText('詠絮',c.x,c.z-5);}
 if(campus.levelLink){overviewCtx.beginPath();trace(overviewCtx,campus.levelLink.line,false);overviewCtx.lineWidth=5;overviewCtx.strokeStyle='#dfad4f';overviewCtx.stroke();}
 if(campus.bioConnection?.stairs){overviewCtx.beginPath();trace(overviewCtx,campus.bioConnection.stairs.line,false);overviewCtx.lineWidth=4;overviewCtx.strokeStyle='#b5a88c';overviewCtx.stroke();}
