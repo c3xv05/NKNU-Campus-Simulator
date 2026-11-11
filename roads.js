@@ -1,3 +1,4 @@
+import {ringDistance} from './terrain.js';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const ease=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
 const pointKey=(x,z)=>`${x.toFixed(3)},${z.toFixed(3)}`;
@@ -26,7 +27,7 @@ function roundedLine(line,width,connections) {
   }
   result.push(line.at(-1));return result;
 }
-export function createRoadNetwork(roads,height,tags={}) {
+export function createRoadNetwork(roads,height,tags={},options={}) {
   const connections=new Map(),nodes=[],nodeMap=new Map(),routes=[],segments=[];
   for(const road of roads) for(const [x,z] of road.line){const k=pointKey(x,z);connections.set(k,(connections.get(k)||0)+1);}
   function nodeAt(x,z,width){
@@ -109,6 +110,7 @@ export function createRoadNetwork(roads,height,tags={}) {
     return motor&&motor.d<=motor.width/2+1e-6?motor:closest;
   }
   function onMotorRoad(x,z){
+    const apron=options.apron;if(apron?.ring&&ringDistance(x,z,apron.ring)===0&&!(apron.holes||[]).some(h=>ringDistance(x,z,h)===0))return true;
     return (buckets.get(key(x,z))||[]).some(segment=>{
       if(segment.route.style.path)return false;
       const t=clamp(((x-segment.a.x)*segment.dx+(z-segment.a.z)*segment.dz)/(segment.length*segment.length),0,1);
@@ -158,5 +160,5 @@ export function createRoadNetwork(roads,height,tags={}) {
   function walkHeight(x,z,ground) {
     return integratedHeight(x,z,ground)+.035;
   }
-  return {entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
+  return {apron:options.apron,entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
 }

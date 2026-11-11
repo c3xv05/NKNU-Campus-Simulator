@@ -1,5 +1,5 @@
 import {ringDistance} from './terrain.js';
-import {offsetRing} from './building-layout.js';
+import {entranceMesh} from './data/entrance-mesh.js';
 import {pavementIndex} from './pavement.js';
 // Original procedural pavement and markings; no external texture assets.
 export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surfaceHeight(x,z),campus=null) {
@@ -54,7 +54,7 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
   }
   const crossings=new Map([[218881805,18],[293423732,27],[293423728,12]]);
   function nearJunction(x,z){return network.junctions.some(j=>j.motor&&Math.hypot(j.x-x,j.z-z)<j.width*.85+1);}
-  for(const route of network.routes){currentRoute=route;
+  for(const route of network.routes){if(route.entrance&&campus?.entranceApron?.ring)continue;currentRoute=route;
     const type=route.style.path?'concrete':'asphalt',half=route.width/2,points=route.points,sections=[];
     let distance=0;
     for(let i=0;i<points.length;i++){
@@ -99,9 +99,8 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
       const arrow=[local(-.65,.3),local(.65,.3),local(0,1.5)];for(const piece of pavement.clip(arrow,currentRoute.osm))for(let i=1;i<piece.length-1;i++)for(const p of [piece[0],piece[i],piece[i+1]])batches.white.push(...vertex(...p,'white'));
     }
   }
-  // Close the last strip of soil between the irregular flowerbed kerb and asphalt.
-  // This apron deliberately carries no painted lines.
-  if(campus?.flowerbed){const inner=offsetRing(campus.flowerbed.ring,.12),outer=offsetRing(campus.flowerbed.ring,1.2);currentRoute=null;pavementLift=.02;for(let i=0;i<inner.length;i++){const j=(i+1)%inner.length;quad([inner[i],outer[i],inner[j],outer[j]],'asphalt');}pavementLift=0;}
+  // One pavement with the exact shared flowerbed hole, not overlapping offset strips.
+  if(campus?.entranceApron?.ring){for(let i=0;i<entranceMesh.length;i+=6)for(let k=0;k<6;k+=2)batches.asphalt.push(...vertex(entranceMesh[i+k],entranceMesh[i+k+1],'asphalt'));footprints.push(...campus.entranceApron.footprints);}
   for(const [type,positions] of Object.entries(batches)){
     if(!positions.length)continue;
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));

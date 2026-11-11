@@ -1,70 +1,13 @@
-// Reference sectors only: no vegetation classification is inferred or prefilled.
-export const zones = [
-  {id:'A1',name:'校門至澄月池、師大路西側',box:[-446.8,180,-245,563],label:[-330,310]},
-  {id:'A2',name:'校門內中央長形空地',box:[-245,180,-50,563],label:[-160,340]},
-  {id:'A3',name:'清心路南段與校區東南側',box:[-50,180,457.3,563],label:[-28,235]},
-  {id:'B1',name:'霽遠樓、文萃樓與歸燕食巢周邊',box:[-446.8,-70,-195,180],label:[-290,80]},
-  {id:'B2',name:'宿舍東側與中央坡地',box:[-195,-70,-50,180],label:[-125,70]},
-  {id:'B3',name:'圖資大樓、清心路與東側坡地',box:[-50,-70,457.3,180],label:[40,75]},
-  {id:'C1',name:'教學區西側山坡',box:[-446.8,-410,-195,-70],label:[-255,-210]},
-  {id:'C2',name:'致理、高斯、寰宇及生科周邊',box:[-195,-410,0,-70],label:[-115,-135]},
-  {id:'C3',name:'操場、球場及東側山坡',box:[0,-410,457.3,-70],label:[155,-310]},
-  {id:'D1',name:'科技大樓西側山坡',box:[-446.8,-572,-105,-410],label:[-145,-470]},
-  {id:'D2',name:'科技大樓與北側道路',box:[-105,-572,50,-410],label:[-25,-510]},
-  {id:'D3',name:'燕窩與東北側山坡',box:[50,-572,457.3,-410],label:[165,-455]}
-];
+import {roadRegions} from './data/road-regions.js';
+import {svgRoadLabels,svgApron} from './road-names.js';
+export const zones=roadRegions;
 const ns='http://www.w3.org/2000/svg';
-export function svgElement(tag,attributes,parent,text) {
-  const e=document.createElementNS(ns,tag);
-  for(const [key,value] of Object.entries(attributes))e.setAttribute(key,value);
-  if(text!==undefined)e.textContent=text;
-  parent.append(e);return e;
+export function svgElement(tag,attributes,parent,text){const e=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attributes))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;parent.append(e);return e;}
+export function regionPath(zone){return [zone.ring,...(zone.holes||[])].map(r=>'M '+r.map(p=>p.join(' ')).join(' L ')+' Z').join(' ');}
+export function drawZoneLayer(svg,campus,onSelect,records={}){
+ const layer=svgElement('g',{'aria-label':'以道路為界的植被分區',class:'developer-regions'},svg),shapes=[];
+ for(const z of zones){const g=svgElement('g',{role:'button',tabindex:0,'aria-label':`${z.id} ${z.name}`},layer),p=svgElement('path',{d:regionPath(z),'fill-rule':'evenodd',fill:'#83978b','fill-opacity':.22,stroke:'#735d2f','stroke-width':2,'stroke-dasharray':'6 4'},g);shapes.push(p);const choose=()=>onSelect(z);g.addEventListener('click',choose);g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose();}});const badge=svgElement('g',{transform:`translate(${z.label[0]} ${z.label[1]})`},g);svgElement('rect',{x:-26,y:-18,width:52,height:36,rx:8,fill:'#fff5d5',stroke:'#735d2f','stroke-width':1.5},badge);svgElement('text',{'text-anchor':'middle',y:6,'font-size':19,'font-weight':800,fill:'#45371f'},badge,z.id);}
+ function refresh(data=records){zones.forEach((z,i)=>shapes[i].setAttribute('fill',({forest:'#39794c',flowers:'#d9a6bd',weeds:'#a0a35b',grass:'#91b77a',mixed:'#7f9a5d'})[data[z.id]?.category]||'#83978b'));}
+ refresh();return{layer,refresh,select(id){shapes.forEach((p,i)=>{p.setAttribute('fill-opacity',zones[i].id===id?.5:.22);p.setAttribute('stroke',zones[i].id===id?'#df6318':'#735d2f');});}};
 }
-export function drawZoneLayer(svg,campus,onSelect,records={}) {
-  const defs=svgElement('defs',{},svg),clipId='vegetation-zones-clip';
-  const clip=svgElement('clipPath',{id:clipId},defs);
-  svgElement('polygon',{points:campus.boundary.map(p=>p.join(',')).join(' ')},clip);
-  const layer=svgElement('g',{'aria-label':'校園植被分區'},svg);
-  const boxes=svgElement('g',{'clip-path':`url(#${clipId})`},layer),rectangles=[];
-  const labels=svgElement('g',{},layer);
-  zones.forEach((zone,index)=>{
-    const [west,north,east,south]=zone.box;
-    const group=svgElement('g',{role:'button',tabindex:0,'aria-label':`${zone.id} ${zone.name}，${records[zone.id]?.label||'植被待確認'}`},boxes);
-    const rectangle=svgElement('rect',{x:west,y:north,width:east-west,height:south-north,fill:({forest:'#39794c',flowers:'#d9a6bd',weeds:'#a0a35b',mixed:'#7f9a5d'})[records[zone.id]?.type]||'#8995a3','fill-opacity':.18,stroke:'#714b22','stroke-width':3,'stroke-dasharray':'8 6',cursor:'pointer'},group);
-    rectangles.push(rectangle);
-    const choose=()=>onSelect(zone);
-    group.addEventListener('click',choose);
-    group.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose();}});
-    group.addEventListener('focus',()=>rectangle.setAttribute('stroke-width',6));
-    group.addEventListener('blur',()=>rectangle.setAttribute('stroke-width',3));
-    const badge=svgElement('g',{transform:`translate(${zone.label[0]} ${zone.label[1]})`,cursor:'pointer'},labels);
-    svgElement('rect',{x:-25,y:-19,width:50,height:38,rx:9,fill:'#fff5d5',stroke:'#714b22','stroke-width':2},badge);
-    svgElement('text',{'text-anchor':'middle',y:7,'font-size':22,'font-weight':800,fill:'#49371e','pointer-events':'none'},badge,zone.id);
-    badge.addEventListener('click',choose);
-  });
-  return {layer,select(id){rectangles.forEach((r,i)=>{r.setAttribute('fill-opacity',zones[i].id===id ? .45 : .18);r.setAttribute('stroke',zones[i].id===id?'#e94712':'#714b22');});}};
-}
-export function drawReferenceMap(svg,campus) {
-  const poly=ring=>ring.map(p=>p.join(',')).join(' ');
-  svg.setAttribute('viewBox','-446.8 -572 904.1 1135');
-  svgElement('rect',{x:-446.8,y:-572,width:904.1,height:1135,fill:'#dce4da'},svg);
-  svgElement('polygon',{points:poly(campus.boundary),fill:'#c7d6bb',stroke:'#6f876a','stroke-width':2},svg);
-  if(campus.flowerbed)svgElement('polygon',{points:poly(campus.flowerbed.ring),fill:'#d69baf'},svg);
-  campus.water.forEach(a=>svgElement('polygon',{points:poly(a.ring),fill:'#81b5c4'},svg));
-  campus.courts.forEach(a=>svgElement('polygon',{points:poly(a.ring),fill:'#9caaa1'},svg));
-  const sidewalkIds=new Set(campus.sidewalkRoadIds||[]);
-  campus.roads.filter(r=>sidewalkIds.has(r.osm)).forEach(r=>svgElement('polyline',{points:poly(r.line),fill:'none',stroke:'#e2d7bc','stroke-width':r.width+3.6,'stroke-linecap':'round','stroke-linejoin':'round'},svg));
-  campus.roads.forEach(r=>svgElement('polyline',{points:poly(r.line),fill:'none',stroke:r.width<=2.5?'#c8c3b4':'#52595a','stroke-width':r.width,'stroke-linecap':'round','stroke-linejoin':'round'},svg));
-  if(campus.courtyard)svgElement('polygon',{points:poly(campus.courtyard.ring),fill:'#d5cebc'},svg);
-  if(campus.gatehouse)svgElement('polygon',{points:poly(campus.gatehouse.ring),fill:'#8d8073'},svg);
-  [...campus.buildings,...campus.places].forEach(a=>{
-    svgElement('polygon',{points:poly(a.ring),fill:a.height?'#4d6c7e':'#b08272'},svg);
-    (a.holes||[]).forEach(r=>svgElement('polygon',{points:poly(r),fill:'#acbc9d'},svg));
-  });
-  const names=new Set();for(const area of [...campus.buildings.filter(a=>a.name),...campus.courts]){if(names.has(area.name))continue;names.add(area.name);const x=area.ring.reduce((s,p)=>s+p[0],0)/area.ring.length,z=area.ring.reduce((s,p)=>s+p[1],0)/area.ring.length;svgElement('text',{x,y:z-12,'text-anchor':'middle','font-size':17,fill:'#193b4c',stroke:'#fff','stroke-width':4,'paint-order':'stroke'},svg,area.name);}
-  svgElement('text',{x:-425,y:-525,'font-size':27,'font-weight':800,fill:'#2d433c'},svg,'N ↑');
-  svgElement('text',{x:-268,y:550,'text-anchor':'middle','font-size':22,'font-weight':800,fill:'#1e403b'},svg,'校門');
-  svgElement('text',{x:-305,y:5,'text-anchor':'middle','font-size':17,'font-weight':700,fill:'#193b4c',stroke:'#fff','stroke-width':4,'paint-order':'stroke'},svg,'霽遠樓');
-  svgElement('text',{x:70,y:-65,'text-anchor':'middle','font-size':17,'font-weight':700,fill:'#193b4c',stroke:'#fff','stroke-width':4,'paint-order':'stroke'},svg,'圖資大樓');
-  svgElement('text',{x:160,y:-230,'text-anchor':'middle','font-size':17,'font-weight':700,fill:'#193b4c',stroke:'#fff','stroke-width':4,'paint-order':'stroke'},svg,'操場');
-}
+export function drawReferenceMap(svg,campus){const poly=r=>r.map(p=>p.join(',')).join(' ');svg.setAttribute('viewBox','-446.8 -572 904.1 1135');svgElement('rect',{x:-446.8,y:-572,width:904.1,height:1135,fill:'#dce4da'},svg);svgElement('polygon',{points:poly(campus.boundary),fill:'#c7d6bb'},svg);for(const a of campus.water)svgElement('polygon',{points:poly(a.ring),fill:'#81b5c4'},svg);for(const a of campus.courts)svgElement('polygon',{points:poly(a.ring),fill:'#9caaa1'},svg);const ids=new Set(campus.sidewalkRoadIds||[]);for(const r of campus.roads)if(ids.has(r.osm))svgElement('polyline',{points:poly(r.line),fill:'none',stroke:'#e2d7bc','stroke-width':r.width+3.6,'stroke-linecap':'round','stroke-linejoin':'round'},svg);for(const r of campus.roads)svgElement('polyline',{points:poly(r.line),fill:'none',stroke:r.width<=2.5?'#c8c3b4':'#52595a','stroke-width':r.width,'stroke-linecap':'round','stroke-linejoin':'round'},svg);svgApron(svg,campus);if(campus.flowerbed)svgElement('polygon',{points:poly(campus.flowerbed.ring),fill:'#d69baf'},svg);for(const a of [...campus.buildings,...campus.places]){svgElement('polygon',{points:poly(a.ring),fill:a.height?'#4d6c7e':'#b08272'},svg);for(const r of a.holes||[])svgElement('polygon',{points:poly(r),fill:'#acbc9d'},svg);}svgRoadLabels(svg,campus);for(const a of campus.places){const x=a.ring.reduce((s,p)=>s+p[0],0)/a.ring.length,z=a.ring.reduce((s,p)=>s+p[1],0)/a.ring.length;svgElement('text',{x,y:z-12,'text-anchor':'middle','font-size':16,fill:'#193b4c',stroke:'#fff','stroke-width':3,'paint-order':'stroke','pointer-events':'none'},svg,a.name);}svgElement('text',{x:-425,y:-525,'font-size':27,fill:'#2d433c'},svg,'N ↑');}

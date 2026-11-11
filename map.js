@@ -1,5 +1,7 @@
-import {landcover,coverAt} from './landcover.js';
-import {zones,drawZoneLayer} from './zones.js';
+import {setupRoadReview} from './road-review.js';
+import {isDeveloper} from './developer-auth.js';
+import {attachMapGestures,fitMapView} from './map-gestures.js';
+import {svgRoadLabels,svgApron} from './road-names.js';
 export function setupCampusMap({campus,places,player,visited,bounds,terrainHeight,datum,clearInput,getYaw,isActive}) {
   const dialog=document.getElementById('mapDialog'),svg=document.getElementById('largeMap');
   const list=document.getElementById('buildingList'),selection=document.getElementById('mapSelection');
@@ -19,7 +21,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   const tint=element('g',{'clip-path':'url(#campusClip)'});
   for(let z=bounds.north;z<bounds.south;z+=20) for(let x=bounds.west;x<bounds.east;x+=20){
     const lightness=Math.max(43,Math.min(80,78-(terrainHeight(x,z)+datum-45)*.3));
-    element('rect',{x,y:z,width:20.1,height:20.1,fill:({forest:'#77956c',flowers:'#c9b28c',weeds:'#a8b37a'})[coverAt(x,z)]||`hsl(95 24% ${lightness}%)`},tint);
+    element('rect',{x,y:z,width:20.1,height:20.1,fill:`hsl(95 24% ${lightness}%)`},tint);
   }
   if(campus.flowerbed)element('polygon',{points:polygon(campus.flowerbed.ring),fill:'#d69baf',stroke:'#f5e6c6','stroke-width':1},svg);
   for(const area of campus.water) element('polygon',{points:polygon(area.ring),fill:'#5a9cb2'});
@@ -27,6 +29,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   const sidewalkIds=new Set(campus.sidewalkRoadIds||[]);
   for(const road of campus.roads)if(sidewalkIds.has(road.osm))element('polyline',{points:polygon(road.line),fill:'none',stroke:'#e2d7bc','stroke-width':road.width+3.6,'stroke-linecap':'round','stroke-linejoin':'round'});
   for(const road of campus.roads)element('polyline',{points:polygon(road.line),fill:'none',stroke:road.width<=2.5?'#c8c3b4':'#52595a','stroke-width':road.width,'stroke-linecap':'round','stroke-linejoin':'round'});
+  svgApron(svg,campus);
   if(campus.courtyard)element('polygon',{points:polygon(campus.courtyard.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);
   if(campus.gatehouse)element('polygon',{points:polygon(campus.gatehouse.ring),fill:'#8d8073'},svg);
   for(const area of campus.buildings) element('polygon',{points:polygon(area.ring),fill:'#778b86'});
@@ -37,6 +40,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   element('text',{x:bounds.west+22,y:bounds.north+40,'font-size':28,'font-weight':800,fill:'#24382e'},svg,'N ↑');
   element('path',{d:`M ${bounds.east-135} ${bounds.south-30} h 100`,stroke:'#24382e','stroke-width':4});
   element('text',{x:bounds.east-85,y:bounds.south-45,'text-anchor':'middle','font-size':20,fill:'#24382e'},svg,'100 m');
+  svgRoadLabels(svg,campus);
   const markers=[],buttons=[];
   const markerLayer=element('g',{});
   let mode='buildings',selectedZone=null;
@@ -84,30 +88,15 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   element('circle',{r:22,fill:'#fff9'},playerGroup);
   const arrow=element('path',{d:'M 0 -17 L -11 11 L 0 6 L 11 11 Z',fill:'#f4aa24',stroke:'#533c18','stroke-width':2},playerGroup);
   const you=element('text',{'text-anchor':'middle','font-size':20,'font-weight':800,fill:'#143344',stroke:'#fff','stroke-width':5,'paint-order':'stroke','pointer-events':'none'},svg,'你在這裡');
-  const zoneButtons=zones.map(zone=>{
-    const button=document.createElement('button');button.type='button';
-    button.textContent=`${zone.id} · ${zone.name}`;button.setAttribute('aria-pressed','false');
-    button.addEventListener('click',()=>chooseZone(zone));return button;
-  });
-  const zoneLayer=drawZoneLayer(svg,campus,chooseZone,landcover);
-  svg.insertBefore(zoneLayer.layer,markerLayer);
-  zoneLayer.layer.style.display='none';
-  function chooseZone(zone) {
-    selectedZone=zone;zoneLayer.select(zone.id);
-    zoneButtons.forEach((b,i)=>{b.classList.toggle('selected',zones[i].id===zone.id);b.setAttribute('aria-pressed',String(zones[i].id===zone.id));});
-    update(true);
-  }
-  function setMode(next) {
-    mode=next;
-    const zoning=mode==='zones';
-    document.getElementById('mapKey').textContent=zoning?'植被依實地回饋配置；未提供區域保留待確認。':'藍色：未探索 · 綠色：已探索；底色深淺表示近似高低起伏。';
-    zoneLayer.layer.style.display=zoning?'':'none';markerLayer.style.display=zoning?'none':'';detail.style.display=zoning?'none':'';
-    document.getElementById('buildingsMode').setAttribute('aria-pressed',String(!zoning));
-    document.getElementById('zonesMode').setAttribute('aria-pressed',String(zoning));
-    list.replaceChildren(...(zoning?zoneButtons:buttons));update(true);
-  }
-  document.getElementById('buildingsMode').addEventListener('click',()=>setMode('buildings'));
-  document.getElementById('zonesMode').addEventListener('click',()=>setMode('zones'));
+  const sidewalkTab=document.createElement('button');sidewalkTab.id='sidewalksMode';sidewalkTab.type='button';sidewalkTab.textContent='人行道逐段確認';sidewalkTab.hidden=true;document.getElementById('zonesMode').after(sidewalkTab);
+  const review=setupRoadReview({svg,campus,list,selection,container:selection.parentElement,onLocate:points=>{view=fitMapView(points,baseView);svg.setAttribute('viewBox',`${view.x} ${view.y} ${view.width} ${view.height}`);},onSubmit:record=>{dialog.close();window.campusDeveloper?.openReport(record);}});
+  function setMode(next){if(next!=='buildings'&&!isDeveloper())next='buildings';mode=next;const privateMode=next!=='buildings';review.setMode(next);markerLayer.style.display=privateMode?'none':'';detail.style.display=privateMode?'none':'';amenityList.hidden=privateMode;document.getElementById('buildingsMode').setAttribute('aria-pressed',String(!privateMode));document.getElementById('zonesMode').setAttribute('aria-pressed',String(next==='zones'));sidewalkTab.setAttribute('aria-pressed',String(next==='sidewalks'));document.getElementById('mapKey').textContent=privateMode?'開發者校正：分區依道路為界，草稿尚未套用到場景。':'藍色：未探索 · 綠色：已探索；道路名稱依校方地圖核對。';if(!privateMode)list.replaceChildren(...buttons);update(true);}
+  function updateAuth(){const enabled=isDeveloper();document.getElementById('zonesMode').hidden=!enabled;sidewalkTab.hidden=!enabled;const link=document.getElementById('vegetationEditorLink');if(link)link.hidden=!enabled;if(!enabled&&mode!=='buildings')setMode('buildings');}
+  window.addEventListener('campus-developer-auth',updateAuth);updateAuth();
+  document.getElementById('buildingsMode').addEventListener('click',()=>setMode('buildings'));document.getElementById('zonesMode').addEventListener('click',()=>setMode('zones'));sidewalkTab.addEventListener('click',()=>setMode('sidewalks'));
+  const baseView={x:bounds.west,y:bounds.north,width:bounds.east-bounds.west,height:bounds.south-bounds.north};let view={...baseView};
+  const gestures=attachMapGestures(svg,{base:baseView,getView:()=>view,setView:v=>{view=v;svg.setAttribute('viewBox',`${v.x} ${v.y} ${v.width} ${v.height}`);}});
+  const tools=document.createElement('div');tools.className='map-zoom-tools';for(const [label,text,action] of [['放大地圖','＋',gestures.zoomIn],['縮小地圖','－',gestures.zoomOut],['重設地圖','全校',gestures.reset]]){const b=document.createElement('button');b.type='button';b.setAttribute('aria-label',label);b.textContent=text;b.onclick=action;tools.append(b);}svg.before(tools);
   function update(force=false) {
     if(!dialog.open)return;
     const now=performance.now();if(!force&&now-lastUpdate<150)return;lastUpdate=now;
@@ -121,11 +110,8 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
       buttons[index].setAttribute('aria-pressed',String(selected===index));
       buttons[index].setAttribute('aria-label',`${place.name}，${found?'已探索':'未探索'}`);
     });
-    if(mode==='zones'){
-      selection.textContent=selectedZone
-        ? `${selectedZone.id}｜${selectedZone.name}。${landcover[selectedZone.id]?.label||'植被待確認'}；${landcover[selectedZone.id]?.note||'可補充道路兩側差異。'}`
-        : '北方朝上。已依回饋標示樹林、花田與雜草；B3、C1、D1、D2 保留待確認。C3 暫依最後描述配置為雜草。';
-    }else if(selectedAmenity){
+    if(mode!=='buildings')return;
+    if(selectedAmenity){
       selection.textContent=selectedAmenity.name+' · '+(selectedAmenity.kind==='lake'?'湖泊，有湖岸與水體，不能直接穿越湖面。':selectedAmenity.covered?'風雨球場，上方有遮雨棚。':selectedAmenity.tipDirection?'水滴形花圃，尖端朝南，外側道路貼著花圃。':selectedAmenity.desc||'校園建築。');
     }else if(selected!==null){
       const place=places[selected],distance=Math.round(Math.hypot(place.x-player.position.x,place.z-player.position.z));
@@ -136,7 +122,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   }
   function open() {
     if(!isActive()||dialog.open)return;
-    clearInput();dialog.showModal();update(true);document.getElementById('mapClose').focus();
+    updateAuth();clearInput();dialog.showModal();update(true);document.getElementById('mapClose').focus();
   }
   function close(){dialog.close();}
   openButton.addEventListener('click',open);
@@ -145,7 +131,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
     const box=dialog.getBoundingClientRect();
     if(event.target===dialog&&(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom))close();
   });
-  dialog.addEventListener('close',()=>{clearInput();openButton.focus();});
-  dialog.addEventListener('keydown',event=>{if(event.code==='KeyM'&&!event.repeat){event.preventDefault();event.stopPropagation();close();}});
+  dialog.addEventListener('close',()=>{gestures.cancel();clearInput();openButton.focus();});
+  dialog.addEventListener('keydown',event=>{if(event.target.closest('input,textarea,select')){event.stopPropagation();return;}if(event.code==='KeyM'&&!event.repeat){event.preventDefault();event.stopPropagation();close();}});
   return {update,toggle(){dialog.open?close():open();}};
 }

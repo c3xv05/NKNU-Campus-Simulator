@@ -1,22 +1,23 @@
 import {REPOSITORY,RECORD_MARKER,DRAFT_KEY,readDrafts,recordBody,issueLink,cloudRecords} from './developer-store.js';
-const sessionKey='nknu-developer-session-v1';let enabled=false;try{enabled=sessionStorage.getItem(sessionKey)==='active';}catch{}
+import {isDeveloper,loginDeveloper,logoutDeveloper} from './developer-auth.js';
 const root=document.createElement('div');root.innerHTML=`
 <button id="devOrb" type="button" aria-label="開發者輔助選單" hidden>開發</button>
 <dialog id="devLogin" class="dev-dialog" aria-labelledby="devLoginTitle"><div class="dev-heading"><h2 id="devLoginTitle">開發者入口</h2><button class="dev-close" data-dev-close type="button" aria-label="關閉開發者入口">✕</button></div><form id="devLoginForm"><label>入口密碼<input id="devPass" type="password" inputmode="numeric" autocomplete="off" required></label><button type="submit">進入開發者介面</button><p id="devLoginStatus" role="status"></p></form></dialog>
 <dialog id="devPanel" class="dev-dialog" aria-labelledby="devTitle"><div class="dev-heading"><h2 id="devTitle">開發者工具</h2><button class="dev-close" data-dev-close type="button" aria-label="關閉開發者工具">✕</button></div>
-<section id="devMenu" class="dev-menu"><button id="devJournal" type="button">開發者紀錄</button><button id="devReport" type="button">問題回報</button><a href="https://github.com/${REPOSITORY}/issues/9" target="_blank" rel="noopener">開啟集中紀錄 ↗</a><a href="https://github.com/${REPOSITORY}/blob/main/docs/research/story-seeds.md" target="_blank" rel="noopener">NPC／事件故事備忘 ↗</a><button id="devLogout" type="button">登出開發者介面</button></section>
+<section id="devMenu" class="dev-menu"><button id="devJournal" type="button">開發者紀錄</button><button id="devReport" type="button">問題回報</button><a href="https://github.com/${REPOSITORY}/issues/9" target="_blank" rel="noopener">開啟集中紀錄 ↗</a><a href="https://github.com/${REPOSITORY}/blob/main/docs/research/story-seeds.md" target="_blank" rel="noopener">NPC／事件故事備忘 ↗</a><a href="./zones.html">道路分區與人行道確認 ↗</a><button id="devLogout" type="button">登出開發者介面</button></section>
 <section id="devEditor" hidden><div role="tablist" aria-label="紀錄類型"><button id="devJournalTab" type="button" role="tab">開發者紀錄</button><button id="devReportTab" type="button" role="tab">問題回報</button></div>
 <form id="devRecordForm"><label>標題<input id="devRecordTitle" maxlength="120" required></label><label id="devBodyLabel">紀錄內容<textarea id="devRecordBody" maxlength="6000" required></textarea></label><p id="devContext" class="dev-muted"></p><p class="dev-muted">草稿自動保存在這台裝置。送至 GitHub 後，請在 GitHub 完成送出，才會成為下次可讀取的公開紀錄；請勿填入個資。</p><div class="dev-actions"><button id="devSave" type="submit">儲存草稿</button><button id="devSend" type="button">送至 GitHub 儲存 ↗</button><button id="devCopy" type="button">複製完整內容</button><button id="devExport" type="button">下載備份</button><button id="devNew" type="button">新增一筆</button><button id="devBack" type="button">返回選單</button></div></form><p id="devStatus" role="status"></p><h3>本機草稿</h3><div id="devDraftList"></div><h3>已公開的紀錄與回報</h3><div class="dev-actions"><button id="devRefresh" type="button">重新讀取 GitHub</button><button id="devMore" type="button" hidden>載入較早紀錄</button></div><div id="devCloudList"></div></section></dialog>`;
-document.body.append(root);const $=id=>document.getElementById(id),login=$('devLogin'),panel=$('devPanel'),orb=$('devOrb');orb.hidden=!enabled;
+document.body.append(root);const $=id=>document.getElementById(id),login=$('devLogin'),panel=$('devPanel'),orb=$('devOrb');orb.hidden=!isDeveloper();
 const entry=document.createElement('button');entry.id='developerEntry';entry.type='button';entry.textContent='開發者入口';$('panel').append(entry);
 function announce(){window.dispatchEvent(new Event('campus-developer-dialog'));}
 function open(dialog){dialog.showModal();announce();}
-entry.onclick=()=>{if(enabled){$('devMenu').hidden=false;$('devEditor').hidden=true;open(panel);}else{open(login);$('devPass').focus();}};
-orb.onclick=()=>{if(!enabled)return;$('devMenu').hidden=false;$('devEditor').hidden=true;open(panel);};
+entry.onclick=()=>{if(isDeveloper()){$('devMenu').hidden=false;$('devEditor').hidden=true;open(panel);}else{open(login);$('devPass').focus();}};
+orb.onclick=()=>{if(!isDeveloper())return;$('devMenu').hidden=false;$('devEditor').hidden=true;open(panel);};
 root.querySelectorAll('[data-dev-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());for(const d of [login,panel])d.addEventListener('close',announce);
-$('devLoginForm').onsubmit=e=>{e.preventDefault();if($('devPass').value!=='0315'){$('devLoginStatus').textContent='密碼不正確';return;}enabled=true;try{sessionStorage.setItem(sessionKey,'active');}catch{}$('devPass').value='';$('devLoginStatus').textContent='';orb.hidden=false;login.close();};
-$('devLogout').onclick=()=>{enabled=false;try{sessionStorage.removeItem(sessionKey);}catch{}orb.hidden=true;panel.close();};
-window.campusDeveloper={isOpen:()=>login.open||panel.open};
+$('devLoginForm').onsubmit=e=>{e.preventDefault();if(!loginDeveloper($('devPass').value)){$('devLoginStatus').textContent='密碼不正確';return;}$('devPass').value='';$('devLoginStatus').textContent='';orb.hidden=false;login.close();};
+$('devLogout').onclick=()=>{logoutDeveloper();orb.hidden=true;panel.close();};
+window.campusDeveloper={isEnabled:isDeveloper,isOpen:()=>login.open||panel.open,openReport:({title,body})=>{if(!isDeveloper())return;newRecord('report');$('devRecordTitle').value=title;$('devRecordBody').value=body;save(true);$('devMenu').hidden=true;$('devEditor').hidden=false;open(panel);fetchRecords();}};
+window.addEventListener('campus-developer-auth',()=>{orb.hidden=!isDeveloper();});
 // Keep typing and Escape inside the native modal from steering the player.
 window.addEventListener('keydown',e=>{if(login.open||panel.open){e.stopImmediatePropagation();}},true);
 let drafts=[];try{drafts=readDrafts(localStorage);}catch{}let current=null,type='journal',issues=[],page=1,loading=false;

@@ -131,3 +131,11 @@ python scripts/build-building-catalog.py
 [故事備忘](docs/research/story-seeds.md) 保存六項新聞／Dcard 素材，僅供未來討論，沒有新增 NPC 或事件。
 新增驗證：`node tests/campus-connections.mjs`、`node tests/developer-store.mjs`、
 `python tests/developer-browser.py`、`python tests/connected-campus-browser.py`。
+
+## 道路分區與地圖操作（2026-11-11）
+
+小地圖及展開地圖均可雙指縮放，放大後單指拖曳，並可重設。一般地圖顯示校方路名；植被 R01–R12 與人行道 S01–S35 核對僅登入開發者後顯示。點分區／路段可定位並填寫，答案先存本機草稿，透過開發者問題回報完成 GitHub 送出後才可跨裝置討論。原 A1–D3 為歷史植被配置，新分區尚待重新確認，填寫不會立即改動場景。
+
+入口路面是使用花圃精確輪廓作孔洞的整片瀝青。重建幾何依序執行 `scripts/build-entrance-apron.py`、`scripts/build-road-regions.py`、`scripts/build-sidewalk-sections.py`，產生檔案隨網站部署；產生環境需 Shapely，網站執行不需要 Python。
+
+新增驗證：`node tests/map-review.mjs`、`python tests/map-mobile-browser.py`、`python tests/developer-browser.py`。

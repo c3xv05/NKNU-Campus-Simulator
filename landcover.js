@@ -1,6 +1,6 @@
-import {zones} from './zones.js';
+import {zones} from './legacy-zones.js';
 export const landcover={
- A1:{type:'forest',label:'樹林',note:'面向師大路一側為擋土牆；入口三角區為尖端朝南的水滴花圃。'},
+ A1:{type:'forest',label:'樹林',note:'舊版區域備註；擋土牆已依後續指示移除。入口三角區為尖端朝南的水滴花圃。'},
  A2:{type:'flowers',label:'花田',note:'大部分空地為花田。'},
  A3:{type:'forest',label:'樹林',note:''},
  B1:{type:'forest',label:'樹林',note:'建築與道路以外基本為樹林。'},

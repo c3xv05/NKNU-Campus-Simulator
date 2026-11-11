@@ -1,0 +1,19 @@
+from pathlib import Path
+import os,shutil,json,urllib.request
+from playwright.sync_api import sync_playwright
+root=Path(__file__).resolve().parents[1]
+with urllib.request.urlopen('http://127.0.0.1:8000/data/campus.json',timeout=3) as r:assert r.status==200
+with sync_playwright() as p:
+ b=p.chromium.launch(executable_path=shutil.which('chromium'),headless=True,args=['--no-sandbox','--use-angle=swiftshader','--enable-unsafe-swiftshader']);c=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True)
+ if os.environ.get('THREE_MODULE_PATH'):c.route('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js',lambda r:r.fulfill(path=os.environ['THREE_MODULE_PATH'],content_type='text/javascript'))
+ hook='''window.__roadMap={view:()=>({...miniView}),state:()=>({x:player.position.x,z:player.position.z,yaw}),aerial:()=>{window.__freeze=true;cam.position.set(-267,roadNetwork.surfaceHeight(-267,505)+70,541);cam.lookAt(-267,roadNetwork.surfaceHeight(-267,505),505);}};let previous=performance.now();'''
+ html=(root/'index.html').read_text().replace('let previous=performance.now();',hook).replace('cam.position.lerp(target,','if(!window.__freeze)cam.position.lerp(target,').replace('cam.lookAt(player.position.x,player.position.y+1.1,player.position.z);','if(!window.__freeze)cam.lookAt(player.position.x,player.position.y+1.1,player.position.z);')
+ c.route('http://127.0.0.1:8000/',lambda r:r.fulfill(body=html,content_type='text/html'))
+ page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto('http://127.0.0.1:8000/');page.wait_for_function('window.__roadMap',timeout=180000);page.get_by_role('button',name='開始探索',exact=True).click(timeout=90000)
+ session=c.new_cdp_session(page);box=page.locator('#map').bounding_box();cx=box['x']+box['width']/2;cy=box['y']+box['height']/2
+ def touch(kind,points):session.send('Input.dispatchTouchEvent',{'type':kind,'touchPoints':[{'id':id,'x':x,'y':y} for id,x,y in points]})
+ before=page.evaluate('window.__roadMap.view()');state=page.evaluate('window.__roadMap.state()');touch('touchStart',[(1,cx-18,cy),(2,cx+18,cy)]);touch('touchMove',[(1,cx-42,cy),(2,cx+42,cy)]);touch('touchEnd',[]);after=page.evaluate('window.__roadMap.view()');assert after['width']<before['width']*.7,(before,after);assert not page.locator('#mapDialog').evaluate('e=>e.open');assert page.evaluate('window.__roadMap.state()')==state;assert page.evaluate('visualViewport.scale')==1
+ page.wait_for_timeout(500);page.screenshot(path='/tmp/nknu-mini-map-pinch.png');page.locator('#miniMapReset').tap();assert abs(page.evaluate('window.__roadMap.view().width')-before['width'])<.001;assert not page.locator('#mapDialog').evaluate('e=>e.open')
+ page.locator('#map').tap();assert page.locator('#mapDialog').evaluate('e=>e.open');assert not page.locator('#zonesMode').is_visible();assert page.locator('.road-name-labels text').count()>=8;page.locator('#mapClose').tap()
+ page.set_viewport_size({'width':1100,'height':850});page.evaluate('window.__roadMap.aerial()');page.screenshot(path='/tmp/nknu-continuous-entrance-apron.png')
+ assert not errors,errors;print(json.dumps({'result':'PASS','checks':['real two-finger mini-map zoom','no accidental full-map opening','gesture does not rotate/move player or zoom page','reset and ordinary tap open','developer regions hidden in public view','road names','single entrance pavement screenshot','no JS errors'],'zoom':before['width']/after['width']},ensure_ascii=False));b.close()

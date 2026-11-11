@@ -1,3 +1,4 @@
+import {offsetRing} from './building-layout.js';
 import {ringDistance} from './terrain.js';
 import {coverAt} from './landcover.js';
 function bezier(a,b,c,d,t){const u=1-t;return[u*u*u*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],u*u*u*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]];}
@@ -93,7 +94,10 @@ export function addLandscape(THREE,scene,layout,height){
  for(let i=0;i<index.count;i+=3){const points=[];for(let k=0;k<3;k++){const v=index.getX(i+k);points.push([position.getX(v),position.getZ(v)]);}soilTriangle(...points,3);}
  outlineGeometry.dispose();const soilGeometry=new THREE.BufferGeometry();soilGeometry.setAttribute('position',new THREE.Float32BufferAttribute(soilPositions,3));soilGeometry.computeVertexNormals();
  const bed=new THREE.Mesh(soilGeometry,material(0x795742));bed.name='south-pointing-teardrop-bed';group.add(bed);
- const curve=new THREE.CatmullRomCurve3(layout.bed.map(([x,z])=>new THREE.Vector3(x,height(x,z)+.22,z)),true);
- const kerb=new THREE.Mesh(new THREE.TubeGeometry(curve,96,.17,5,true),material(0xcec6b4));kerb.name='flowerbed-kerb';group.add(kerb);
+ // The kerb uses the same polygon as the road hole; no spline overshoot or gap.
+ const inner=offsetRing(layout.bed,-.16),outer=offsetRing(layout.bed,.16),vertices=[];
+ function kerbQuad(a,b,c,d){vertices.push(...a,...c,...b,...b,...c,...d);}
+ for(let i=0;i<inner.length;i++){const j=(i+1)%inner.length,at=(p,h)=>[p[0],height(...p)+h,p[1]];kerbQuad(at(inner[i],.22),at(outer[i],.22),at(inner[j],.22),at(outer[j],.22));kerbQuad(at(outer[i],-.03),at(outer[i],.22),at(outer[j],-.03),at(outer[j],.22));kerbQuad(at(inner[i],-.03),at(inner[i],.22),at(inner[j],-.03),at(inner[j],.22));}
+ const kg=new THREE.BufferGeometry();kg.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));kg.computeVertexNormals();const kerb=new THREE.Mesh(kg,new THREE.MeshStandardMaterial({color:0xcec6b4,roughness:1,side:THREE.DoubleSide}));kerb.name='flowerbed-kerb';group.add(kerb);
  return group;
 }
