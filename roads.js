@@ -1,3 +1,5 @@
+import {gradeGrid} from './grade-grid.js';
+import {SIDEWALK_WIDTH} from './sidewalk-layout.js';
 import {ringDistance} from './terrain.js';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const ease=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
@@ -128,9 +130,9 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
     return h+(level-h)*weight;
   }
 
-  function roadSurfaceHeight(x,z) {
+  function fittedRoadSurfaceHeight(x,z) {
     const cacheKey=x.toFixed(3)+','+z.toFixed(3);if(surfaceCache.has(cacheKey))return surfaceCache.get(cacheKey);
-    let total=0,value=0,motorTotal=0,motorValue=0,pathTotal=0,pathValue=0,motorPreference=0,coverage=0;
+    let total=0,value=0,motorTotal=0,motorValue=0,pathTotal=0,pathValue=0,motorPreference=0,coverage=0;let fx=0,fz=0,fh=0,fxx=0,fxz=0,fzz=0,fxh=0,fzh=0;
     const candidates=buckets.get(key(x,z))||[];
     // One continuous height field for every overlapping road, never a nearest-segment step.
     for(const segment of candidates){
@@ -142,16 +144,18 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
       const ma=limit(a.gx*dx+a.gz*dz),mb=limit(segment.b.gx*dx+segment.b.gz*dz);
       const h=(2*t**3-3*t*t+1)*a.h+(t**3-2*t*t+t)*ma+(-2*t**3+3*t*t)*segment.b.h+(t**3-t*t)*mb;
       const w=(1-ease(0,radius,distance))**4*length;
-      coverage=Math.max(coverage,1-ease(width/2+3,width/2+12,distance));
+      coverage=Math.max(coverage,1-ease(width/2+SIDEWALK_WIDTH+6,width/2+24,distance));
       if(segment.route.style.path){pathTotal+=w;pathValue+=h*w;}
-      else{motorTotal+=w;motorValue+=h*w;motorPreference=Math.max(motorPreference,1-ease(width/2,width/2+6,distance));}
+      else{motorTotal+=w;motorValue+=h*w;motorPreference=Math.max(motorPreference,1-ease(width/2+SIDEWALK_WIDTH+6,width/2+18,distance));const px=a.x+dx*t-x,pz=a.z+dz*t-z;fx+=px*w;fz+=pz*w;fh+=h*w;fxx+=px*px*w;fxz+=px*pz*w;fzz+=pz*pz*w;fxh+=px*h*w;fzh+=pz*h*w;}
       total+=w;value+=h*w;
     }
-    if(!total)return height(x,z);const average=motorTotal?(pathTotal?(pathValue/pathTotal)*(1-motorPreference)+(motorValue/motorTotal)*motorPreference:motorValue/motorTotal):pathValue/pathTotal;const raw=height(x,z),result=sharedEntrance(x,z,raw+(average-raw)*coverage);if(surfaceCache.size<250000)surfaceCache.set(cacheKey,result);return result;
+    if(!total)return height(x,z);let motorGrade=motorValue/(motorTotal||1);if(motorTotal){const mx=fx/motorTotal,mz=fz/motorTotal,mh=fh/motorTotal,xx=fxx/motorTotal-mx*mx+.5,xz=fxz/motorTotal-mx*mz,zz=fzz/motorTotal-mz*mz+.5,xh=fxh/motorTotal-mx*mh,zh=fzh/motorTotal-mz*mh,det=xx*zz-xz*xz;let gx=(xh*zz-zh*xz)/det,gz=(zh*xx-xh*xz)/det;const slope=Math.hypot(gx,gz);if(slope>.3){gx*=.3/slope;gz*=.3/slope;}motorGrade=mh-gx*mx-gz*mz;}const average=motorTotal?(pathTotal?(pathValue/pathTotal)*(1-motorPreference)+motorGrade*motorPreference:motorGrade):pathValue/pathTotal;const raw=height(x,z),result=sharedEntrance(x,z,raw+(average-raw)*coverage);if(surfaceCache.size<250000)surfaceCache.set(cacheKey,result);return result;
   }
+  const roadSurfaceHeight=fittedRoadSurfaceHeight;
   const paved=(options.pavedAreas||[]).map(a=>({...a,level:roadSurfaceHeight(...a.anchor),west:Math.min(...a.ring.map(p=>p[0])),east:Math.max(...a.ring.map(p=>p[0])),north:Math.min(...a.ring.map(p=>p[1])),south:Math.max(...a.ring.map(p=>p[1]))}));
   function pavedWeight(a,x,z){if(x<a.west-12||x>a.east+12||z<a.north-12||z>a.south+12)return 0;return 1-ease(0,12,ringDistance(x,z,a.ring));}
-  function surfaceHeight(x,z){let h=roadSurfaceHeight(x,z);for(const a of paved){const w=pavedWeight(a,x,z);if(w)h+=(a.level-h)*w;}return h;}
+  function ungriddedSurfaceHeight(x,z){let h=roadSurfaceHeight(x,z);for(const a of paved){const w=pavedWeight(a,x,z);if(w)h+=(a.level-h)*w;}return h;}
+  const surfaceHeight=options.sharedGradeGrid?gradeGrid(ungriddedSurfaceHeight,undefined,{smooth:true}):ungriddedSurfaceHeight;
   function gradeTerrain(mesh,protectedAreas=[]) {
     for(let r=0;r<mesh.rows;r++)for(let c=0;c<mesh.columns;c++){
       const x=mesh.west+c*mesh.step,z=mesh.north+r*mesh.step,road=nearest(x,z);if(!road&&!paved.some(a=>pavedWeight(a,x,z)>0))continue;
