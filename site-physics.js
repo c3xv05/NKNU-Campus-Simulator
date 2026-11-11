@@ -12,9 +12,9 @@ export function sidewalkSections(campus,network){
  for(const route of network.routes){if(!ids.has(route.osm))continue;const nodes=routeSections(route);
   for(let i=1;i<nodes.length;i++){const a=nodes[i-1],b=nodes[i];
    for(const side of sidewalkSides(campus,route.osm)){
-    const at=(p,offset)=>[p.x+p.nx*offset,p.z+p.nz*offset],inner=side*route.width/2,outer=side*(route.width/2+SIDEWALK_WIDTH),points=[at(a,inner),at(a,outer),at(b,outer),at(b,inner)];
+    const at=(p,offset)=>[p.x+p.nx*offset,p.z+p.nz*offset],inner=side*a.width/2,outer=side*(a.width/2+SIDEWALK_WIDTH),points=[at(a,inner),at(a,outer),at(b,side*(b.width/2+SIDEWALK_WIDTH)),at(b,side*b.width/2)];
     const mid=points.reduce((s,p)=>[s[0]+p[0]/4,s[1]+p[1]/4],[0,0]);if(route.entrance&&campus.flowerbed&&ringDistance(...mid,campus.flowerbed.ring)<1)continue;
-    let pieces=pavement.clip(points);const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]),w=Math.min(...xs),e=Math.max(...xs),n=Math.min(...zs),s=Math.max(...zs);for(const b of buildings)if(b.west<=e&&b.east>=w&&b.north<=s&&b.south>=n)pieces=pieces.flatMap(p=>subtract(p.map(([x,z])=>[x,0,z]),b.ring).map(q=>q.map(([x,,z])=>[x,z])));for(const polygon of pieces)sections.push({road:route.osm,points:polygon,across:{x:a.x,z:a.z,nx:a.nx*side,nz:a.nz*side,inner:route.width/2}});
+    let pieces=pavement.clip(points);const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]),w=Math.min(...xs),e=Math.max(...xs),n=Math.min(...zs),s=Math.max(...zs);for(const b of buildings)if(b.west<=e&&b.east>=w&&b.north<=s&&b.south>=n)pieces=pieces.flatMap(p=>subtract(p.map(([x,z])=>[x,0,z]),b.ring).map(q=>q.map(([x,,z])=>[x,z])));for(const polygon of pieces)sections.push({road:route.osm,points:polygon,across:{x:a.x,z:a.z,nx:a.nx*side,nz:a.nz*side,inner:a.width/2}});
    }
   }
  }

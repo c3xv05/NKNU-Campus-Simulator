@@ -1,0 +1,2 @@
+// Width changes only at road connections, using a smooth taper inside the widened road.
+export function widthAtDistance(road,distance,total){const p=road.widthTransition;if(!p)return road.width;const length=Math.min(p.length||35,total*.4),ease=v=>{const t=Math.max(0,Math.min(1,v/(length||1)));return t*t*(3-2*t);};return road.width+((p.start??road.width)-road.width)*(1-ease(distance))+((p.end??road.width)-road.width)*(1-ease(total-distance));}

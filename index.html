@@ -407,7 +407,7 @@ campus.courts.forEach(area => fillArea(overviewCtx, area, '#809d88'));
 [...(campus.pavedAreas||[]),...(campus.junctionFillets||[])].forEach(area=>fillArea(overviewCtx,area,'#52595a'));
 
 for(const rings of sidewalkPlan.regions)fillArea(overviewCtx,{ring:rings[0],holes:rings.slice(1)},'#e5e5dd');
-campus.roads.forEach(({line,width})=>{overviewCtx.beginPath();trace(overviewCtx,line,false);overviewCtx.lineWidth=width;overviewCtx.strokeStyle=width<=2.5?'#c8c3b4':'#52595a';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();});
+campus.roads.filter(r=>r.width<=2.5).forEach(({line,width})=>{overviewCtx.beginPath();trace(overviewCtx,line,false);overviewCtx.lineWidth=width;overviewCtx.strokeStyle=width<=2.5?'#c8c3b4':'#52595a';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();});
 for(const rings of motorPavementPlan.regions)fillArea(overviewCtx,{ring:rings[0],holes:rings.slice(1)},'#52595a');
 if(campus.courtyard)fillArea(overviewCtx,campus.courtyard,'#d5cebc');
 if(campus.gatehouse)fillArea(overviewCtx,campus.gatehouse,'#8d8073');

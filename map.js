@@ -32,7 +32,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   for(const area of campus.courts) element('polygon',{points:polygon(area.ring),fill:'#809d88'});
 
   drawPlanSvg(svg,sidewalkPlan,'#e5e5dd');
-  for(const road of campus.roads)element('polyline',{points:polygon(road.line),fill:'none',stroke:road.width<=2.5?'#c8c3b4':'#52595a','stroke-width':road.width,'stroke-linecap':'round','stroke-linejoin':'round'});
+  for(const road of campus.roads.filter(r=>r.width<=2.5))element('polyline',{points:polygon(road.line),fill:'none',stroke:road.width<=2.5?'#c8c3b4':'#52595a','stroke-width':road.width,'stroke-linecap':'round','stroke-linejoin':'round'});
   for(const area of [...(campus.pavedAreas||[]),...(campus.junctionFillets||[])])element('polygon',{points:polygon(area.ring),fill:'#52595a','aria-label':area.name},svg);
   drawPlanSvg(svg,motorPavementPlan,'#52595a');
   for(const area of campus.carports||[])element('polygon',{points:polygon(area.ring),fill:area.roofColor,'aria-label':area.name},svg);
