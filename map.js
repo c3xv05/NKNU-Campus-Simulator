@@ -127,7 +127,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
       const difference=Math.round(terrainHeight(place.x,place.z)-player.position.y);
       const heightText=difference===0?'與目前位置高度相近':`${difference>0?'高於':'低於'}目前位置 ${Math.abs(difference)} 公尺`;
       selection.textContent=`${place.name} · ${visited.has(place.name)?'已探索':'未探索'}。直線距離約 ${distance} 公尺；${heightText}（近似地形）。`;
-    }else selection.textContent=`▲ 你的位置 · 衛星估計高程約 ${Math.round(player.position.y+datum)} 公尺。選擇建築查看距離與高差。`;
+    }else selection.textContent=`▲ 你的位置 · 模型近似高程約 ${Math.round(player.position.y+datum)} 公尺。選擇建築查看距離與高差。`;
   }
   function open() {
     if(!isActive()||dialog.open)return;
