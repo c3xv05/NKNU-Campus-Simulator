@@ -1,4 +1,6 @@
 export const SIDEWALK_WIDTH=3.6;
+export const SIDEWALK_RISE=.15;
+export const ROAD_SURFACE_LIFT=.035;
 // Sides use the route normal (-dz, dx); S06 runs north to south, so -1 is east.
 export function sidewalkSides(campus,osm){return campus.sidewalkSides?.[osm]||[-1,1];}
 export function mapSidewalkLines(campus){

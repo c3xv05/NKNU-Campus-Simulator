@@ -159,3 +159,9 @@ python scripts/build-road-regions.py
 ```
 
 Python 幾何產生工具需 Shapely 2.1，網站執行無此依賴。道路原折線保存在 sourceLine；若需修改已處理的道路，應修改該欄位後重建。路口保留共用節點，圓弧鋪面另作三角化，供道路物理、裁切及地圖共用。驗證：`node tests/sidewalk-upgrade.mjs`。
+
+## 平整且高於路面15cm的人行道
+
+人行道先合併輪廓、去除交會重疊，再以共用的連續高程三角網格生成；維持沿道路上坡，頂面比共用路面高15cm，附灰色路緣立面。人物以實際繪製三角面取得腳下高度，避免另算曲面造成穿入／跳動。
+
+完成前述輪廓重建後，另執行 `python scripts/build-sidewalk-plan.py`（需 Shapely）。必須隨網站發布 `data/sidewalk-plan.js`，其餘生成步驟及已確認側別不變。驗證：`node tests/sidewalk-level.mjs`。
