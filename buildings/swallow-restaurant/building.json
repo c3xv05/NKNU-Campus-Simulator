@@ -3,6 +3,69 @@
     "osm": 381732645,
     "ring": [
       [
+        -208.237521,
+        -58.048352
+      ],
+      [
+        -200.937521,
+        -49.048352
+      ],
+      [
+        -191.037521,
+        -39.148352
+      ],
+      [
+        -211.037521,
+        -22.648352
+      ],
+      [
+        -236.637521,
+        -1.048352
+      ],
+      [
+        -246.137521,
+        -7.248352
+      ],
+      [
+        -254.437521,
+        -15.848352
+      ],
+      [
+        -230.737521,
+        -37.548352
+      ]
+    ],
+    "name": "歸燕食巢",
+    "desc": "校園學生餐廳。",
+    "height": 14
+  },
+  "appearance": {
+    "id": "swallow-restaurant",
+    "osm": 381732645,
+    "name": "歸燕食巢",
+    "style": "canteen",
+    "frontHint": [
+      -242.58752099999998,
+      -26.698352
+    ],
+    "sign": "歸燕食巢",
+    "english": "SWALLOW RESTAURANT",
+    "wall": "#b2b1a7",
+    "frame": "#b9b9ae",
+    "glass": "#36545b",
+    "detailDistance": 145,
+    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。",
+    "frontMode": "main-road",
+    "frontEdge": 6,
+    "frontRoadIds": [
+      293423729,
+      382869349
+    ],
+    "entranceAtSidewalk": true
+  },
+  "frontageAlignment": {
+    "sourceRing": [
+      [
         -195.1,
         -43.7
       ],
@@ -35,26 +98,15 @@
         -23.2
       ]
     ],
-    "name": "歸燕食巢",
-    "desc": "校園學生餐廳。",
-    "height": 14
-  },
-  "appearance": {
-    "id": "swallow-restaurant",
-    "osm": 381732645,
-    "name": "歸燕食巢",
-    "style": "canteen",
-    "frontHint": [
-      -220,
-      9
+    "edges": [
+      6,
+      7
     ],
-    "sign": "歸燕食巢",
-    "english": "SWALLOW RESTAURANT",
-    "wall": "#b2b1a7",
-    "frame": "#b9b9ae",
-    "glass": "#36545b",
-    "detailDistance": 145,
-    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。",
-    "frontMode": "main-road"
+    "entryEdge": 6,
+    "roadIds": [
+      293423729,
+      382869349
+    ],
+    "reference": "依使用者要求向指定道路人行道貼齊；平移與門前鋪面為模型近似，非實測"
   }
 }

@@ -1,3 +1,5 @@
+import {motorPavementPlan} from './data/motor-pavement-plan.js';
+import {eachPlanTriangle} from './surface-plans.js';
 import {ringDistance} from './terrain.js';
 import {entranceMesh} from './data/entrance-mesh.js';
 import {pavementIndex} from './pavement.js';
@@ -17,10 +19,10 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
   const yellow=new THREE.MeshBasicMaterial({color:0xffcc00,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   const earth=new THREE.MeshStandardMaterial({color:0x7f9167,roughness:1,side:THREE.DoubleSide});
   const batches={asphalt:[],concrete:[],white:[],yellow:[],earth:[]};
-  const footprints=[],pavement=pavementIndex(network);let currentRoute=null,pavementLift=0;
+  const footprints=[],pathFootprints=[],pavement=pavementIndex(network);let currentRoute=null,pavementLift=0;
   const levels={asphalt:.035,concrete:.035,white:.045,yellow:.045};
   function vertex(x,z,type){return [x,network.surfaceHeight(x,z)+levels[type]+pavementLift,z];}
-  function quad(points,type){if(type==='white'||type==='yellow'){for(const piece of pavement.clip([points[0],points[1],points[3],points[2]],currentRoute?.osm))for(let i=1;i<piece.length-1;i++)batches[type].push(...vertex(...piece[0],type),...vertex(...piece[i],type),...vertex(...piece[i+1],type));return;}if(type==='asphalt'||type==='concrete')footprints.push([points[0],points[1],points[3],points[2]]);const v=points.map(p=>vertex(p[0],p[1],type));batches[type].push(...v[0],...v[2],...v[1],...v[1],...v[2],...v[3]);}
+  function quad(points,type){if(type==='white'||type==='yellow'){for(const piece of pavement.clip([points[0],points[1],points[3],points[2]],currentRoute?.osm))for(let i=1;i<piece.length-1;i++)batches[type].push(...vertex(...piece[0],type),...vertex(...piece[i],type),...vertex(...piece[i+1],type));return;}if(type==='asphalt'||type==='concrete'){const p=[points[0],points[1],points[3],points[2]];footprints.push(p);if(type==='concrete')pathFootprints.push(p);}const v=points.map(p=>vertex(p[0],p[1],type));batches[type].push(...v[0],...v[2],...v[1],...v[1],...v[2],...v[3]);}
   function skirt(a,b){
     // A broad sloped shoulder stitches the analytic pavement to the existing
     // triangulated ground, without changing clipped terrain edge interpolation.
@@ -37,7 +39,7 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
   }
   function cap(x,z,radius,type){
     const centre=vertex(x,z,type);
-    footprints.push(Array.from({length:20},(_,i)=>[x+Math.cos(i*Math.PI/10)*radius,z+Math.sin(i*Math.PI/10)*radius]));
+    const ring=Array.from({length:20},(_,i)=>[x+Math.cos(i*Math.PI/10)*radius,z+Math.sin(i*Math.PI/10)*radius]);footprints.push(ring);if(type==='concrete')pathFootprints.push(ring);
     for(let i=0;i<20;i++){
       const a=i*Math.PI/10,b=(i+1)*Math.PI/10;
       skirt([x+Math.cos(a)*radius,z+Math.sin(a)*radius],[x+Math.cos(b)*radius,z+Math.sin(b)*radius]);
@@ -106,8 +108,13 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
     for(const piece of area.triangles||pavement.clip(area.ring,area.id,true))for(let i=1;i<piece.length-1;i++)triangle(piece[0],piece[i],piece[i+1],area.triangles?0:3);footprints.push(...(area.triangles||[area.ring]));
     for(let i=0;i<area.ring.length;i++)skirt(area.ring[i],area.ring[(i+1)%area.ring.length]);
   }
+  // Motor asphalt and raised kerbs share one boundary and the same grade triangles.
+  batches.asphalt.length=0;eachPlanTriangle(motorPavementPlan,triangle=>{for(const p of triangle)batches.asphalt.push(...vertex(...p,'asphalt'));});
+  if(campus?.entranceApron?.ring)for(let i=0;i<entranceMesh.length;i+=6)for(let k=0;k<6;k+=2)batches.asphalt.push(...vertex(entranceMesh[i+k],entranceMesh[i+k+1],'asphalt'));
+  const entranceIds=new Set(network.routes.filter(r=>r.entrance).map(r=>r.osm));footprints.length=0;for(const a of pavement.all)if(!a.actual&&!entranceIds.has(a.osm))footprints.push(a.points);footprints.push(...pathFootprints);
   for(const [type,positions] of Object.entries(batches)){
     if(!positions.length)continue;
+    if(type==='asphalt'||type==='concrete')for(let i=0;i<positions.length;i+=9){const cross=(positions[i+3]-positions[i])*(positions[i+8]-positions[i+2])-(positions[i+5]-positions[i+2])*(positions[i+6]-positions[i]);if(cross>0)for(let k=0;k<3;k++){const v=positions[i+3+k];positions[i+3+k]=positions[i+6+k];positions[i+6+k]=v;}}
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
     if(type==='asphalt')geometry.setAttribute('uv',new THREE.Float32BufferAttribute(positions.flatMap((v,i)=>i%3===0?[v/5,positions[i+2]/5]:[]),2));
     if(type==='earth')geometry.computeVertexNormals();

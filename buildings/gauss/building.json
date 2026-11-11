@@ -3,6 +3,61 @@
     "osm": 444867692,
     "ring": [
       [
+        -92.828688,
+        -218.455228
+      ],
+      [
+        -75.328688,
+        -168.155228
+      ],
+      [
+        -112.928688,
+        -155.055228
+      ],
+      [
+        -118.528688,
+        -171.355228
+      ],
+      [
+        -104.428688,
+        -176.255228
+      ],
+      [
+        -116.228688,
+        -210.255228
+      ]
+    ],
+    "name": "高斯大樓",
+    "desc": "教學大樓；二樓與致理大樓一樓以連通廊銜接。",
+    "height": 25.2,
+    "floors": 7,
+    "floorHeight": 3.6
+  },
+  "appearance": {
+    "id": "gauss",
+    "osm": 444867692,
+    "name": "高斯大樓",
+    "style": "brick-frame",
+    "frontHint": [
+      -84.078688,
+      -193.305228
+    ],
+    "sign": "高斯大樓",
+    "english": "GAUSS BUILDING",
+    "wall": "#a7644e",
+    "frame": "#b9b9ae",
+    "glass": "#36545b",
+    "detailDistance": 145,
+    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。",
+    "frontMode": "main-road",
+    "frontEdge": 0,
+    "frontRoadIds": [
+      218881800
+    ]
+  },
+  "frontageAlignment": {
+    "sourceRing": [
+      [
         -92.7,
         -218.5
       ],
@@ -27,28 +82,13 @@
         -210.3
       ]
     ],
-    "name": "高斯大樓",
-    "desc": "教學大樓；二樓與致理大樓一樓以連通廊銜接。",
-    "height": 25.2,
-    "floors": 7,
-    "floorHeight": 3.6
-  },
-  "appearance": {
-    "id": "gauss",
-    "osm": 444867692,
-    "name": "高斯大樓",
-    "style": "brick-frame",
-    "frontHint": [
-      -95,
-      -164
+    "edges": [
+      0
     ],
-    "sign": "高斯大樓",
-    "english": "GAUSS BUILDING",
-    "wall": "#a7644e",
-    "frame": "#b9b9ae",
-    "glass": "#36545b",
-    "detailDistance": 145,
-    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。",
-    "frontMode": "main-road"
+    "entryEdge": 0,
+    "roadIds": [
+      218881800
+    ],
+    "reference": "依使用者要求向指定道路人行道貼齊；平移與門前鋪面為模型近似，非實測"
   }
 }

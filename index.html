@@ -24,7 +24,9 @@
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
 import {createTerrain, sampleElevation} from './terrain.js';
-import {mapSidewalkLines} from './sidewalk-layout.js';
+import {motorPavementPlan} from './data/motor-pavement-plan.js';
+import {sidewalkPlan} from './data/sidewalk-plan.js';
+
 import {createRoadNetwork} from './roads.js';
 import {addRoads} from './road-renderer.js';
 import {cutRoadsFromGround} from './road-ground.js';
@@ -81,7 +83,7 @@ const terrainHeight = terrain.height;
 const roadTagsResponse=await fetch('./data/road-tags.json');
 if(!roadTagsResponse.ok)throw new Error('道路資料載入失敗');
 const roadTags=await roadTagsResponse.json();
-const roadNetwork=createRoadNetwork(campus.roads,terrain.rawHeight,roadTags,{apron:campus.entranceApron,pavedAreas:campus.pavedAreas,junctionFillets:campus.junctionFillets,sharedGradeGrid:true});
+const roadNetwork=createRoadNetwork(campus.roads,terrain.rawHeight,roadTags,{apron:campus.entranceApron,pavedAreas:campus.pavedAreas,junctionFillets:campus.junctionFillets,sharedGradeGrid:true,edgePavement:motorPavementPlan.infillTriangles});
 const protectedPlatforms=[...campus.places.filter(a=>!a.height),...campus.water,...campus.courts].map(area=>{
   const xs=area.ring.map(p=>p[0]),zs=area.ring.map(p=>p[1]);
   return {west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs),contains:(x,z)=>distanceToRing(x,z,area.ring)===0};
@@ -404,8 +406,9 @@ if(campus.flowerbed)fillArea(overviewCtx,campus.flowerbed,'#d69baf');
 campus.courts.forEach(area => fillArea(overviewCtx, area, '#809d88'));
 [...(campus.pavedAreas||[]),...(campus.junctionFillets||[])].forEach(area=>fillArea(overviewCtx,area,'#52595a'));
 
-for(const road of mapSidewalkLines(campus)){overviewCtx.beginPath();trace(overviewCtx,road.line,false);overviewCtx.lineWidth=road.width;overviewCtx.strokeStyle='#e2d7bc';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();}
+for(const rings of sidewalkPlan.regions)fillArea(overviewCtx,{ring:rings[0],holes:rings.slice(1)},'#e5e5dd');
 campus.roads.forEach(({line,width})=>{overviewCtx.beginPath();trace(overviewCtx,line,false);overviewCtx.lineWidth=width;overviewCtx.strokeStyle=width<=2.5?'#c8c3b4':'#52595a';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();});
+for(const rings of motorPavementPlan.regions)fillArea(overviewCtx,{ring:rings[0],holes:rings.slice(1)},'#52595a');
 if(campus.courtyard)fillArea(overviewCtx,campus.courtyard,'#d5cebc');
 if(campus.gatehouse)fillArea(overviewCtx,campus.gatehouse,'#8d8073');
 if(campus.welcomeBoard)fillArea(overviewCtx,campus.welcomeBoard,'#eebd65');

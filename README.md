@@ -165,3 +165,5 @@ Python 幾何產生工具需 Shapely 2.1，網站執行無此依賴。道路原�
 人行道先合併輪廓、去除交會重疊，再以共用的連續高程三角網格生成；維持沿道路上坡，頂面比共用路面高15cm，附灰色路緣立面。人物以實際繪製三角面取得腳下高度，避免另算曲面造成穿入／跳動。
 
 完成前述輪廓重建後，另執行 `python scripts/build-sidewalk-plan.py`（需 Shapely）。必須隨網站發布 `data/sidewalk-plan.js`，其餘生成步驟及已確認側別不變。驗證：`node tests/sidewalk-level.mjs`。
+
+建築貼齊修正：`python scripts/align-building-frontages.py` 後執行 building catalog、walk obstacles、junction fillets、road regions、sidewalk plan 的既有生成步驟，最後執行 `python scripts/build-motor-pavement-plan.py`（Shapely）。新生成的 `data/motor-pavement-plan.js` 同樣須發布；其瀝青輪廓與人行道共用邊界及高程網格。驗證：`node tests/frontage-alignment.mjs`。
