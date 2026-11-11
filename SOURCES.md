@@ -155,3 +155,8 @@ https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=K0040014
 - [校方 69 周年校慶交通車時刻表](https://news.nknu.edu.tw/nknu_News/nknuMgt/UploadFile/News/FF2081B63C581FC0AB4EB056A12CA8A4AF8EFC94/1121103%E4%BA%A4%E9%80%9A%E8%BB%8A%E6%99%82%E5%88%BB%E8%A1%A8%2869%E5%91%A8%E5%B9%B4%E6%A0%A1%E6%85%B6%29-%E4%BF%AE%E6%AD%A3.pdf)：交叉核對師大路、詠霽路、環手星月大道、清心路。
 - 路線幾何及師大路一段分段沿用 OSM，標籤位置為模型近似；莘學路尚未取得官方佐證，不列於一般地圖的已核實路名。
 - 新植被街廓由模型車道鋪面邊界計算，非地籍分區；所有 R 區待使用者重新確認，未直接沿用矩形分區答案。
+
+## S17 迎賓看板（2026-11-11）
+
+使用者現場觀察確認看板位於花圃北端圓弧外側，平時為 Welcome、學校全名及校徽，可配合活動換版。模型位置、尺度、支架與底色為近似。
+校徽原圖為校方 [頁首標誌](https://w3.nknu.edu.tw/img/nknu-logo-nbg.png)，由 [共用元件](https://w3.nknu.edu.tw/js/components.js) 引用；保存來源於設施資料夾，未將圖像視為專案自有授權素材。
