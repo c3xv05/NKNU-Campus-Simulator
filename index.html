@@ -80,7 +80,7 @@ const terrainHeight = terrain.height;
 const roadTagsResponse=await fetch('./data/road-tags.json');
 if(!roadTagsResponse.ok)throw new Error('道路資料載入失敗');
 const roadTags=await roadTagsResponse.json();
-const roadNetwork=createRoadNetwork(campus.roads,terrain.rawHeight,roadTags,{apron:campus.entranceApron});
+const roadNetwork=createRoadNetwork(campus.roads,terrain.rawHeight,roadTags,{apron:campus.entranceApron,pavedAreas:campus.pavedAreas});
 const protectedPlatforms=[...campus.places.filter(a=>!a.height),...campus.water,...campus.courts].map(area=>{
   const xs=area.ring.map(p=>p[0]),zs=area.ring.map(p=>p[1]);
   return {west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs),contains:(x,z)=>distanceToRing(x,z,area.ring)===0};
@@ -401,6 +401,7 @@ overviewCtx.restore();
 campus.water.forEach(area => fillArea(overviewCtx, area, '#3e96b7'));
 if(campus.flowerbed)fillArea(overviewCtx,campus.flowerbed,'#d69baf');
 campus.courts.forEach(area => fillArea(overviewCtx, area, '#809d88'));
+(campus.pavedAreas||[]).forEach(area=>fillArea(overviewCtx,area,'#52595a'));
 
 for(const road of mapSidewalkLines(campus)){overviewCtx.beginPath();trace(overviewCtx,road.line,false);overviewCtx.lineWidth=road.width;overviewCtx.strokeStyle='#e2d7bc';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();}
 campus.roads.forEach(({line,width})=>{overviewCtx.beginPath();trace(overviewCtx,line,false);overviewCtx.lineWidth=width;overviewCtx.strokeStyle=width<=2.5?'#c8c3b4':'#52595a';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();});

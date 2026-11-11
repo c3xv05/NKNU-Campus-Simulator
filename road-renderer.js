@@ -101,6 +101,11 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
   }
   // One pavement with the exact shared flowerbed hole, not overlapping offset strips.
   if(campus?.entranceApron?.ring){for(let i=0;i<entranceMesh.length;i+=6)for(let k=0;k<6;k+=2)batches.asphalt.push(...vertex(entranceMesh[i+k],entranceMesh[i+k+1],'asphalt'));footprints.push(...campus.entranceApron.footprints);}
+  for(const area of network.pavedAreas||[]){
+    function triangle(a,b,c,depth){if(depth){const mid=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2],ab=mid(a,b),bc=mid(b,c),ca=mid(c,a);triangle(a,ab,ca,depth-1);triangle(ab,b,bc,depth-1);triangle(ca,bc,c,depth-1);triangle(ab,bc,ca,depth-1);return;}for(const p of [a,b,c])batches.asphalt.push(...vertex(...p,'asphalt'));}
+    for(const piece of pavement.clip(area.ring,area.id,true))for(let i=1;i<piece.length-1;i++)triangle(piece[0],piece[i],piece[i+1],3);footprints.push(area.ring);
+    for(let i=0;i<area.ring.length;i++)skirt(area.ring[i],area.ring[(i+1)%area.ring.length]);
+  }
   for(const [type,positions] of Object.entries(batches)){
     if(!positions.length)continue;
     const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));

@@ -141,3 +141,5 @@ python scripts/build-building-catalog.py
 新增驗證：`node tests/map-review.mjs`、`python tests/map-mobile-browser.py`、`python tests/developer-browser.py`。
 
 入口 S17 外側新增長條迎賓看板，預設 Welcome、完整校名與校徽。活動文字、配色、圖片及期間由 [facilities/welcome-board/board.json](facilities/welcome-board/board.json) 設定，更新後隨網站發布；換版示例見 [設施說明](facilities/welcome-board/README.md)。
+
+詠絮樓前半圓臨停路面存於 `data/campus.json` 的 `pavedAreas`，場景、道路物理、人行道／標線裁切及地圖共用。修改鋪面邊界後重建道路街廓；驗證可執行 `node tests/yongxu-forecourt.mjs`。
