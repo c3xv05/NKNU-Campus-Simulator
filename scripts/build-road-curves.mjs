@@ -1,0 +1,1 @@
+import fs from 'node:fs';import {prepareRoadCurves} from '../roads.js';const path=new URL('../data/campus.json',import.meta.url),c=JSON.parse(fs.readFileSync(path));c.roads=prepareRoadCurves(c.roads);fs.writeFileSync(path,JSON.stringify(c)+'\n');console.log('Prepared shared rounded road centre lines:',c.roads.length);

@@ -74,7 +74,7 @@ D3 空地為雜草。C3 在使用者同一則訊息有樹林與雜草兩種描�
 - 道路不再建立平頂路口平台，改以共用的連續坡面銜接交會路段與路肩；移除道路的逐段垂直裙牆。
 - 白色邊線／行穿線與黃色分向線使用不受光照染色的材質；標線位置仍為示意配置。
 - 校門兩側道路與北側接路依水滴花圃外緣重新對齊；小地圖使用同一份道路幾何。
-- 校門至圖資大樓的師大路、清心路，以及歸燕食巢至致理南側的詠霽路，配置貼路人行道。
+- 人行道依 S01–S35 逐段確認配置；最新側別見開發者紀錄。早期「校門至圖資整段有人行道」描述已由後續逐段確認取代。
 - 高斯 2F 與致理 1F 以同一標高的連通廊銜接，可從上層通行；走在地面不會突然跳上橋面。
 - 人物約 1.76 公尺，教學樓以至少五層及樓層窗帶呈現；高斯七層、致理八層參考學校樓層使用資料，尺寸仍屬近似模型。
 - 機車在道路最高可達 75 km/h；沿岸碰撞與既有碰撞仍生效。
@@ -125,7 +125,7 @@ python scripts/build-building-catalog.py
 - 生科 A/B、致理、高斯、歸燕食巢與霽遠樓只在面向主要幹道的一面設入口與招牌，其他牆面不複製入口。
 - 致理／高斯連接下方補實體基座，下層為連通區，上層接中央平台；生科兩館平台下方也改實體。
 - 生科平台留樓梯井，踏階通往東側向陽路旁出口，可實際上下樓；基座不可穿越。階梯屬建築樓梯，主要道路仍為連續斜坡。
-- 校門兩側採共同高程，花圃邊緣補接合帶；不規則入口圓弧不畫標線。
+- 校門兩側採共同高程，整片入口瀝青以花圃輪廓作孔洞；不規則入口圓弧不畫標線。
 - 圖資大樓依官方工程資料修正為地上2層、地下1層；其餘建築研究及待確認項目見 [外觀研究](docs/research/buildings.md)。
 
 [故事備忘](docs/research/story-seeds.md) 保存六項新聞／Dcard 素材，僅供未來討論，沒有新增 NPC 或事件。
@@ -143,3 +143,19 @@ python scripts/build-building-catalog.py
 入口 S17 外側新增長條迎賓看板，預設 Welcome、完整校名與校徽。活動文字、配色、圖片及期間由 [facilities/welcome-board/board.json](facilities/welcome-board/board.json) 設定，更新後隨網站發布；換版示例見 [設施說明](facilities/welcome-board/README.md)。
 
 詠絮樓前半圓臨停路面存於 `data/campus.json` 的 `pavedAreas`，場景、道路物理、人行道／標線裁切及地圖共用。修改鋪面邊界後重建道路街廓；驗證可執行 `node tests/yongxu-forecourt.mjs`。
+
+## 白磚人行道與圓弧路口
+
+人行道共用寬度為3.6m（原本兩倍），白色方磚與灰色邊帶由程序材質繪製；側別依已確認資料，灰邊材質名稱與磚紋尺度仍屬近似。S24 側門定義在 `facilities/s24-sidegate/gate.json`，只新增局部圍牆。
+
+道路／建築輪廓改動後，依序重建：
+
+```sh
+node scripts/build-road-curves.mjs
+python scripts/build-junction-fillets.py
+python scripts/build-walk-obstacles.py
+python scripts/build-sidewalk-sections.py
+python scripts/build-road-regions.py
+```
+
+Python 幾何產生工具需 Shapely 2.1，網站執行無此依賴。道路原折線保存在 sourceLine；若需修改已處理的道路，應修改該欄位後重建。路口保留共用節點，圓弧鋪面另作三角化，供道路物理、裁切及地圖共用。驗證：`node tests/sidewalk-upgrade.mjs`。

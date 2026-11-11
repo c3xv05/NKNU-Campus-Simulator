@@ -14,12 +14,12 @@ function roundedLine(line,width,connections) {
     const a=line[i-1],b=line[i],c=line[i+1];
     if((connections.get(pointKey(...b))||0)>1){result.push(b);continue;}
     const la=Math.hypot(a[0]-b[0],a[1]-b[1]),lc=Math.hypot(c[0]-b[0],c[1]-b[1]);
-    const cut=Math.min(width*.7,5,la*.2,lc*.2);
+    const cut=Math.min(width*1.4,12,la*.35,lc*.35);
     if(cut<.3){result.push(b);continue;}
     const p=[b[0]+(a[0]-b[0])*cut/la,b[1]+(a[1]-b[1])*cut/la];
     const q=[b[0]+(c[0]-b[0])*cut/lc,b[1]+(c[1]-b[1])*cut/lc];
     result.push(p);
-    const steps=Math.max(2,Math.ceil(cut/1.2));
+    const steps=Math.max(2,Math.ceil(cut/.5));
     for(let k=1;k<=steps;k++) {
       const t=k/steps,u=1-t;
       result.push([u*u*p[0]+2*u*t*b[0]+t*t*q[0],u*u*p[1]+2*u*t*b[1]+t*t*q[1]]);
@@ -36,7 +36,7 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
     node.width=Math.max(width,node.width);return node;
   }
   for(const road of roads) {
-    const line=road.entrance?road.line:roundedLine(road.line,road.width,connections),points=[];
+    const line=road.entrance||road.curvesPrepared?road.line:roundedLine(road.line,road.width,connections),points=[];
     for(let i=1;i<line.length;i++) {
       const a=line[i-1],b=line[i],length=Math.hypot(b[0]-a[0],b[1]-a[1]);
       if(length<.001)continue;
@@ -110,6 +110,7 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
     return motor&&motor.d<=motor.width/2+1e-6?motor:closest;
   }
   function onMotorRoad(x,z){
+    if((options.junctionFillets||[]).some(a=>ringDistance(x,z,a.ring)===0))return true;
     if((options.pavedAreas||[]).some(a=>ringDistance(x,z,a.ring)===0))return true;
     const apron=options.apron;if(apron?.ring&&ringDistance(x,z,apron.ring)===0&&!(apron.holes||[]).some(h=>ringDistance(x,z,h)===0))return true;
     return (buckets.get(key(x,z))||[]).some(segment=>{
@@ -164,5 +165,7 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
   function walkHeight(x,z,ground) {
     return integratedHeight(x,z,ground)+.035;
   }
-  return {pavedAreas:options.pavedAreas||[],apron:options.apron,entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
+  return {junctionFillets:options.junctionFillets||[],pavedAreas:options.pavedAreas||[],apron:options.apron,entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
 }
+
+export function prepareRoadCurves(roads){const sources=roads.map(r=>({...r,line:r.sourceLine||r.line})),connections=new Map();for(const r of sources)for(const p of r.line){const k=pointKey(...p);connections.set(k,(connections.get(k)||0)+1);}return sources.map(r=>({...r,sourceLine:r.line,line:r.entrance?r.line:roundedLine(r.line,r.width,connections),curvesPrepared:true}));}
