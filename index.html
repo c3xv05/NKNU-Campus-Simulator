@@ -178,7 +178,7 @@ const labelMeshes = [];
 
 siteDetails=addSiteDetails(THREE,scene,campus,terrain,roadNetwork);cameraObstacles.push(...siteDetails.blockers);
 const roadRendering=addRoads(THREE,scene,roadNetwork,terrainHeight,campus);
-const cutGround=cutRoadsFromGround(terrain.mesh,[...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points)],terrainGeometry.getAttribute('normal').array);
+const cutGround=cutRoadsFromGround(terrain.mesh,[...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points),campus.bioConnection.stairs.ring,...(campus.levelLink.stairs||[]).map(s=>s.ring)],terrainGeometry.getAttribute('normal').array);
 const cutGeometry=new THREE.BufferGeometry();
 // Clipping preserves the original triangle interpolation. Resampling new cut points
 // independently produces non-conforming T-junctions and visible cracks.
@@ -423,7 +423,7 @@ places.forEach(area => {
 for(const a of campus.buildings.filter(a=>a.mapLabel)){const c=outlineCenter(a.ring);overviewCtx.font='bold 50px system-ui';overviewCtx.textAlign='center';overviewCtx.lineWidth=10;overviewCtx.strokeStyle='#fff';overviewCtx.strokeText(a.name,c.x,c.z);overviewCtx.fillStyle='#173c4d';overviewCtx.fillText(a.name,c.x,c.z);}
 const dorm=campus.places.find(b=>b.name==='詠絮樓');if(dorm){const c=outlineCenter(dorm.ring);overviewCtx.font='bold 55px system-ui';overviewCtx.textAlign='center';overviewCtx.lineWidth=12;overviewCtx.strokeStyle='#fff';overviewCtx.strokeText('詠絮',c.x,c.z-5);overviewCtx.fillStyle='#173c4d';overviewCtx.fillText('詠絮',c.x,c.z-5);}
 if(campus.levelLink){overviewCtx.beginPath();trace(overviewCtx,campus.levelLink.line,false);overviewCtx.lineWidth=5;overviewCtx.strokeStyle='#dfad4f';overviewCtx.stroke();}
-if(campus.bioConnection?.stairs){overviewCtx.beginPath();trace(overviewCtx,campus.bioConnection.stairs.line,false);overviewCtx.lineWidth=4;overviewCtx.strokeStyle='#b5a88c';overviewCtx.stroke();}
+for(const stairs of [campus.bioConnection?.stairs,...(campus.levelLink.stairs||[])].filter(Boolean))fillArea(overviewCtx,stairs,'#c3beb0');
 overviewCtx.restore();
 overviewCtx.fillStyle = '#24382e';
 overviewCtx.font = 'bold 13px system-ui';

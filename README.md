@@ -187,3 +187,5 @@ python scripts/build-motor-pavement-plan.py
 ```
 
 白磚先聯集再三角化，僅繪製單一鋪面並共用世界座標磁磚紋理。既有步道位於共同平台內的部分避免重複繪製。平台及入口驗證：`node tests/campus-plazas.mjs`、`python tests/campus-plazas-browser.py`。S06西側坡向依最新確認為向西上升，較早向下判斷已更正。
+
+照片階梯定義在 `facilities/building-access/layout.json`。修改後執行 `python scripts/build-building-access.py`，再重建 sidewalk plan、motor pavement plan；樓梯腳下高度與渲染共用 `stair-layout.js`。修改建築位置仍需重建 catalog、walk obstacles、pedestrian patches；若前庭道路輪廓改動，另執行 `python scripts/build-road-regions.py`。驗證：`node tests/photo-access.mjs`、`python tests/photo-access-browser.py`。

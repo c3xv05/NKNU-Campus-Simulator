@@ -1,0 +1,69 @@
+{
+  "reference": "2026-11-11使用者兩張2015 Google街景截圖及敘述；只參考空間形態，不複製照片作材質。",
+  "bioStairs": {
+    "line": [
+      [
+        -72,
+        -251
+      ],
+      [
+        -31,
+        -252
+      ]
+    ],
+    "width": 28,
+    "topWidth": 14,
+    "steps": 96,
+    "flights": 4,
+    "landingFraction": 0.07,
+    "name": "生科東側寬階梯",
+    "desc": "依使用者自S01面向生科照片：寬階梯、四段梯跑與三個休息平台、交錯花台及兩側矮牆；踏階與尺寸為模型近似。",
+    "photoPlanters": true
+  },
+  "teachingStairs": [
+    {
+      "id": "zhili-lower",
+      "line": [
+        [
+          -111.5,
+          -223.5
+        ],
+        [
+          -98.6,
+          -228.2
+        ]
+      ],
+      "width": 12,
+      "topWidth": 12,
+      "steps": 40,
+      "flights": 2,
+      "landingFraction": 0.12,
+      "name": "S05至致理一樓大階梯",
+      "topLevel": "zhili-ground",
+      "bottomLevel": "road",
+      "desc": "依使用者照片：道路經寬階梯至致理一樓／高斯二樓，兩段梯跑中間設平台。"
+    },
+    {
+      "id": "zhili-upper",
+      "line": [
+        [
+          -125,
+          -222
+        ],
+        [
+          -114.2,
+          -226
+        ]
+      ],
+      "width": 4.5,
+      "topWidth": 4.5,
+      "steps": 24,
+      "flights": 2,
+      "landingFraction": 0.14,
+      "name": "致理一樓至教學平台小階梯",
+      "topLevel": "teaching-courtyard",
+      "bottomLevel": "zhili-ground",
+      "desc": "依使用者敘述：由致理一樓再經小樓梯上共同平台，非道路直達上層。"
+    }
+  ]
+}
