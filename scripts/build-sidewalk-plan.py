@@ -12,7 +12,8 @@ parts=list(shape.geoms) if hasattr(shape,'geoms') else [shape]
 shape=unary_union([Polygon(p.exterior,[h for h in p.interiors if Polygon(h).area>=.01]) for p in parts])
 # Remove micrometre clipping slivers; retain curb outlines to within a millimetre.
 shape=shape.simplify(.0005,preserve_topology=True)
-regions=list(shape.geoms) if hasattr(shape,'geoms') else [shape]
+regions=[p for p in (list(shape.geoms) if hasattr(shape,'geoms') else [shape]) if p.area>=.002]
+shape=unary_union(regions)
 step=1.25;triangles=[];rings=[]
 def coords(r):return [[round(x,7),round(z,7)] for x,z in list(r.coords)[:-1]]
 for p in regions:

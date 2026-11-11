@@ -174,3 +174,16 @@ Python 幾何產生工具需 Shapely 2.1，網站執行無此依賴。道路原�
 
 
 S06西側已依現場回饋改為陡坡樹林，S06／S07爬升加強；`data/yongji-terrain.js`保存獨立校正參數，原始高程格網保留，數值不代表實測。地形、道路、建築平台與植栽採相同校正，保留15cm路緣及先前八段路寬設定。驗證：`node tests/yongji-slope.mjs`、`python tests/yongji-slope-browser.py`。
+
+共同平台與新連接步道的資料來源為 `facilities/campus-plazas/layout.json`。調整後依序生成：
+
+```sh
+python scripts/build-campus-plazas.py
+python scripts/build-building-catalog.py
+python scripts/build-walk-obstacles.py
+python scripts/build-pedestrian-patches.py
+python scripts/build-sidewalk-plan.py
+python scripts/build-motor-pavement-plan.py
+```
+
+白磚先聯集再三角化，僅繪製單一鋪面並共用世界座標磁磚紋理。既有步道位於共同平台內的部分避免重複繪製。平台及入口驗證：`node tests/campus-plazas.mjs`、`python tests/campus-plazas-browser.py`。S06西側坡向依最新確認為向西上升，較早向下判斷已更正。
