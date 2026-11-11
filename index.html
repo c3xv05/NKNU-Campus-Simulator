@@ -408,6 +408,7 @@ campus.roads.forEach(({line,width})=>{overviewCtx.beginPath();trace(overviewCtx,
 if(campus.courtyard)fillArea(overviewCtx,campus.courtyard,'#d5cebc');
 if(campus.gatehouse)fillArea(overviewCtx,campus.gatehouse,'#8d8073');
 if(campus.welcomeBoard)fillArea(overviewCtx,campus.welcomeBoard,'#eebd65');
+(campus.carports||[]).forEach(area=>fillArea(overviewCtx,area,area.roofColor));
 if(campus.entranceApron?.ring)fillArea(overviewCtx,campus.entranceApron,'#52595a');
 campus.buildings.forEach(area => fillArea(overviewCtx, area, '#778b86'));
 places.forEach(area => {

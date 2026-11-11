@@ -31,6 +31,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   for(const road of mapSidewalkLines(campus))element('polyline',{points:polygon(road.line),fill:'none',stroke:'#e2d7bc','stroke-width':road.width,'stroke-linecap':'round','stroke-linejoin':'round'});
   for(const road of campus.roads)element('polyline',{points:polygon(road.line),fill:'none',stroke:road.width<=2.5?'#c8c3b4':'#52595a','stroke-width':road.width,'stroke-linecap':'round','stroke-linejoin':'round'});
   for(const area of campus.pavedAreas||[])element('polygon',{points:polygon(area.ring),fill:'#52595a','aria-label':area.name},svg);
+  for(const area of campus.carports||[])element('polygon',{points:polygon(area.ring),fill:area.roofColor,'aria-label':area.name},svg);
   svgApron(svg,campus);
   if(campus.courtyard)element('polygon',{points:polygon(campus.courtyard.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);
   if(campus.welcomeBoard)element('polygon',{points:polygon(campus.welcomeBoard.ring),fill:'#eebd65','aria-label':'校門迎賓看板'},svg);
