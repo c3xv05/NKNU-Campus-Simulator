@@ -1,3 +1,4 @@
+import {widthAtDistance} from './road-width.js';
 import {gradeGrid} from './grade-grid.js';
 import {SIDEWALK_WIDTH} from './sidewalk-layout.js';
 import {ringDistance} from './terrain.js';
@@ -84,11 +85,11 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
   const cellSize=24,buckets=new Map();
   function key(x,z){return `${Math.floor(x/cellSize)},${Math.floor(z/cellSize)}`;}
   for(const route of routes) {
-    let distance=0;
+    let distance=0;route.length=route.points.reduce((sum,p,i)=>i?sum+Math.hypot(p.x-route.points[i-1].x,p.z-route.points[i-1].z):0,0);
     for(let i=1;i<route.points.length;i++) {
       const a=route.points[i-1],b=route.points[i],dx=b.x-a.x,dz=b.z-a.z,length=Math.hypot(dx,dz);
       if(length<.001)continue;
-      const segment={a,b,dx,dz,length,width:route.width,route,distance};
+      const startWidth=widthAtDistance(route,distance,route.length),endWidth=widthAtDistance(route,distance+length,route.length),segment={a,b,dx,dz,length,width:(startWidth+endWidth)/2,startWidth,endWidth,route,distance};
       segments.push(segment);distance+=length;
       const margin=route.width/2+12;
       for(let z=Math.floor((Math.min(a.z,b.z)-margin)/cellSize);z<=Math.floor((Math.max(a.z,b.z)+margin)/cellSize);z++)
@@ -102,9 +103,9 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
     let closest=null,best=Infinity,motor=null,bestMotor=Infinity;
     for(const segment of buckets.get(key(x,z))||[]) {
       if(onlyMotor&&segment.route.style.path)continue;
-      const {a,dx,dz,length,width}=segment;
+      const {a,dx,dz,length}=segment;
       const t=clamp(((x-a.x)*dx+(z-a.z)*dz)/(length*length),0,1);
-      const d=Math.hypot(x-a.x-dx*t,z-a.z-dz*t);
+      const width=segment.startWidth+(segment.endWidth-segment.startWidth)*t,d=Math.hypot(x-a.x-dx*t,z-a.z-dz*t);
       // Compare distance to pavement, so a footpath cannot steal a main-road lane.
       const score=Math.max(0,d-width/2)+d*.001;
       const delta=segment.b.h-a.h;
@@ -126,7 +127,7 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
     return (buckets.get(key(x,z))||[]).some(segment=>{
       if(segment.route.style.path)return false;
       const t=clamp(((x-segment.a.x)*segment.dx+(z-segment.a.z)*segment.dz)/(segment.length*segment.length),0,1);
-      return Math.hypot(x-segment.a.x-segment.dx*t,z-segment.a.z-segment.dz*t)<segment.width/2;
+      return Math.hypot(x-segment.a.x-segment.dx*t,z-segment.a.z-segment.dz*t)<(segment.startWidth+(segment.endWidth-segment.startWidth)*t)/2;
     });
   }
   const surfaceCache=new Map();
@@ -189,4 +190,4 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
   return {edgePavement:options.edgePavement||[],junctionFillets:options.junctionFillets||[],pavedAreas:options.pavedAreas||[],apron:options.apron,entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
 }
 
-export function prepareRoadCurves(roads){const sources=roads.map(r=>({...r,line:r.sourceLine||r.line})),connections=new Map();for(const r of sources)for(const p of r.line){const k=pointKey(...p);connections.set(k,(connections.get(k)||0)+1);}return sources.map(r=>({...r,sourceLine:r.line,line:r.entrance?r.line:roundedLine(r.line,r.width,connections),curvesPrepared:true}));}
+export function prepareRoadCurves(roads){const sources=roads.map(r=>({...r,line:r.sourceLine||r.line})),connections=new Map();for(const r of sources)for(const p of r.line){const k=pointKey(...p);connections.set(k,(connections.get(k)||0)+1);}return sources.map(r=>({...r,sourceLine:r.line,line:r.preservedLine||(r.entrance?r.line:roundedLine(r.line,r.width,connections)),curvesPrepared:true}));}

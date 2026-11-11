@@ -168,4 +168,6 @@ Python 幾何產生工具需 Shapely 2.1，網站執行無此依賴。道路原�
 
 建築貼齊修正：`python scripts/align-building-frontages.py` 後執行 building catalog、walk obstacles、junction fillets、road regions、sidewalk plan 的既有生成步驟，最後執行 `python scripts/build-motor-pavement-plan.py`（Shapely）。新生成的 `data/motor-pavement-plan.js` 同樣須發布；其瀝青輪廓與人行道共用邊界及高程網格。驗證：`node tests/frontage-alignment.mjs`。
 
-步道刪除前須先核對：[步道核對圖](footpaths.html)。候選及確認狀態保存在 `docs/footpath-review.json`，使用 `python scripts/build-footpath-review.py` 重建定位圖；已確認項目依核對結果處理，未確認步道保留；候選不代表可自動刪除。主要道路暫採雙向各一行車道與兩側停車帶，實際線道定義待使用者回覆。
+步道刪除前須先核對：[步道核對圖](footpaths.html)。候選及確認狀態保存在 `docs/footpath-review.json`，使用 `python scripts/build-footpath-review.py` 重建定位圖；已確認項目依核對結果處理，未確認步道保留；候選不代表可自動刪除。依最新指示，W01–W18 已全數移除；僅 S06、S12、S05、S09、S02、S03、S04、S13 加寬為10.5m模型寬度（7m＋左右各1.75m），連接窄路時在指定路段內平順收束，其餘道路恢復加寬前寬度。
+
+道路寬度查詢共用 `road-width.js`，路面、路緣、人行道、通行與地圖採相同漸變輪廓。重建三棟建築前庭且保留建築位置時用 `python scripts/align-building-frontages.py --keep-buildings`，再執行既有鋪面生成步驟。`preservedLine` 固定非指定道路的原有形狀；新增路面沿用同一瀝青批次。驗證：`node tests/selected-road-widths.mjs`。

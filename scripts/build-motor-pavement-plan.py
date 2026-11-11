@@ -13,7 +13,8 @@ for a in c['places']+c['buildings']:
  if a.get('height'):shape=shape.difference(Polygon(a['ring'],a.get('holes',[])).buffer(.015,join_style=2))
 walk_text=(root/'data/sidewalk-plan.js').read_text();walk=json.loads(walk_text.split('=',1)[1].rstrip(';\n'));walk_shape=unary_union([Polygon(r[0],r[1:]) for r in walk['regions']]);original=shape
 # Close only the narrow gaps beside a real kerb; the walkway remains unchanged.
-near_kerb=shape.buffer(.4,quad_segs=16).intersection(walk_shape.boundary.buffer(.41,quad_segs=16));shape=shape.union(near_kerb).difference(walk_shape)
+apron=Polygon(c['entranceApron']['ring'],c['entranceApron']['holes']);kerb_source=shape.union(apron)
+near_kerb=kerb_source.buffer(.4,quad_segs=16).intersection(walk_shape.boundary.buffer(.41,quad_segs=16)).difference(apron);shape=shape.union(near_kerb).difference(walk_shape).difference(Polygon(c['flowerbed']['ring']))
 for a in c['places']+c['buildings']:
  if a.get('height'):shape=shape.difference(Polygon(a['ring'],a.get('holes',[])).buffer(.015,join_style=2))
 infill=shape.difference(original);infill_triangles=[[[round(x,7),round(z,7)] for x,z in list(t.exterior.coords)[:-1]] for t in constrained_delaunay_triangles(infill).geoms if t.area>.0000001]

@@ -2,7 +2,7 @@ import {motorPavementPlan} from './data/motor-pavement-plan.js';
 import {eachPlanTriangle} from './surface-plans.js';
 import {ringDistance} from './terrain.js';
 import {entranceMesh} from './data/entrance-mesh.js';
-import {pavementIndex} from './pavement.js';
+import {routeSections,pavementIndex} from './pavement.js';
 // Original procedural pavement and markings; no external texture assets.
 export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surfaceHeight(x,z),campus=null) {
   const group=new THREE.Group();group.name='campus-roads';scene.add(group);
@@ -58,19 +58,13 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
   function nearJunction(x,z){return network.junctions.some(j=>j.motor&&Math.hypot(j.x-x,j.z-z)<j.width*.85+1);}
   for(const route of network.routes){if(route.entrance&&campus?.entranceApron?.ring)continue;currentRoute=route;
     const type=route.style.path?'concrete':'asphalt',half=route.width/2,points=route.points,sections=[];
-    let distance=0;
-    for(let i=0;i<points.length;i++){
-      const a=points[Math.max(0,i-1)],b=points[Math.min(points.length-1,i+1)];
-      const length=Math.hypot(b.x-a.x,b.z-a.z)||1,nx=-(b.z-a.z)/length,nz=(b.x-a.x)/length;
-      const p=points[i];if(i)distance+=Math.hypot(p.x-points[i-1].x,p.z-points[i-1].z);
-      sections.push({x:p.x,z:p.z,nx,nz,distance});
-    }
+    sections.push(...routeSections(route).map(p=>({...p,half:p.width/2})));
     for(let i=1;i<sections.length;i++){
       const a=sections[i-1],b=sections[i];
       const offset=(p,t)=>[p.x+p.nx*t,p.z+p.nz*t];
       if(type==='concrete'&&network.onMotorRoad((a.x+b.x)/2,(a.z+b.z)/2))continue;
-      quad([offset(a,-half),offset(a,half),offset(b,-half),offset(b,half)],type);
-      skirt(offset(a,-half),offset(b,-half));skirt(offset(a,half),offset(b,half));
+      quad([offset(a,-a.half),offset(a,a.half),offset(b,-b.half),offset(b,b.half)],type);
+      skirt(offset(a,-a.half),offset(b,-b.half));skirt(offset(a,a.half),offset(b,b.half));
       const crossing=crossings.get(route.osm),centreDistance=(a.distance+b.distance)/2;
       const interrupted=route.entrance||nearJunction((a.x+b.x)/2,(a.z+b.z)/2)||(crossing!==undefined&&Math.abs(centreDistance-crossing)<2.1);
       if(!interrupted&&route.style.center)for(const side of [-1,1]){
@@ -78,21 +72,12 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
         const t=side*.1;
         quad([offset(a,t-.05),offset(a,t+.05),offset(b,t-.05),offset(b,t+.05)],'yellow');
       }
-      if(!interrupted&&route.parkingBands){
-        const inner=route.parkingBands.travelWidth/2;
-        for(const side of [-1,1]){
-          const t=side*inner;quad([offset(a,t-.06),offset(a,t+.06),offset(b,t-.06),offset(b,t+.06)],'white');
-          // Transverse bay ends every six metres; omit junction approaches and sharp bends.
-          const slot=Math.floor(b.distance/6)*6;
-          if(slot>a.distance&&centreDistance>15&&centreDistance<route.length-15){const u=(slot-a.distance)/(b.distance-a.distance),p={x:a.x+(b.x-a.x)*u,z:a.z+(b.z-a.z)*u,nx:a.nx+(b.nx-a.nx)*u,nz:a.nz+(b.nz-a.nz)*u},dx=p.nz*.06,dz=-p.nx*.06,lo=offset(p,side*inner),hi=offset(p,side*(half-.3));quad([[lo[0]-dx,lo[1]-dz],[hi[0]-dx,hi[1]-dz],[lo[0]+dx,lo[1]+dz],[hi[0]+dx,hi[1]+dz]],'white');}
-        }
-      }
       if(!interrupted&&route.style.edges)for(const side of [-1,1]){
-        const t=side*(half-.3);
-        quad([offset(a,t-.075),offset(a,t+.075),offset(b,t-.075),offset(b,t+.075)],'white');
+        const ta=side*(a.half-.3),tb=side*(b.half-.3);
+        quad([offset(a,ta-.075),offset(a,ta+.075),offset(b,tb-.075),offset(b,tb+.075)],'white');
       }
     }
-    for(const p of (route.entrance?[]:[points[0],points.at(-1)]))if(type!=='concrete'||!network.onMotorRoad(p.x,p.z))cap(p.x,p.z,half,type);
+    for(const p of (route.entrance?[]:[sections[0],sections.at(-1)]))if(type!=='concrete'||!network.onMotorRoad(p.x,p.z))cap(p.x,p.z,p.half,type);
     if(crossings.has(route.osm)&&!route.style.path&&!route.entrance){
       const p=pointAt(route,Math.min(route.length-4,crossings.get(route.osm)));
       // Taiwan sleeper-style crossing: 40 cm bars, 40 cm gaps, parallel to traffic.
