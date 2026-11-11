@@ -78,6 +78,15 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
         const t=side*.1;
         quad([offset(a,t-.05),offset(a,t+.05),offset(b,t-.05),offset(b,t+.05)],'yellow');
       }
+      if(!interrupted&&route.parkingBands){
+        const inner=route.parkingBands.travelWidth/2;
+        for(const side of [-1,1]){
+          const t=side*inner;quad([offset(a,t-.06),offset(a,t+.06),offset(b,t-.06),offset(b,t+.06)],'white');
+          // Transverse bay ends every six metres; omit junction approaches and sharp bends.
+          const slot=Math.floor(b.distance/6)*6;
+          if(slot>a.distance&&centreDistance>15&&centreDistance<route.length-15){const u=(slot-a.distance)/(b.distance-a.distance),p={x:a.x+(b.x-a.x)*u,z:a.z+(b.z-a.z)*u,nx:a.nx+(b.nx-a.nx)*u,nz:a.nz+(b.nz-a.nz)*u},dx=p.nz*.06,dz=-p.nx*.06,lo=offset(p,side*inner),hi=offset(p,side*(half-.3));quad([[lo[0]-dx,lo[1]-dz],[hi[0]-dx,hi[1]-dz],[lo[0]+dx,lo[1]+dz],[hi[0]+dx,hi[1]+dz]],'white');}
+        }
+      }
       if(!interrupted&&route.style.edges)for(const side of [-1,1]){
         const t=side*(half-.3);
         quad([offset(a,t-.075),offset(a,t+.075),offset(b,t-.075),offset(b,t+.075)],'white');

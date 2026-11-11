@@ -36,7 +36,7 @@ with sync_playwright() as p:
     assert abs(after['y']-page.evaluate('s=>window.__test.height(s.x,s.z)',after))<1e-6
     # Full map has every place, labelled selection, player marker, modal input pause.
     page.locator('#mapOpen').click();assert page.locator('#mapDialog').evaluate('e=>e.open')
-    assert page.locator('#buildingList button').count()==12
+    assert page.locator('#buildingList button').count()==13
     page.locator('#buildingList button').filter(has_text='圖資大樓').click()
     assert '圖資大樓' in page.locator('#mapSelection').inner_text()
     assert page.locator('#buildingList button.selected').count()==1

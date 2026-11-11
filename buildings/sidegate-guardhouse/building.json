@@ -1,0 +1,48 @@
+{
+  "geometry": {
+    "osm": -2401,
+    "ring": [
+      [
+        -349,
+        -18
+      ],
+      [
+        -343,
+        -18
+      ],
+      [
+        -343,
+        -13
+      ],
+      [
+        -349,
+        -13
+      ]
+    ],
+    "height": 3.2,
+    "floors": 1,
+    "name": "側門警衛室",
+    "desc": "側門北側警衛室，依使用者描述補建；尺寸與外觀暫為近似。"
+  },
+  "appearance": {
+    "id": "sidegate-guardhouse",
+    "osm": -2401,
+    "name": "側門警衛室",
+    "style": "utility",
+    "frontHint": [
+      -347,
+      -7
+    ],
+    "sign": "警衛室",
+    "english": " ",
+    "wall": "#e1dfd2",
+    "frame": "#9b9f99",
+    "glass": "#36545b",
+    "detailDistance": 110,
+    "showEntrance": false,
+    "showSign": false,
+    "frontMode": "main-road",
+    "reference": "側門北側警衛室，依使用者描述補建；尺寸與外觀暫為近似。",
+    "confidence": "user-observation"
+  }
+}

@@ -7,3 +7,5 @@ for(const r of n.routes.filter(r=>c.sidewalkRoadIds.includes(r.osm))){const node
 assert(samples>400);assert(maxStep<.012,'Unintended vertical seam along the walkway');
 for(let i=0;i<s.curbPositions.length;i+=18)assert(s.curbPositions[i+1]-s.curbPositions[i+4]>=.15-1e-9);
 console.log('PASS: 15 cm raised pavement, union mesh/foot-height agreement, continuous straight/curved/intersection walks and visible curb faces',{triangles:s.triangles.length,maxRiseError,maxMeshError,maxStep,samples});
+
+const cutoutArea=sidewalkPlan.footprints.reduce((sum,r)=>sum+Math.abs(r.reduce((a,p,i)=>{const q=r[(i+1)%r.length];return a+p[0]*q[1]-q[0]*p[1];},0))/2,0);assert(Math.abs(cutoutArea-sidewalkPlan.area)<.001,'Prebuilt ground cutout must cover the exact walkway area');
