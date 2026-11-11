@@ -1,3 +1,4 @@
+import {yongjiHeightAdjustment} from './terrain-calibration.js';
 // Pure terrain sampling shared by rendering, collision height and tests.
 export function sampleElevation(grid, x, z) {
   const gx = Math.max(0, Math.min(grid.columns - 1, (x - grid.west) / grid.step));
@@ -23,16 +24,17 @@ export function createTerrain(grid, areas,options={}) {
   const smoothRaw=(x,z)=>{
     let sum=0,total=0;for(const [dx,dz,w] of [[0,0,4],[-15,0,2],[15,0,2],[0,-15,2],[0,15,2],[-15,-15,1],[-15,15,1],[15,-15,1],[15,15,1]]){sum+=sampleElevation(grid,x+dx,z+dz)*w;total+=w;}return sum/total-datum;
   };
+  const baseRaw=(x,z)=>smoothRaw(x,z)+(options.observationAdjustments===false?0:yongjiHeightAdjustment(x,z));
   let correction=()=>0;
   if(options.levelLink){
     const link=options.levelLink,centre=id=>{const a=areas.find(a=>a.osm===id);if(!a)return null;const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{x:(Math.min(...xs)+Math.max(...xs))/2,z:(Math.min(...zs)+Math.max(...zs))/2};};
     const from=centre(link.from),to=centre(link.to);
     if(from&&to){const radius=70,k=Math.exp(-((from.x-to.x)**2+(from.z-to.z)**2)/radius**2),difference=(link.toFloor-link.fromFloor)*link.floorHeight;
-      const amplitude=(difference-(smoothRaw(from.x,from.z)-smoothRaw(to.x,to.z)))/(1-k*k);
+      const amplitude=(difference-(baseRaw(from.x,from.z)-baseRaw(to.x,to.z)))/(1-k*k);
       correction=(x,z)=>amplitude*(Math.exp(-((x-from.x)**2+(z-from.z)**2)/radius**2)-k*Math.exp(-((x-to.x)**2+(z-to.z)**2)/radius**2));
     }
   }
-  const rawHeight=(x,z)=>smoothRaw(x,z)+correction(x,z);
+  const rawHeight=(x,z)=>baseRaw(x,z)+correction(x,z);
   const pads = areas.map(area => {
     const xs = area.ring.map(p=>p[0]), zs = area.ring.map(p=>p[1]);
     const x = (Math.min(...xs)+Math.max(...xs))/2, z = (Math.min(...zs)+Math.max(...zs))/2;

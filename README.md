@@ -33,7 +33,7 @@ python tests/campus-realism-browser.py
 
 ## 地形來源
 
-見 [SOURCES.md](SOURCES.md)。資料為公開衛星高程近似重建，建築與運動場平台經簡化平整，
+見 [SOURCES.md](SOURCES.md)。資料為公開衛星高程近似重建並依現場回饋局部校正，建築與運動場平台經簡化平整，
 未宣稱為校園實測成果。以 `python scripts/sample-terrain.py` 可重取樣原始公開圖磚（需 Pillow）。
 
 ## 植被分區回饋
@@ -171,3 +171,6 @@ Python 幾何產生工具需 Shapely 2.1，網站執行無此依賴。道路原�
 步道刪除前須先核對：[步道核對圖](footpaths.html)。候選及確認狀態保存在 `docs/footpath-review.json`，使用 `python scripts/build-footpath-review.py` 重建定位圖；已確認項目依核對結果處理，未確認步道保留；候選不代表可自動刪除。依最新指示，W01–W18 已全數移除；僅 S06、S12、S05、S09、S02、S03、S04、S13 加寬為10.5m模型寬度（7m＋左右各1.75m），連接窄路時在指定路段內平順收束，其餘道路恢復加寬前寬度。
 
 道路寬度查詢共用 `road-width.js`，路面、路緣、人行道、通行與地圖採相同漸變輪廓。重建三棟建築前庭且保留建築位置時用 `python scripts/align-building-frontages.py --keep-buildings`，再執行既有鋪面生成步驟。`preservedLine` 固定非指定道路的原有形狀；新增路面沿用同一瀝青批次。驗證：`node tests/selected-road-widths.mjs`。
+
+
+S06西側已依現場回饋改為陡坡樹林，S06／S07爬升加強；`data/yongji-terrain.js`保存獨立校正參數，原始高程格網保留，數值不代表實測。地形、道路、建築平台與植栽採相同校正，保留15cm路緣及先前八段路寬設定。驗證：`node tests/yongji-slope.mjs`、`python tests/yongji-slope-browser.py`。
