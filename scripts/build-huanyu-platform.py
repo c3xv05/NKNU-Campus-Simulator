@@ -1,0 +1,8 @@
+"""Place the second-floor forecourt against Huanyu's confirmed road-facing facade."""
+import json,math
+from pathlib import Path
+from shapely.geometry import LineString,Point
+root=Path(__file__).resolve().parents[1];c=json.loads((root/'data/campus.json').read_text());a=json.loads((root/'facilities/huanyu-platform/layout.json').read_text());b=next(b for b in c['places'] if b['osm']==a['building']);ring=b['ring'];i=a['frontEdge'];p,q=ring[i],ring[(i+1)%len(ring)];dx,dz=q[0]-p[0],q[1]-p[1];l=math.hypot(dx,dz);area=sum(p[0]*q[1]-q[0]*p[1] for p,q in zip(ring,ring[1:]+ring[:1]));nx,nz=dz/l*math.copysign(1,area),-dx/l*math.copysign(1,area);x,z=(p[0]+q[0])/2,(p[1]+q[1])/2;w=a['platformWidth']/2;depth=a['platformDepth']
+a['ring']=[[x-dx/l*w,z-dz/l*w],[x+dx/l*w,z+dz/l*w],[x+dx/l*w+nx*depth,z+dz/l*w+nz*depth],[x-dx/l*w+nx*depth,z-dz/l*w+nz*depth]]
+a['entry']=[x,z];end=[x+nx*depth,z+nz*depth];road=next(r for r in c['roads'] if r['osm']==a['road']);line=LineString(road['line']);near=line.interpolate(line.project(Point(end)));vx,vz=end[0]-near.x,end[1]-near.y;length=math.hypot(vx,vz);offset=road['width']/2+2;start=[near.x+vx/length*offset,near.y+vz/length*offset];dx,dz=end[0]-start[0],end[1]-start[1];length=math.hypot(dx,dz);rx,rz=-dz/length*a['rampWidth']/2,dx/length*a['rampWidth']/2;a['ramp']={'line':[start,end],'width':a['rampWidth'],'ring':[[start[0]+rx,start[1]+rz],[end[0]+rx,end[1]+rz],[end[0]-rx,end[1]-rz],[start[0]-rx,start[1]-rz]]};c['huanyuAccess']=a
+(root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n');print('Built Huanyu second-floor platform and S06 approach',round(length,2),'m')

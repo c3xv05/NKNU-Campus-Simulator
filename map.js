@@ -38,6 +38,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   for(const area of campus.carports||[])element('polygon',{points:polygon(area.ring),fill:area.roofColor,'aria-label':area.name},svg);
   if(campus.sideGate){for(const ring of sidegateWalls(campus.sideGate))element('polygon',{points:polygon(ring),fill:'#9ba6a4'},svg);element('text',{x:campus.sideGate.center[0],y:campus.sideGate.center[1]-10,'text-anchor':'middle','font-size':14,fill:'#173c43',stroke:'#fff','stroke-width':2,'paint-order':'stroke'},svg).textContent='側門';}
   svgApron(svg,campus);
+  if(campus.huanyuAccess)for(const a of [campus.huanyuAccess,campus.huanyuAccess.ramp])element('polygon',{points:polygon(a.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);
   if(campus.courtyard)element('polygon',{points:polygon(campus.courtyard.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);
   if(campus.welcomeBoard)element('polygon',{points:polygon(campus.welcomeBoard.ring),fill:'#eebd65','aria-label':'校門迎賓看板'},svg);
   if(campus.gatehouse)element('polygon',{points:polygon(campus.gatehouse.ring),fill:'#8d8073'},svg);

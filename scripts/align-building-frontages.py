@@ -5,7 +5,7 @@ from shapely.geometry import LineString,Point,Polygon
 from shapely.ops import nearest_points,unary_union
 root=Path(__file__).resolve().parents[1];path=root/'data/campus.json';c=json.loads(path.read_text());width=3.6
 settings={'swallow-restaurant':([6,7],6,[293423729,382869349]),'gauss':([0],0,[218881800]),'zhili':([1],1,[218881800])}
-frontages=[];deltas={};entrance_roads={};keep_buildings='--keep-buildings' in sys.argv
+frontages=[];deltas={};entrance_roads={};keep_buildings='--keep-buildings' in sys.argv or any(json.loads((root/'buildings'/name/'building.json').read_text()).get('roadSetback') for name in settings)
 for name,(edges,entry,roadids) in settings.items():
  p=root/'buildings'/name/'building.json';d=json.loads(p.read_text());a=d['geometry'];appearance=d['appearance'];meta=d.setdefault('frontageAlignment',{});source=meta.setdefault('sourceRing',a['ring']);meta.update(edges=edges,entryEdge=entry,roadIds=roadids,reference='依使用者要求向指定道路人行道貼齊；平移與門前鋪面為模型近似，非實測')
  winding=sum(u[0]*v[1]-v[0]*u[1] for u,v in zip(source,source[1:]+source[:1]));v,q=source[entry],source[(entry+1)%len(source)];dx,dz=q[0]-v[0],q[1]-v[1];l=math.hypot(dx,dz);nx,nz=dz/l*math.copysign(1,winding),-dx/l*math.copysign(1,winding)
