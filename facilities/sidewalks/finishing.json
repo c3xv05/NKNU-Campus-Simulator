@@ -1,0 +1,9 @@
+{
+  "reference": "依使用者要求微調人行道自然度；保留已確認側別、15cm路緣及主要寬度，圓角僅為模型修飾。",
+  "notchRadius": 0.35,
+  "cornerRadius": 0.30,
+  "protectedRoadEdge": 0.45,
+  "protectedBuildingEdge": 0.25,
+  "protectedStairEdge": 0.25,
+  "outlineTolerance": 0.003
+}

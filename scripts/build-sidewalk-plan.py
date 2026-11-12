@@ -1,6 +1,7 @@
 """Union walkways before meshing, so intersecting strips cannot overlap or crack."""
 import json,subprocess,math
 from pathlib import Path
+from sidewalk_finishing import finish_sidewalks
 from shapely.geometry import Polygon,box
 from shapely.ops import unary_union
 from shapely import constrained_delaunay_triangles,set_precision
@@ -11,6 +12,7 @@ shape=unary_union([set_precision(Polygon(p),.001) for p in polygons if Polygon(p
 # Stairs have their own stepped surface and support heights, never overlapping tiles.
 c=json.loads((root/'data/campus.json').read_text())
 for s in [c['bioConnection']['stairs']]+c['levelLink'].get('stairs',[]):shape=shape.difference(Polygon(s['ring']))
+shape=finish_sidewalks(shape,c)
 parts=list(shape.geoms) if hasattr(shape,'geoms') else [shape]
 shape=unary_union([Polygon(p.exterior,[h for h in p.interiors if Polygon(h).area>=.01]) for p in parts])
 # Remove micrometre clipping slivers; retain curb outlines to within a millimetre.
