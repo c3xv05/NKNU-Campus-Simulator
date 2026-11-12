@@ -1,20 +1,20 @@
+import {addTeachingCourtyard} from './facilities/teaching-courtyard/renderer.js';
 import {accessStairs,stairBands,stairRing,supportOnStair,stairSurface,stairWidth} from './stair-layout.js';
 import {connectionRing} from './building-layout.js';
 import {subtract} from './road-ground.js';
 import {ringDistance} from './terrain.js';
-import {projectOnLine} from './site-physics.js';
+import {projectOnLine,platformHeightAt} from './site-physics.js';
 export function stairHeightAt(x,z,currentY,campus,terrain,network){for(const stairs of accessStairs(campus,terrain,network)){const height=supportOnStair(x,z,currentY,stairs);if(height!==null)return height;}return null;}
-export function addConnections(THREE,group,campus,terrain,network){
+export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
  const concrete=new THREE.MeshStandardMaterial({color:0xb9b7a9,roughness:.95}),brick=new THREE.MeshStandardMaterial({color:0xa66b58,roughness:.95});const blockers=[];
  function box(w,h,d,x,y,z,mat,angle=0,name=''){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.rotation.y=angle;m.name=name;m.receiveShadow=true;group.add(m);return m;}
  function prism(ring,top,bottom,mat,name){const shape=new THREE.Shape();ring.forEach(([x,z],i)=>i?shape.lineTo(x,-z):shape.moveTo(x,-z));shape.closePath();const g=new THREE.ExtrudeGeometry(shape,{depth:top-bottom,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,mat);m.position.y=bottom;m.name=name;m.receiveShadow=true;group.add(m);return m;}
- function ramp(line,width,start,end,name){const [a,b]=line,l=Math.hypot(b[0]-a[0],b[1]-a[1]),nx=-(b[1]-a[1])/l*width/2,nz=(b[0]-a[0])/l*width/2,points=[[a[0]+nx,start,a[1]+nz],[a[0]-nx,start,a[1]-nz],[b[0]+nx,end,b[1]+nz],[b[0]-nx,end,b[1]-nz]],g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([...points[0],...points[2],...points[1],...points[1],...points[2],...points[3]],3));g.computeVertexNormals();const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0xc7c3b4,side:THREE.DoubleSide,roughness:1}));m.name=name;group.add(m);}
+ function ramp(line,width,start,end,name){const [a,b]=line,l=Math.hypot(b[0]-a[0],b[1]-a[1]),nx=-(b[1]-a[1])/l*width/2,nz=(b[0]-a[0])/l*width/2,points=[[a[0]+nx,start,a[1]+nz],[a[0]-nx,start,a[1]-nz],[b[0]+nx,end,b[1]+nz],[b[0]-nx,end,b[1]-nz]],g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([...points[0],...points[2],...points[1],...points[1],...points[2],...points[3]],3));g.computeVertexNormals();const tiled=name==='courtyard-access-ramp';if(tiled){const positions=g.attributes.position,coords=[];for(let i=0;i<positions.count;i++)coords.push(positions.getX(i)/2.4,positions.getZ(i)/2.4);g.setAttribute('uv',new THREE.Float32BufferAttribute(coords,2));g.setAttribute('sidewalkEdgeDistance',new THREE.Float32BufferAttribute(Array(positions.count).fill(1),1));}const m=new THREE.Mesh(g,tiled?tileMaterial:new THREE.MeshStandardMaterial({color:0xc7c3b4,side:THREE.DoubleSide,roughness:1}));m.name=name;group.add(m);}
  const link=campus.levelLink,from=campus.places.find(a=>a.osm===link.from),to=campus.places.find(a=>a.osm===link.to),bridgeLevel=terrain.platformHeight(from),courtyardLevel=bridgeLevel+3.6,linkRing=connectionRing(link),foundation=terrain.platformHeight(to)-4;
  const teaching=(link.stairs||[]),cutPieces=(ring,cuts)=>cuts.reduce((pieces,cut)=>pieces.flatMap(p=>subtract(p.map(([x,z])=>[x,0,z]),cut).map(q=>q.map(([x,,z])=>[x,z]))),[ring]);
- for(const [i,piece] of cutPieces(linkRing,teaching.map(s=>stairRing(s))).entries())prism(piece,bridgeLevel,foundation,brick,i?'zhili-gauss-solid-foundation-'+i:'zhili-gauss-solid-foundation');
- // A built-in lower corridor and upper courtyard: no open space below the connection.
- for(const [i,piece] of cutPieces(linkRing,teaching.map(s=>stairRing(s))).entries())blockers.push(prism(piece,courtyardLevel,courtyardLevel-.2,concrete,'zhili-gauss-upper-level'+(i?'-'+i:'')));
- if(campus.courtyard){for(const piece of cutPieces(campus.courtyard.ring,teaching.map(s=>stairRing(s))))prism(piece,courtyardLevel,courtyardLevel-.35,concrete,'teaching-courtyard-platform');ramp(campus.courtyard.ramp,campus.courtyard.width,terrain.height(...campus.courtyard.ramp[0]),courtyardLevel,'courtyard-access-ramp');}
+ for(const [i,piece] of cutPieces(linkRing,teaching.map(s=>stairRing(s))).entries())prism(piece,bridgeLevel-.25,foundation,brick,i?'zhili-gauss-solid-foundation-'+i:'zhili-gauss-solid-foundation');
+ const plaza=addTeachingCourtyard(THREE,group,campus,terrain,tileMaterial);blockers.push(...plaza.blockers);
+ if(campus.courtyard)ramp(campus.courtyard.ramp,campus.courtyard.width,network.walkHeight(...campus.courtyard.ramp[0],terrain.height(...campus.courtyard.ramp[0])),campus.courtyard.rampTargetFloor===1?bridgeLevel:courtyardLevel,'courtyard-access-ramp');
  const bio=campus.bioConnection,bioLevel=terrain.platformHeight(campus.places.find(a=>a.osm===bio.from))+3.6,bioRing=connectionRing(bio),stairs=bio.stairs,bioStairRing=stairRing(stairs),bottom=network.walkHeight(...stairs.line[1],terrain.height(...stairs.line[1]));
  const pieces=subtract(bioRing.map(([x,z])=>[x,0,z]),bioStairRing).map(p=>p.map(([x,,z])=>[x,z]));
  const bottomFoundation=Math.min(bottom-1,...bioRing.map(([x,z])=>terrain.height(x,z)-2));
@@ -40,6 +40,8 @@ export function addConnections(THREE,group,campus,terrain,network){
  for(const side of [-1,1])box(.65,3.1,.65,sa[0]+normal[0]*side*(stairs.topWidth/2+.2)-1.2,bioLevel+1.55,sa[1]+normal[1]*side*(stairs.topWidth/2+.2),concrete);
  const canvas=document.createElement('canvas');canvas.width=768;canvas.height=128;const ctx=canvas.getContext('2d');ctx.fillStyle='#b9b7a9';ctx.fillRect(0,0,768,128);ctx.fillStyle='#c9ad62';ctx.font='bold 70px serif';ctx.textAlign='center';ctx.fillText('生 科 大 樓',384,90);const sign=new THREE.Mesh(new THREE.PlaneGeometry(8,.85),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(canvas),side:THREE.DoubleSide}));sign.position.set(sa[0]-.15,bioLevel+3.4,sa[1]);sign.rotation.y=Math.PI/2;sign.name='biology-central-lintel-sign';group.add(sign);
  return{blockers,bridgeLevel,courtyardLevel,bioLevel,stairsBottom:bottom,solidBlocked(x,z,r,currentY=Infinity){
+  if(plaza.blocked(x,z,r,currentY))return true;
+  if(campus.courtyard.accessRampRing&&ringDistance(x,z,campus.courtyard.accessRampRing)===0&&platformHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(planters.some(p=>Math.hypot(x-p.x,z-p.z)<p.radius+r&&Math.abs(currentY-p.y)<2))return true;
   if(stairDefinitions.some(s=>ringDistance(x,z,stairRing(s))===0)&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(ringDistance(x,z,bioRing)===0&&currentY<bioLevel-.6&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;

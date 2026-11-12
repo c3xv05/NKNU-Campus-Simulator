@@ -11,10 +11,12 @@ polygons=json.loads(subprocess.check_output(['node','--input-type=module','-e',j
 shape=unary_union([set_precision(Polygon(p),.001) for p in polygons if Polygon(p).area>1e-7]).buffer(0)
 # Stairs have their own stepped surface and support heights, never overlapping tiles.
 c=json.loads((root/'data/campus.json').read_text())
-for s in [c['bioConnection']['stairs']]+c['levelLink'].get('stairs',[]):shape=shape.difference(Polygon(s['ring']))
+for s in [c['bioConnection']['stairs']]+c['levelLink'].get('stairs',[])+c['courtyard'].get('stairs',[]):shape=shape.difference(Polygon(s['ring']))
 shape=finish_sidewalks(shape,c)
 if c.get('huanyuAccess'):
  for a in [c['huanyuAccess'],c['huanyuAccess']['ramp']]:shape=shape.difference(Polygon(a['ring']))
+if c['courtyard'].get('floorRegions'):
+ for region in c['courtyard']['floorRegions']['lower']+c['courtyard']['floorRegions']['upper']:shape=shape.difference(Polygon(region[0],region[1:]))
 parts=list(shape.geoms) if hasattr(shape,'geoms') else [shape]
 shape=unary_union([Polygon(p.exterior,[h for h in p.interiors if Polygon(h).area>=.01]) for p in parts])
 # Remove micrometre clipping slivers; retain curb outlines to within a millimetre.

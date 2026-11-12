@@ -65,5 +65,29 @@
       "bottomLevel": "zhili-ground",
       "desc": "依使用者敘述：由致理一樓再經小樓梯上共同平台，非道路直達上層。"
     }
+  ],
+  "courtyardStairs": [
+    {
+      "id": "courtyard-center",
+      "line": [
+        [
+          -139,
+          -201
+        ],
+        [
+          -132,
+          -214
+        ]
+      ],
+      "width": 3.6,
+      "topWidth": 3.6,
+      "steps": 24,
+      "flights": 2,
+      "landingFraction": 0.14,
+      "name": "中央廣場一二樓小階梯",
+      "topLevel": "teaching-courtyard",
+      "bottomLevel": "zhili-ground",
+      "desc": "依使用者要求於廣場中央開口，由二樓小樓梯通往下方一樓；尺寸為模型近似。"
+    }
   ]
 }

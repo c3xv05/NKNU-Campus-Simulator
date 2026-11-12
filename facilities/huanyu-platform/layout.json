@@ -1,10 +1,12 @@
 {
   "building": 444867694,
-  "entranceFloor": 2,
+  "entranceFloor": 3,
   "frontEdge": 10,
   "road": 293423729,
   "platformWidth": 28,
   "platformDepth": 6,
-  "rampWidth": 5,
-  "reference": "使用者確認寰宇入口在二樓，門前平台通往詠霽路；平台尺寸及坡面銜接為模型近似。"
+  "rampWidth": 8,
+  "reference": "最新使用者確認寰宇入口為三樓；T形橫段朝詠霽路並接人行道，直段通門口，尺寸為模型近似。",
+  "shape": "T",
+  "doorLanding": 4
 }

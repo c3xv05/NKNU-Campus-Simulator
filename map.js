@@ -40,6 +40,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   svgApron(svg,campus);
   if(campus.huanyuAccess)for(const a of [campus.huanyuAccess,campus.huanyuAccess.ramp])element('polygon',{points:polygon(a.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);
   if(campus.courtyard)element('polygon',{points:polygon(campus.courtyard.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);
+  if(campus.courtyard?.floors===2)element('text',{x:-140,y:-206,'font-size':12,fill:'#594f3e',stroke:'#fff','stroke-width':2,'paint-order':'stroke'},svg,'中央廣場 1F／2F');
   if(campus.welcomeBoard)element('polygon',{points:polygon(campus.welcomeBoard.ring),fill:'#eebd65','aria-label':'校門迎賓看板'},svg);
   if(campus.gatehouse)element('polygon',{points:polygon(campus.gatehouse.ring),fill:'#8d8073'},svg);
   for(const area of campus.buildings){element('polygon',{points:polygon(area.ring),fill:'#778b86'});if(area.mapLabel){const x=area.ring.reduce((s,p)=>s+p[0],0)/area.ring.length,z=area.ring.reduce((s,p)=>s+p[1],0)/area.ring.length;element('text',{x,y:z,'font-size':17,'text-anchor':'middle',fill:'#173c4d',stroke:'#fff','stroke-width':3,'paint-order':'stroke'},svg,area.name);}}
@@ -93,7 +94,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
     button.addEventListener('click',()=>{selected=null;selectedAmenity={...area,x,z};highlight.setAttribute('cx',x);highlight.setAttribute('cy',z);highlight.setAttribute('visibility','visible');selectedLabel.textContent=area.name;selectedLabel.setAttribute('x',x);selectedLabel.setAttribute('y',z-28);selectedLabel.setAttribute('visibility','visible');svg.append(detail);update(true);});amenityList.append(button);
   }
   const link=campus.levelLink;if(link){element('polyline',{points:polygon(link.line),fill:'none',stroke:'#d89a3e','stroke-width':6},svg);element('text',{x:link.line[0][0]-8,y:link.line[0][1]+10,'font-size':15,fill:'#6a481c',stroke:'#fff','stroke-width':3,'paint-order':'stroke'},svg,'致理1F ↔ 高斯2F');}
-  for(const stairs of [campus.bioConnection?.stairs,...(campus.levelLink.stairs||[])].filter(Boolean))element('polygon',{points:polygon(stairs.ring),fill:'#c3beb0',stroke:'#8d887b','stroke-width':.5},svg);
+  for(const stairs of [campus.bioConnection?.stairs,...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[])].filter(Boolean))element('polygon',{points:polygon(stairs.ring),fill:'#c3beb0',stroke:'#8d887b','stroke-width':.5},svg);
   const playerGroup=element('g',{'pointer-events':'none'});
   element('circle',{r:22,fill:'#fff9'},playerGroup);
   const arrow=element('path',{d:'M 0 -17 L -11 11 L 0 6 L 11 11 Z',fill:'#f4aa24',stroke:'#533c18','stroke-width':2},playerGroup);
