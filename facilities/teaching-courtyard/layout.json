@@ -1,0 +1,86 @@
+{
+  "name": "中央廣場",
+  "floors": 2,
+  "floorHeight": 3.6,
+  "pillars": [
+    [
+      -149,
+      -217
+    ],
+    [
+      -143,
+      -191
+    ],
+    [
+      -121,
+      -209
+    ],
+    [
+      -128,
+      -227
+    ]
+  ],
+  "reference": "使用者確認目前廣場為二樓、底下有一樓；鋪面補到三棟內側外牆，中央開小樓梯連接兩層。北側坡面接一樓，輪廓與尺寸為模型近似。",
+  "boundary": [
+    {
+      "building": 444867693,
+      "vertex": 8
+    },
+    {
+      "building": 444867693,
+      "vertex": 7
+    },
+    {
+      "building": 444867693,
+      "vertex": 6
+    },
+    {
+      "building": 444867693,
+      "vertex": 5
+    },
+    {
+      "building": 444867693,
+      "vertex": 4
+    },
+    {
+      "building": 444867693,
+      "vertex": 3
+    },
+    {
+      "building": 444867692,
+      "vertex": 5
+    },
+    {
+      "building": 444867692,
+      "vertex": 4
+    },
+    [
+      -123,
+      -178
+    ],
+    {
+      "building": 444867694,
+      "vertex": 2
+    },
+    {
+      "building": 444867694,
+      "vertex": 1
+    },
+    {
+      "building": 444867694,
+      "vertex": 0
+    },
+    {
+      "building": 444867694,
+      "vertex": 16
+    },
+    {
+      "building": 444867694,
+      "vertex": 15
+    },
+    {
+      "building": 444867694,
+      "vertex": 14
+    }
+  ]
+}

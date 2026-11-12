@@ -8,8 +8,8 @@ const t=createTerrain(grid,[...c.places,...c.buildings,...c.courts,...c.water],{
 assert.equal(t.platformHeight(c.places.find(p=>p.osm===c.bioConnection.from)),t.platformHeight(c.places.find(p=>p.osm===c.bioConnection.to)));
 const get=id=>t.platformHeight(c.places.find(p=>p.osm===id)),level=get(444867692)+7.2;
 assert(Math.abs(level-get(444867693)-3.6)<1e-8);assert(Math.abs(level-get(444867694)-3.6)<1e-8);
-assert.equal(platformHeightAt(-135,-210,level,c,t),level+.08);assert.equal(platformHeightAt(-135,-210,level-5,c,t),null);
-const [a,b]=c.courtyard.ramp;assert(Math.abs(platformHeightAt(...b,level,c,t)-level)<1e-8);assert.equal(platformHeightAt(...a,0,c,t),t.height(...a));
+assert.equal(platformHeightAt(-145,-208,level,c,t),level+.08);assert.equal(platformHeightAt(-145,-208,level-5,c,t),null);
+const [a,b]=c.courtyard.ramp,rampLevel=level-(c.courtyard.rampTargetFloor===1?3.6:0);assert(Math.abs(platformHeightAt(...b,rampLevel,c,t)-rampLevel)<1e-8);assert.equal(platformHeightAt(...a,t.height(...a),c,t),t.height(...a));
 assert.equal(c.gatehouse.center[1]-c.gatehouse.depth/2,Math.max(...c.flowerbed.ring.map(p=>p[1])),'Flowerbed tip must meet the guardhouse');
 assert(c.gatehouse.gates[0][0]<c.gatehouse.center[0]-c.gatehouse.width/2);assert(c.gatehouse.gates[1][0]>c.gatehouse.center[0]+c.gatehouse.width/2);
 const n=createRoadNetwork(c.roads,t.rawHeight,read('data/road-tags.json'));const sidewalks=sidewalkSections(c,n);

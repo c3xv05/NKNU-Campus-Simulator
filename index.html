@@ -178,7 +178,7 @@ const labelMeshes = [];
 
 siteDetails=addSiteDetails(THREE,scene,campus,terrain,roadNetwork);cameraObstacles.push(...siteDetails.blockers);
 const roadRendering=addRoads(THREE,scene,roadNetwork,terrainHeight,campus);
-const cutGround=cutRoadsFromGround(terrain.mesh,[...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points),...(campus.huanyuAccess?[campus.huanyuAccess.ring,campus.huanyuAccess.ramp.ring]:[]),campus.bioConnection.stairs.ring,...(campus.levelLink.stairs||[]).map(s=>s.ring)],terrainGeometry.getAttribute('normal').array);
+const cutGround=cutRoadsFromGround(terrain.mesh,[...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points),...(campus.courtyard.footprints||[]),...(campus.huanyuAccess?.footprints||[]),campus.bioConnection.stairs.ring,...[...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[])].map(s=>s.ring)],terrainGeometry.getAttribute('normal').array);
 const cutGeometry=new THREE.BufferGeometry();
 // Clipping preserves the original triangle interpolation. Resampling new cut points
 // independently produces non-conforming T-junctions and visible cracks.
@@ -424,7 +424,7 @@ places.forEach(area => {
 for(const a of campus.buildings.filter(a=>a.mapLabel)){const c=outlineCenter(a.ring);overviewCtx.font='bold 50px system-ui';overviewCtx.textAlign='center';overviewCtx.lineWidth=10;overviewCtx.strokeStyle='#fff';overviewCtx.strokeText(a.name,c.x,c.z);overviewCtx.fillStyle='#173c4d';overviewCtx.fillText(a.name,c.x,c.z);}
 const dorm=campus.places.find(b=>b.name==='詠絮樓');if(dorm){const c=outlineCenter(dorm.ring);overviewCtx.font='bold 55px system-ui';overviewCtx.textAlign='center';overviewCtx.lineWidth=12;overviewCtx.strokeStyle='#fff';overviewCtx.strokeText('詠絮',c.x,c.z-5);overviewCtx.fillStyle='#173c4d';overviewCtx.fillText('詠絮',c.x,c.z-5);}
 if(campus.levelLink){overviewCtx.beginPath();trace(overviewCtx,campus.levelLink.line,false);overviewCtx.lineWidth=5;overviewCtx.strokeStyle='#dfad4f';overviewCtx.stroke();}
-for(const stairs of [campus.bioConnection?.stairs,...(campus.levelLink.stairs||[])].filter(Boolean))fillArea(overviewCtx,stairs,'#c3beb0');
+for(const stairs of [campus.bioConnection?.stairs,...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[])].filter(Boolean))fillArea(overviewCtx,stairs,'#c3beb0');
 overviewCtx.restore();
 overviewCtx.fillStyle = '#24382e';
 overviewCtx.font = 'bold 13px system-ui';
@@ -517,7 +517,7 @@ function frame(now){
  cameraRay.set(focus,arm.clone().normalize());cameraRay.far=arm.length();
  const obstruction=cameraRay.intersectObjects(cameraObstacles,false)[0];
  if(obstruction)target=focus.clone().addScaledVector(arm.normalize(),Math.max(.8,obstruction.distance-.6));
- cam.position.lerp(target,1-Math.exp(-dt*9));cam.position.y=Math.max(cam.position.y,terrainHeight(cam.position.x,cam.position.z)+2);
+ cam.position.lerp(target,1-Math.exp(-dt*9));const cameraSupport=platformHeightAt(cam.position.x,cam.position.z,player.position.y,campus,terrain,roadNetwork);cam.position.y=Math.max(cam.position.y,(cameraSupport??terrainHeight(cam.position.x,cam.position.z))+2);
  cam.lookAt(player.position.x,player.position.y+1.1,player.position.z);siteDetails.update(now);buildingRendering.update(player.position.x,player.position.z,now);landscapeGroup.userData.updateView?.(cam.position,focus);minimap();campusMap.update();renderer.render(scene,cam);
 }
 requestAnimationFrame(frame);

@@ -21,17 +21,18 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
   const yellow=new THREE.MeshBasicMaterial({color:0xffcc00,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   const earth=new THREE.MeshStandardMaterial({color:0x7f9167,roughness:1,side:THREE.DoubleSide});
   const batches={asphalt:[],concrete:[],white:[],yellow:[],earth:[]};
+  const elevatedCuts=[...(campus?.courtyard?.footprints||[]),...(campus?.huanyuAccess?.footprints||[])].map(points=>({points,w:Math.min(...points.map(p=>p[0])),e:Math.max(...points.map(p=>p[0])),n:Math.min(...points.map(p=>p[1])),s:Math.max(...points.map(p=>p[1]))}));
   const footprints=[],pathFootprints=[],pavement=pavementIndex(network);let currentRoute=null,pavementLift=0;
   const levels={asphalt:.035,concrete:.035,white:.045,yellow:.045};
   function vertex(x,z,type){return [x,network.surfaceHeight(x,z)+levels[type]+pavementLift,z];}
-  function concretePolygon(points){let pieces=[points.map(([x,z])=>[x,0,z])];for(const a of campusSiteLayout.levelAreas)pieces=pieces.flatMap(p=>subtract(p,a.ring));for(const piece of pieces){const ring=piece.map(([x,,z])=>[x,z]);footprints.push(ring);pathFootprints.push(ring);for(let i=1;i<ring.length-1;i++)for(const p of [ring[0],ring[i],ring[i+1]])batches.concrete.push(...vertex(...p,'concrete'));}}
+  function concretePolygon(points){let pieces=[points.map(([x,z])=>[x,0,z])];for(const a of campusSiteLayout.levelAreas)pieces=pieces.flatMap(p=>subtract(p,a.ring));const w=Math.min(...points.map(p=>p[0])),e=Math.max(...points.map(p=>p[0])),n=Math.min(...points.map(p=>p[1])),s=Math.max(...points.map(p=>p[1]));for(const a of elevatedCuts)if(a.w<=e&&a.e>=w&&a.n<=s&&a.s>=n)pieces=pieces.flatMap(p=>subtract(p,a.points));for(const piece of pieces){const ring=piece.map(([x,,z])=>[x,z]);footprints.push(ring);pathFootprints.push(ring);for(let i=1;i<ring.length-1;i++)for(const p of [ring[0],ring[i],ring[i+1]])batches.concrete.push(...vertex(...p,'concrete'));}}
   function quad(points,type){if(type==='concrete'){concretePolygon([points[0],points[1],points[3],points[2]]);return;}if(type==='white'||type==='yellow'){for(const piece of pavement.clip([points[0],points[1],points[3],points[2]],currentRoute?.osm))for(let i=1;i<piece.length-1;i++)batches[type].push(...vertex(...piece[0],type),...vertex(...piece[i],type),...vertex(...piece[i+1],type));return;}if(type==='asphalt'||type==='concrete'){const p=[points[0],points[1],points[3],points[2]];footprints.push(p);if(type==='concrete')pathFootprints.push(p);}const v=points.map(p=>vertex(p[0],p[1],type));batches[type].push(...v[0],...v[2],...v[1],...v[1],...v[2],...v[3]);}
   function skirt(a,b){
     // A broad sloped shoulder stitches the analytic pavement to the existing
     // triangulated ground, without changing clipped terrain edge interpolation.
     const dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz)||1,mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2;
     if(campus?.flowerbed&&ringDistance(mx,mz,campus.flowerbed.ring)<1.35)return;
-    if(campusSiteLayout.levelAreas.some(a=>ringDistance(mx,mz,a.ring)===0))return;
+    if(campusSiteLayout.levelAreas.some(a=>ringDistance(mx,mz,a.ring)===0)||elevatedCuts.some(a=>mx>=a.w&&mx<=a.e&&mz>=a.n&&mz<=a.s&&ringDistance(mx,mz,a.points)===0))return;
     const nx=-dz/l,nz=dx/l,plus=network.nearest(mx+nx,mz+nz),minus=network.nearest(mx-nx,mz-nz),sign=(plus?.d||0)>(minus?.d||0)?1:-1;
     const outer=p=>[p[0]+nx*sign*.85,p[1]+nz*sign*.85],oa=outer(a),ob=outer(b);
     const polygon=[a,b,ob,oa];

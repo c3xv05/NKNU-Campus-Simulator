@@ -64,8 +64,8 @@ export function addSiteDetails(THREE,scene,campus,terrain,network){
  }
  const sidegate=addSidegate(THREE,group,campus,network);blockers.push(...sidegate.blockers);
  const carports=addCarports(THREE,group,campus,network);blockers.push(...carports.blockers);columns.push(...carports.columns);
- const huanyu=addHuanyuPlatform(THREE,group,campus,terrain,network);blockers.push(...huanyu.blockers);
- const connections=addConnections(THREE,group,campus,terrain,network);
+ const huanyu=addHuanyuPlatform(THREE,group,campus,terrain,network,tileMaterial);blockers.push(...huanyu.blockers);
+ const connections=addConnections(THREE,group,campus,terrain,network,tileMaterial);
  const {bridgeLevel,courtyardLevel,bioLevel}=connections;blockers.push(...connections.blockers);
  // Guardhouse touches the flowerbed tip; the two barrier arms sit in separate lanes.
  const guard=campus.gatehouse;if(guard){const [x,z]=guard.center,y=network.surfaceHeight(x,z);box(guard.width,guard.height,guard.depth,x,y+guard.height/2,z,cream).name='entrance-guardhouse';box(guard.width+.8,.25,guard.depth+.8,x,y+guard.height,z,steel);for(const side of [-1,1])box(.04,1.35,guard.depth-2,x+side*(guard.width/2+.025),y+2,z,glass);for(const [gx,gz] of guard.gates){const gy=network.surfaceHeight(gx,gz);box(.35,1.1,.35,gx-2.8,gy+.55,gz,steel);for(let i=0;i<6;i++)box(.9,.12,.13,gx-2.25+i*.9,gy+1.1,gz,i%2?cream:material(0xb74732));}}

@@ -12,4 +12,4 @@ with sync_playwright() as p:
  info=page.evaluate('window.__access.test()');assert all(s['blocked']==0 and s['error']<.001 and s['rayError']<.0001 for s in info['results']),info;assert info['landingJoined'] and abs(info['landingHeight']-info['expected'])<.001,info;assert info['planters']==3
  for id in ['biology','teaching','quarter']:
   page.evaluate('(id)=>window.__access.view(id)',id);page.wait_for_timeout(500);page.screenshot(path='/tmp/nknu-photo-access-'+id+'.png')
- assert not errors,errors;print(json.dumps({'result':'PASS','checks':['three stairs bidirectional collision traversal','rendered treads agree with support heights','three biology rest landings and planters','lower stair joins small upper stair at Zhili floor one','no JS errors'],'details':info},ensure_ascii=False));b.close()
+ assert not errors,errors;print(json.dumps({'result':'PASS','checks':['four stairs bidirectional collision traversal','rendered treads agree with support heights','three biology rest landings and planters','lower stair joins small upper stair at Zhili floor one','no JS errors'],'details':info},ensure_ascii=False));b.close()

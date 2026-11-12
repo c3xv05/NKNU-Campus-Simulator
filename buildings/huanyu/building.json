@@ -97,7 +97,7 @@
     "frame": "#bbb9ab",
     "glass": "#3e565d",
     "detailDistance": 145,
-    "reference": "校方實驗室及校園資料確認寰宇大樓位置與樓層用途；依同組教學區作紅磚混凝土構架近似，尚待正面照片校正。；使用者確認三棟共同降低半層（模型1.8m），靠路外牆及轉角局部退縮。二樓入口面詠霽路，門前水平平台以坡面接路。",
+    "reference": "校方資料確認寰宇位置與樓層用途，紅磚混凝土外觀仍為近似。依最新使用者確認，三棟同降半層並局部退縮；寰宇入口為三樓，T形橫段朝S06詠霽路，直段接門前。",
     "frontMode": "main-road",
     "sources": [
       "https://c.nknu.edu.tw/affair/Page.aspx?Kind=envedu&PN=623&SN=297"
@@ -107,7 +107,7 @@
     "frontRoadIds": [
       293423729
     ],
-    "entranceFloor": 2,
+    "entranceFloor": 3,
     "accessReference": "facilities/huanyu-platform/layout.json"
   },
   "roadSetback": {
