@@ -191,3 +191,5 @@ python scripts/build-motor-pavement-plan.py
 照片階梯定義在 `facilities/building-access/layout.json`。修改後執行 `python scripts/build-building-access.py`，再重建 sidewalk plan、motor pavement plan；樓梯腳下高度與渲染共用 `stair-layout.js`。修改建築位置仍需重建 catalog、walk obstacles、pedestrian patches；若前庭道路輪廓改動，另執行 `python scripts/build-road-regions.py`。驗證：`node tests/photo-access.mjs`、`python tests/photo-access-browser.py`。
 
 人行道自由邊圓角與小凹角修補參數在 `facilities/sidewalks/finishing.json`；道路、入口及樓梯接點有保護帶。P系列步道的 `cornerRadius`／`endCap` 定義在 campus-plazas 來源檔，`build-campus-plazas.py` 自動生成曲線與輪廓（需Shapely），原控制點保留為 `sourceLine` 供核對。修改後依序重建 campus plazas、pedestrian patches、sidewalk plan、motor pavement plan。白磚材質仍共用世界座標，避免鋪面交會時紋理重疊。
+
+寰宇二樓入口平台由 `facilities/huanyu-platform/layout.json` 設定，執行 `python scripts/build-huanyu-platform.py` 後再生成 walk obstacles、pedestrian patches、sidewalk plan、motor pavement plan。`surface.js` 共用坡面渲染／通行網格。三棟各自的 `geometry.platformOffset` 保存半層下降；`platformAnchor` 及 `levelLink.terrainAnchors` 固定既有高程採樣，局部退縮不會順帶改動全校道路。驗證：`node tests/teaching-quarter.mjs`、`python tests/teaching-quarter-browser.py`。

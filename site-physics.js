@@ -1,3 +1,4 @@
+import {huanyuSupportAt} from './facilities/huanyu-platform/surface.js';
 import {subtract} from './road-ground.js';
 import {sidewalkSides,SIDEWALK_WIDTH} from './sidewalk-layout.js';
 import {routeSections,pavementIndex} from './pavement.js';
@@ -22,7 +23,8 @@ export function sidewalkSections(campus,network){
  for(const p of campus.pedestrianPatches||[])sections.push({points:p.ring,road:p.id,across:{x:0,z:0,nx:1,nz:0,inner:0}});
  return sections;
 }
-export function platformHeightAt(x,z,currentY,campus,terrain){
+export function platformHeightAt(x,z,currentY,campus,terrain,network){
+ const huanyu=huanyuSupportAt(x,z,currentY,campus,terrain,network);if(huanyu!==null)return huanyu;
  const bio=campus.bioConnection;if(bio?.ramp){const q=projectOnLine(x,z,...bio.ramp);if(q.t>=0&&q.t<=1&&q.distance<(bio.accessWidth||4)/2){const base=terrain.platformHeight(campus.places.find(a=>a.osm===bio.from))+3.6,start=terrain.height(...bio.ramp[0]);return start+(base-start)*q.t;}}
 
  const upper=terrain.platformHeight(campus.places.find(a=>a.osm===campus.levelLink.from))+3.6;if(campus.levelLink.ring?.length&&ringDistance(x,z,campus.levelLink.ring)===0&&currentY>=upper-.8)return upper+.08;
