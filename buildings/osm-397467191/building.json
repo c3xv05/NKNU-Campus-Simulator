@@ -3,42 +3,83 @@
     "osm": 397467191,
     "ring": [
       [
-        -328.6,
-        -28.2
+        -324,
+        -45
       ],
       [
-        -315.6,
-        -33.9
+        -299,
+        -51
       ],
       [
-        -312.7,
-        -27.2
+        -296,
+        -35
       ],
       [
-        -325.7,
-        -21.5
+        -321,
+        -29
       ]
     ],
-    "height": 4
+    "height": 4.8,
+    "sourceGeometry": {
+      "ring": [
+        [
+          -328.6,
+          -28.2
+        ],
+        [
+          -315.6,
+          -33.9
+        ],
+        [
+          -312.7,
+          -27.2
+        ],
+        [
+          -325.7,
+          -21.5
+        ]
+      ],
+      "height": 4
+    },
+    "name": "側門水塔",
+    "mapLabel": true,
+    "desc": "依2026-11-13使用者衛星圖確認：詠霽路北側由西向東為警衛室、回收場、水塔；間距與尺寸為圖片近似，非實測。"
   },
   "appearance": {
     "id": "osm-397467191",
     "osm": 397467191,
-    "name": "未命名建築",
-    "style": "utility",
+    "name": "側門水塔",
+    "style": "water-towers",
     "frontHint": [
       -320.65,
       -27.7
     ],
-    "sign": "未命名建築",
+    "sign": "側門水塔",
     "english": " ",
     "wall": "#b2b1a7",
     "frame": "#b9b9ae",
     "glass": "#36545b",
     "detailDistance": 145,
-    "reference": "既有校園輪廓；未提供本棟照片，保留簡化外觀。",
+    "reference": "依2026-11-13使用者衛星圖確認：詠霽路北側由西向東為警衛室、回收場、水塔；間距與尺寸為圖片近似，非實測。",
     "frontMode": "main-road",
     "showEntrance": false,
-    "showSign": false
+    "showSign": false,
+    "confidence": "user-observation",
+    "tanks": [
+      {
+        "center": [
+          -316.5,
+          -38
+        ],
+        "radius": 4.5
+      },
+      {
+        "center": [
+          -304.5,
+          -41
+        ],
+        "radius": 4.5
+      }
+    ]
   }
 }

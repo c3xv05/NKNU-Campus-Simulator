@@ -42,3 +42,9 @@ for p in regions:
       for t in constrained_delaunay_triangles(part).geoms:
        if t.area>1e-7:indices.extend(vertex(v) for v in coords(t.exterior))
 data=dict(step=step,regions=rings,points=points,indices=indices,infillTriangles=infill_triangles,area=round(shape.area,4));(root/'data/motor-pavement-plan.js').write_text('// Generated shared asphalt boundary and grade-grid mesh.\nexport const motorPavementPlan='+json.dumps(data,separators=(',',':'))+';\n');print('Built',len(indices)//3,'shared asphalt triangles and',len(points),'unique points')
+
+# Match the graded Yongxu terrain hole to the exact asphalt union, not the older envelope.
+if c.get('yongxuAccess'):
+ local=shape.intersection(box(-225,-96,-120,-25));c['yongxuAccess']['groundClipRing']=[[-225,-96],[-120,-96],[-120,-25],[-225,-25]]
+ c['yongxuAccess']['groundFootprints']=[coords(t.exterior) for t in constrained_delaunay_triangles(local).geoms if t.area>1e-7]
+ (root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n')

@@ -3,42 +3,67 @@
     "osm": 397467190,
     "ring": [
       [
-        -337.2,
-        -19
+        -338,
+        -35
       ],
       [
-        -326.2,
-        -18.7
+        -323,
+        -38
       ],
       [
-        -326.4,
-        -10.8
+        -321,
+        -28
       ],
       [
-        -337.4,
-        -11.1
+        -336,
+        -25
       ]
     ],
-    "height": 4
+    "height": 4,
+    "sourceGeometry": {
+      "ring": [
+        [
+          -337.2,
+          -19
+        ],
+        [
+          -326.2,
+          -18.7
+        ],
+        [
+          -326.4,
+          -10.8
+        ],
+        [
+          -337.4,
+          -11.1
+        ]
+      ],
+      "height": 4
+    },
+    "name": "側門回收場",
+    "mapLabel": true,
+    "desc": "依2026-11-13使用者衛星圖確認：詠霽路北側由西向東為警衛室、回收場、水塔；間距與尺寸為圖片近似，非實測。"
   },
   "appearance": {
     "id": "osm-397467190",
     "osm": 397467190,
-    "name": "未命名建築",
+    "name": "側門回收場",
     "style": "utility",
     "frontHint": [
       -331.79999999999995,
       -14.9
     ],
-    "sign": "未命名建築",
+    "sign": "側門回收場",
     "english": " ",
     "wall": "#b2b1a7",
     "frame": "#b9b9ae",
     "glass": "#36545b",
     "detailDistance": 145,
-    "reference": "既有校園輪廓；未提供本棟照片，保留簡化外觀。",
+    "reference": "依2026-11-13使用者衛星圖確認：詠霽路北側由西向東為警衛室、回收場、水塔；間距與尺寸為圖片近似，非實測。",
     "frontMode": "main-road",
     "showEntrance": false,
-    "showSign": false
+    "showSign": false,
+    "confidence": "user-observation"
   }
 }

@@ -35,7 +35,8 @@ export function createTerrain(grid, areas,options={}) {
       north: Math.min(...zs)-15, south: Math.max(...zs)+15, height: siteLevels.levelAt(x,z)!==null?siteLevels.levelAt(x,z)+.185:rawHeight(x,z) };
   });
   if(options.levelLink){const link=options.levelLink,from=pads.find(p=>p.osm===link.from),to=pads.find(p=>p.osm===link.to);if(from&&to)from.height=to.height+(link.toFloor-link.fromFloor)*link.floorHeight;}
-  if(options.courtyard){const gauss=pads.find(p=>p.osm===444867692),huanyu=pads.find(p=>p.osm===444867694);if(gauss&&huanyu)huanyu.height=gauss.height+3.6;}
+  // Huanyu 3F = Gauss 3F = Zhili 2F: the entrance passage opens onto plaza 2F.
+  if(options.courtyard){const gauss=pads.find(p=>p.osm===444867692),huanyu=pads.find(p=>p.osm===444867694);if(gauss&&huanyu)huanyu.height=gauss.height;}
   if(options.bioConnection){const link=options.bioConnection,a=pads.find(p=>p.osm===link.from),b=pads.find(p=>p.osm===link.to);if(a&&b)b.height=a.height;}
   // Apply group offsets after floor constraints; road elevations keep their original anchors.
   for(const area of areas){if(area.platformOffset){const pad=pads.find(p=>p.osm===area.osm);if(pad)pad.height+=area.platformOffset;}}

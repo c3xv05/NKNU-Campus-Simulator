@@ -17,6 +17,9 @@ for link in layout['pedestrianLinks']:
  if link.get('cornerRadius'):link['sourceLine']=original
  shape=LineString(link['line']).buffer(link['width']/2,cap_style=1 if link.get('endCap')=='round' else 2,join_style=1,quad_segs=8)
  link['ring']=[[round(x,6),round(z,6)] for x,z in list(shape.exterior.coords)[:-1]]
+c['yongxuAccess']=json.loads((root/'facilities/yongxu-access/layout.json').read_text());layout['yongxuAccess']=c['yongxuAccess']
+road=next(r for r in c['roads'] if r['osm']==c['yongxuAccess']['road']);road.setdefault('beforeEntryExtension',road['line']);road['line']=road['beforeEntryExtension']+[c['yongxuAccess']['roadEnd']];road['entryExtensionReference']='facilities/yongxu-access/layout.json'
+entry=next(a for a in c['pavedAreas'] if a['id']=='yongxu-entry-apron');entry['reference']='2026-11-13使用者要求門口馬路延伸到詠絮樓；S21中心線延至門前，與半圓及原入口鋪面聯集，精確共用正面兩端頂點，不侵入建築。'
 for key in ['levelAreas','pedestrianAreas','pedestrianLinks']:c[key]=layout[key]
 (root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n')
 (root/'data/site-layout.js').write_text('// Shared flat campus quarters and pedestrian additions; source: facilities/campus-plazas/layout.json.\nexport const campusSiteLayout='+json.dumps(layout,ensure_ascii=False,separators=(',',':'))+';\n')

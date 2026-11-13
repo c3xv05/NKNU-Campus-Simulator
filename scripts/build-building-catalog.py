@@ -12,6 +12,7 @@ guard=records.get(397467187)
 if guard and c.get('gatehouse'):
  xs=[p[0] for p in guard['ring']];zs=[p[1] for p in guard['ring']]
  c['gatehouse'].update(ring=guard['ring'],center=[(min(xs)+max(xs))/2,(min(zs)+max(zs))/2],width=max(xs)-min(xs),depth=max(zs)-min(zs),height=guard['height'])
+if c.get('sideGate'):c['sideGate']['tanks']=profiles['397467191']['tanks']
 (root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':')))
 (root/'buildings/catalog.json').write_text(json.dumps(profiles,ensure_ascii=False,separators=(',',':')))
 print(f'Built {len(profiles)} independent building definitions')
