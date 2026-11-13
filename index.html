@@ -8,7 +8,7 @@
 @media(max-width:600px){#mapDialog{padding:14px}.map-layout{grid-template-columns:1fr;gap:12px}#largeMap{max-height:54dvh}.map-sidebar{max-height:none}#buildingList{grid-template-columns:repeat(2,minmax(0,1fr))}#buildingList button{font-size:12px;padding:7px}.map-heading h2{font-size:19px}}
 @media(pointer:coarse) and (max-height:500px){#map{width:72px;height:72px}#legend{display:none}#status{top:127px}#info{bottom:18px;max-width:42vw}#top small{display:none}#joystick{width:110px;height:110px}#touchright{padding-bottom:0}#stickHint{display:none}#panel{max-width:600px;padding:14px}#panel h2{font-size:22px;margin:4px}#panel>div,#notice{display:none}#panel p{margin:8px 0}.map-layout{grid-template-columns:minmax(0,1fr) 220px}#largeMap,.map-sidebar{max-height:62dvh}}
 .map-tabs{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 12px}.map-tabs button{background:#214755;color:#e7f1f5;padding:8px 12px;font-size:12px}.map-tabs button[aria-pressed="true"]{background:#2dd4bf;color:#062e32}.map-tabs a{font-size:12px}
-#tools{position:absolute;top:128px;left:16px;display:grid;gap:7px;width:190px}#tools details{background:#0d293ce8;border:1px solid #ffffff44;border-radius:12px;padding:9px}#tools summary{cursor:pointer;font-size:14px;font-weight:700;min-height:28px;line-height:28px}#tools details button{display:block;width:100%;margin-top:6px;padding:9px;font-size:13px;background:#255264;color:white}#rideToggle{padding:10px;font-size:14px;min-height:44px}#speed{font-size:12px;background:#102d3ccc;padding:5px 9px;border-radius:8px;width:max-content}#travelToast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:10px 18px;border-radius:12px;background:#0d293ce8;pointer-events:none;font-size:14px;opacity:0;transition:opacity .2s}#travelToast.visible{opacity:1}@media(pointer:coarse){#tools{top:130px;width:176px}#tools summary{font-size:13px}#tools details{padding:6px 9px}#rideToggle{font-size:13px;padding:8px}}@media(pointer:coarse) and (max-height:500px){#tools{top:88px;width:170px;gap:4px}#tools details button{padding:6px}#speed{font-size:10px}#tools summary{min-height:23px;line-height:23px}}
+#tools{position:absolute;top:128px;left:16px;display:grid;gap:7px;width:190px}#tools details{background:#0d293ce8;border:1px solid #ffffff44;border-radius:12px;padding:9px}#travelMenu{max-height:min(55dvh,500px);overflow-y:auto;overscroll-behavior:contain}#developerTravel{margin-top:10px;border-top:1px solid #ffffff44}#developerTravel p{font-size:12px;margin:10px 0 4px;color:#f0d88b}#tools summary{cursor:pointer;font-size:14px;font-weight:700;min-height:28px;line-height:28px}#tools details button{display:block;width:100%;margin-top:6px;padding:9px;font-size:13px;background:#255264;color:white}#rideToggle{padding:10px;font-size:14px;min-height:44px}#speed{font-size:12px;background:#102d3ccc;padding:5px 9px;border-radius:8px;width:max-content}#travelToast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:10px 18px;border-radius:12px;background:#0d293ce8;pointer-events:none;font-size:14px;opacity:0;transition:opacity .2s}#travelToast.visible{opacity:1}@media(pointer:coarse){#tools{top:130px;width:176px}#tools summary{font-size:13px}#tools details{padding:6px 9px}#rideToggle{font-size:13px;padding:8px}}@media(pointer:coarse) and (max-height:500px){#tools{top:88px;width:170px;gap:4px}#tools details button{padding:6px}#speed{font-size:10px}#tools summary{min-height:23px;line-height:23px}}
 #amenityList{display:grid;gap:5px;margin-top:12px}#amenityList p{font-size:13px;margin:0 0 4px}#amenityList button{padding:8px 10px;text-align:left;font-size:12px;background:#214552;color:white;min-height:40px}
 .map-zoom-tools{display:flex;gap:6px;justify-content:flex-end;margin:4px 0}.map-zoom-tools button{padding:5px 12px;min-height:38px;font-size:14px}#largeMap{touch-action:none;user-select:none}#map{touch-action:none}#miniMapReset{font-size:10px;padding:4px 8px;margin-top:4px}.road-review{font-size:13px;padding:10px 0}.road-review label{display:grid;gap:5px;margin:10px 0}.road-review select,.road-review textarea{width:100%;font:inherit;font-size:16px;border:1px solid #72969a;border-radius:7px;padding:8px}.road-review textarea{min-height:85px}.review-actions{display:flex;flex-wrap:wrap;gap:6px}.review-actions button{padding:7px 9px;font-size:12px}.review-status,.review-direction,.review-progress{font-size:12px;line-height:1.5}.map-tabs [hidden]{display:none!important}
 </style></head>
@@ -16,10 +16,10 @@
 <div id="scene"></div>
 <div id="top"><h1>🏫 NKNU 燕巢校園探索</h1><small>山坡校園・實地回饋校正地形</small><div id="progress">已探索 0 / 13 個地標</div></div>
 <div id="mapbox"><button id="mapOpen" type="button" aria-label="開啟校園大地圖" aria-haspopup="dialog"><canvas id="map" width="220" height="220"></canvas><span>點擊大地圖 · 雙指縮放</span></button><button id="miniMapReset" type="button" hidden>復原小地圖</button><div id="legend">▲ 你的位置　■ 校園地標<br>藍色：湖泊 · 米白：人行道<br><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div></div>
-<div id="tools"><details id="travelMenu"><summary>快速傳送</summary><button type="button" data-travel="gate">1 · 大門</button><button type="button" data-travel="canteen">2 · 歸燕食巢</button><button type="button" data-travel="zhili">3 · 致理大樓</button><button type="button" data-travel="library">4 · 圖資大樓</button><button type="button" data-travel="technology">5 · 科技大樓</button></details><button id="rideToggle" type="button" aria-pressed="false">🛵 騎機車</button><span id="speed" hidden>0 km/h</span></div><div id="travelToast" role="status"></div><div id="status"></div><div id="info">靠近建築查看資訊</div>
+<div id="tools"><details id="travelMenu"><summary>快速傳送</summary><button type="button" data-travel="gate">1 · 大門</button><button type="button" data-travel="canteen">2 · 歸燕食巢</button><button type="button" data-travel="zhili">3 · 致理大樓</button><button type="button" data-travel="library">4 · 圖資大樓</button><button type="button" data-travel="technology">5 · 科技大樓</button><div id="developerTravel" hidden><p>開發者 · 其他建築</p><div id="developerTravelList"></div></div></details><button id="rideToggle" type="button" aria-pressed="false">🛵 騎機車</button><span id="speed" hidden>0 km/h</span></div><div id="travelToast" role="status"></div><div id="status"></div><div id="info">靠近建築查看資訊</div>
 <div id="touch"><div id="stickArea"><div id="joystick" role="group" aria-label="移動搖桿，拖曳控制方向與速度"><span class="stick-cross">＋</span><div id="stickKnob"></div></div><span id="stickHint">拖曳移動</span></div><div id="touchright"><button id="turnL" type="button">↶</button><button id="turnR" type="button">↷</button><button id="interact" type="button">互動</button></div></div>
 <dialog id="mapDialog" aria-labelledby="mapTitle"><div class="map-heading"><div><h2 id="mapTitle">燕巢校園地圖</h2><p>北方朝上 · ▲ 目前位置 · 點建築或清單查看位置</p></div><button id="mapClose" type="button" aria-label="關閉地圖">✕</button></div><div class="map-tabs" role="group" aria-label="地圖顯示模式"><button id="buildingsMode" type="button" aria-pressed="true">建築地圖</button><button id="zonesMode" type="button" aria-pressed="false" hidden>道路植被分區</button><a id="vegetationEditorLink" href="./zones.html" hidden>開啟校正工作頁 ↗</a></div><div class="map-layout"><div class="map-drawing"><svg id="largeMap" viewBox="-455 -580 940 1160" role="img" aria-label="燕巢校區建築與目前位置"></svg></div><div class="map-sidebar"><p id="mapSelection" role="status">選擇建築，在地圖上標示位置</p><div id="buildingList"></div><div class="map-sources"><span id="mapKey">藍色：未探索 · 綠色：已探索<br>底色深淺表示近似高低起伏。</span><br>地形：<a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Mapzen Terrain Tiles</a> / USGS SRTM。衛星高程約 30 公尺級，道路、建築與場地平台經簡化平整及現場回饋校正，非測量成果。<br>建築位置參考 <a href="https://w3.nknu.edu.tw/images/files/yt_01_map.pdf" target="_blank" rel="noopener">高師大官方校區圖</a>及 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>。</div></div></div></dialog>
-<div id="start"><div id="panel"><div style="font-size:44px">🏫</div><h2>燕巢校園模擬器</h2><p>從校門出發，沿山坡走訪 13 個地標。<br>電腦：WASD 移動、滑鼠拖曳視角、Shift 奔跑、E 互動、M 地圖、R 騎車／下車、1／2／3 傳送。<br>手機：左手拖曳搖桿，右手滑動畫面調整視角；點小地圖查看全校，左上可傳送或切換騎車。騎車時向前推搖桿加速、左右推轉向。</p><button id="play" type="button" disabled>載入校園…</button><p id="notice">校園輪廓源自 OpenStreetMap；地形依 Mapzen／USGS SRTM 高程近似重建並依現場回饋校正，建築高度與場地平台為簡化模型。</p></div></div>
+<div id="start"><div id="panel"><div style="font-size:44px">🏫</div><h2>燕巢校園模擬器</h2><p>從校門出發，沿山坡走訪 13 個地標。<br>電腦：WASD 移動、滑鼠拖曳視角、Shift 奔跑、E 互動、M 地圖、R 騎車／下車、1～5 傳送。<br>手機：左手拖曳搖桿，右手滑動畫面調整視角；點小地圖查看全校，左上可傳送或切換騎車。騎車時向前推搖桿加速、左右推轉向。</p><button id="play" type="button" disabled>載入校園…</button><p id="notice">校園輪廓源自 OpenStreetMap；地形依 Mapzen／USGS SRTM 高程近似重建並依現場回饋校正，建築高度與場地平台為簡化模型。</p></div></div>
 <script type="module" src="./developer.js"></script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
@@ -30,7 +30,8 @@ import {sidewalkPlan} from './data/sidewalk-plan.js';
 import {createRoadNetwork} from './roads.js';
 import {addRoads} from './road-renderer.js';
 import {cutRoadsFromGround} from './road-ground.js';
-import {findDestinations,stepScooter} from './travel.js';
+import {findDestinations,findBuildingDestinations,stepScooter} from './travel.js';
+import {isDeveloper} from './developer-auth.js';
 import {createScooter} from './scooter.js';
 import {createAvatar} from './avatar.js';
 import {addSiteDetails} from './site-details.js';
@@ -224,11 +225,14 @@ const {body,head,backpack}=avatar;const initialGate=roadNetwork.nearest(-279,512
 const scooter=createScooter(THREE);scooter.scale.setScalar(.62);player.add(scooter);
 const motion={riding:false,speed:0,heading:0};
 const destinations=findDestinations(campus,roadNetwork);
+const buildingDestinations=findBuildingDestinations(campus,roadNetwork,buildingProfiles,destinations);
+function refreshDeveloperTravel(){const section=document.getElementById('developerTravel'),list=document.getElementById('developerTravelList');list.replaceChildren();section.hidden=!isDeveloper();if(!isDeveloper())return;for(const place of buildingDestinations){if(destinations.some(p=>p.id===place.id))continue;const button=document.createElement('button');button.type='button';button.dataset.travel=place.id;button.textContent=place.label;list.append(button);}}
+window.addEventListener('campus-developer-auth',refreshDeveloperTravel);refreshDeveloperTravel();
 let toastUntil=0;
 function showToast(text){const toast=document.getElementById('travelToast');toast.textContent=text;toast.classList.add('visible');toastUntil=performance.now()+2200;}
 function teleport(id){
  if(!active||document.getElementById('mapDialog').open)return;
- const place=destinations.find(d=>d.id===id);if(!place)return;
+ const place=destinations.find(d=>d.id===id)||(isDeveloper()?buildingDestinations.find(d=>d.id===id):null);if(!place)return;
  const destination=motion.riding&&place.roadArrival?{...place,...place.roadArrival}:place;
  clearInput();motion.speed=0;
  let facing=destination.yaw;
@@ -246,7 +250,7 @@ function toggleRide(){
  document.getElementById('speed').hidden=!motion.riding;updateInstructions();
  showToast(motion.riding?'已上車 · 前後加減速、左右轉向':'已切換步行');
 }
-document.querySelectorAll('[data-travel]').forEach(button=>button.addEventListener('click',()=>teleport(button.dataset.travel)));
+document.getElementById('travelMenu').addEventListener('click',event=>{const button=event.target.closest('[data-travel]');if(button)teleport(button.dataset.travel);});
 document.getElementById('rideToggle').addEventListener('click',toggleRide);
 cam.position.copy(player.position).add(new THREE.Vector3(0,6.5,9));
 let yaw=0, pitch=.31, keys={},visited=new Set(),near=null,nearLake=null,interactMsgUntil=0;const info=document.getElementById('info');const progress=document.getElementById('progress');function interact(){if(active&&!document.getElementById('mapDialog').open&&near){visited.add(near.name);info.innerHTML='<strong>'+near.name+'</strong><div>'+near.desc+(near.floors?'（約 '+near.floors+' 層模型）':'')+'</div><small>已解鎖地標 '+visited.size+' / '+places.length+'</small>';progress.textContent='已探索 '+visited.size+' / '+places.length+' 個地標';interactMsgUntil=performance.now()+6500}}window.addEventListener('keydown',event=>{
@@ -354,7 +358,7 @@ const mobile = matchMedia('(pointer:coarse)');
 function updateInstructions() {
   document.getElementById('status').textContent = mobile.matches
     ? (motion.riding?'搖桿前後加減速、左右轉向 · 右手看四周':'左手搖桿 · 右手滑動視角 · 左上可傳送／騎車')
-    : (motion.riding?'W/S 加減速 · A/D 轉向 · 拖曳視角 · R 下車 · 1/2/3 傳送':'WASD 移動 · 拖曳視角 · E 互動 · M 地圖 · R 騎車 · 1/2/3 傳送');
+    : (motion.riding?'W/S 加減速 · A/D 轉向 · 拖曳視角 · R 下車 · 1–5 傳送':'WASD 移動 · 拖曳視角 · E 互動 · M 地圖 · R 騎車 · 1–5 傳送');
 }
 updateInstructions();
 mobile.addEventListener('change', updateInstructions);
