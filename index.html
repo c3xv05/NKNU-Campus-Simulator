@@ -94,7 +94,7 @@ const protectedPlatforms=[...campus.places.filter(a=>!a.height),...campus.water,
 });
 roadNetwork.gradeTerrain(terrain.mesh,protectedPlatforms);
 let siteDetails=null;
-const walkHeight=(x,z)=>siteDetails?.sidewalkAt(x,z)??roadNetwork.walkHeight(x,z,terrainHeight(x,z));
+const walkHeight=(x,z)=>{const court=campus.courts.find(a=>distanceToRing(x,z,a.ring)===0);return court?terrain.platformHeight(court)+.15:siteDetails?.sidewalkAt(x,z)??roadNetwork.walkHeight(x,z,terrainHeight(x,z));};
 const terrainGeometry = new THREE.BufferGeometry();
 const terrainPositions = [], terrainIndices = [];
 const tm = terrain.mesh;
@@ -429,7 +429,8 @@ for(let z=bounds.north;z<bounds.south;z+=20) for(let x=bounds.west;x<bounds.east
 overviewCtx.restore();
 campus.water.forEach(area => fillArea(overviewCtx, area, '#3e96b7'));
 if(campus.flowerbed)fillArea(overviewCtx,campus.flowerbed,'#d69baf');
-campus.courts.forEach(area => fillArea(overviewCtx, area, '#809d88'));
+campus.courts.forEach(area => {fillArea(overviewCtx,area,'#809d88');for(const field of area.playingCourts||[]){overviewCtx.strokeStyle='#e5eadc';overviewCtx.lineWidth=.35;overviewCtx.beginPath();trace(overviewCtx,field.ring);overviewCtx.stroke();}});
+for(const garden of campus.sportsGardens||[])fillArea(overviewCtx,garden,'#92a571');
 [...(campus.pavedAreas||[]),...(campus.junctionFillets||[])].forEach(area=>fillArea(overviewCtx,area,'#52595a'));
 
 campus.roads.filter(r=>r.width<=2.5).forEach(({line,width})=>{overviewCtx.beginPath();trace(overviewCtx,line,false);overviewCtx.lineWidth=width;overviewCtx.strokeStyle=width<=2.5?'#c8c3b4':'#52595a';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();});
@@ -559,7 +560,7 @@ function frame(now){
   cam.lookAt(aerial.center.x,base,aerial.center.z);
  }else if(pitch<0)cam.lookAt(player.position.x,player.position.y+1.1-pitch*20,player.position.z);
  else cam.lookAt(player.position.x,player.position.y+1.1,player.position.z);
- siteDetails.update(now);buildingRendering.update(viewCenter.x,viewCenter.z,now);landscapeGroup.userData.updateView?.(cam.position,focus);minimap();campusMap.update();renderer.render(scene,cam);
+ siteDetails.update(now,cam.position);buildingRendering.update(viewCenter.x,viewCenter.z,now);landscapeGroup.userData.updateView?.(cam.position,focus);minimap();campusMap.update();renderer.render(scene,cam);
 }
 requestAnimationFrame(frame);
 document.getElementById('play').disabled=false;document.getElementById('play').textContent='開始探索';

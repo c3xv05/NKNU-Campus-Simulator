@@ -5,7 +5,7 @@ root=Path(__file__).resolve().parents[1];c=json.loads((root/'data/campus.json').
 def ring(s):
  (x,z),(xx,zz)=s['line'];dx,dz=xx-x,zz-z;l=math.hypot(dx,dz);nx,nz=-dz/l,dx/l;top=s.get('topWidth',s['width'])/2;bottom=s['width']/2
  return [[x+nx*top,z+nz*top],[xx+nx*bottom,zz+nz*bottom],[xx-nx*bottom,zz-nz*bottom],[x-nx*top,z-nz*top]]
-c['bioConnection']['stairs']=a['bioStairs'];c['bioConnection']['stairs']['ring']=ring(a['bioStairs']);c['levelLink']['stairs']=a['teachingStairs']
+c['bioConnection']['stairs']=a['bioStairs'];c['bioConnection']['stairs']['ring']=ring(a['bioStairs']);c['levelLink']['stairs']=a['teachingStairs'];c['levelLink']['communicationAlias']=a.get('communicationAlias')
 c['courtyard']['stairs']=a.get('courtyardStairs',[])
 for s in c['levelLink']['stairs']+c['courtyard']['stairs']:s['ring']=ring(s)
 (root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n');print('Built wide biology flights and two-stage teaching access')

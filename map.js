@@ -29,7 +29,8 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   }
   if(campus.flowerbed)element('polygon',{points:polygon(campus.flowerbed.ring),fill:'#d69baf',stroke:'#f5e6c6','stroke-width':1},svg);
   for(const area of campus.water) element('polygon',{points:polygon(area.ring),fill:'#5a9cb2'});
-  for(const area of campus.courts) element('polygon',{points:polygon(area.ring),fill:'#809d88'});
+  for(const area of campus.courts){element('polygon',{points:polygon(area.ring),fill:'#809d88'});for(const field of area.playingCourts||[])element('polygon',{points:polygon(field.ring),fill:'none',stroke:'#f0f0df','stroke-width':.4,'aria-label':field.id});}
+  for(const garden of campus.sportsGardens||[])element('polygon',{points:polygon(garden.ring),fill:'#92a571','aria-label':'球場間階梯式花圃'});
 
   for(const road of campus.roads.filter(r=>r.width<=2.5))element('polyline',{points:polygon(road.line),fill:'none',stroke:road.width<=2.5?'#c8c3b4':'#52595a','stroke-width':road.width,'stroke-linecap':'round','stroke-linejoin':'round'});
   drawPlanSvg(svg,sidewalkPlan,'#e5e5dd');
@@ -96,7 +97,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
     const button=document.createElement('button');button.type='button';button.textContent=area.name;
     button.addEventListener('click',()=>{selected=null;selectedAmenity={...area,x,z};highlight.setAttribute('cx',x);highlight.setAttribute('cy',z);highlight.setAttribute('visibility','visible');selectedLabel.textContent=area.name;selectedLabel.setAttribute('x',x);selectedLabel.setAttribute('y',z-28);selectedLabel.setAttribute('visibility','visible');svg.append(detail);update(true);});amenityList.append(button);
   }
-  const link=campus.levelLink;if(link){element('polyline',{points:polygon(link.line),fill:'none',stroke:'#d89a3e','stroke-width':6},svg);element('text',{x:link.line[0][0]-8,y:link.line[0][1]+10,'font-size':15,fill:'#6a481c',stroke:'#fff','stroke-width':3,'paint-order':'stroke'},svg,'致理1F ↔ 高斯2F');}
+  const link=campus.levelLink;if(link){element('polyline',{points:polygon(link.line),fill:'none',stroke:'#d89a3e','stroke-width':6},svg);}
   for(const stairs of [campus.bioConnection?.stairs,...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[])].filter(Boolean))element('polygon',{points:polygon(stairs.ring),fill:'#c3beb0',stroke:'#8d887b','stroke-width':.5},svg);
   const playerGroup=element('g',{'pointer-events':'none'});
   element('circle',{r:22,fill:'#fff9'},playerGroup);
