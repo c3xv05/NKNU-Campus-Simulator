@@ -1,3 +1,5 @@
+import {createCourtAccess} from './facilities/sports-courts/access-surface.js';
+import {addCourtAccess} from './facilities/sports-courts/access-renderer.js';
 import {addPlayingCourts,addSportsGardens} from './facilities/sports-courts/renderer.js';
 import {addHuanyuPlatform} from './facilities/huanyu-platform/renderer.js';
 import {createSidewalkSurface} from './sidewalk-surface.js';
@@ -41,7 +43,7 @@ export function addSiteDetails(THREE,scene,campus,terrain,network){
   const ring=court.ring,cx=ring.reduce((s,p)=>s+p[0],0)/ring.length,cz=ring.reduce((s,p)=>s+p[1],0)/ring.length,base=terrain.platformHeight(court);
   const dx=ring[1][0]-ring[0][0],dz=ring[1][1]-ring[0][1],length=Math.hypot(dx,dz),ux=dx/length,uz=dz/length,vx=-uz,vz=ux;
   const projections=ring.map(([x,z])=>[(x-cx)*ux+(z-cz)*uz,(x-cx)*vx+(z-cz)*vz]);
-  const minU=Math.min(...projections.map(p=>p[0]))-1,maxU=Math.max(...projections.map(p=>p[0]))+1,minV=Math.min(...projections.map(p=>p[1]))-1,maxV=Math.max(...projections.map(p=>p[1]))+1;
+  const margin=court.roofMargin??1,minU=Math.min(...projections.map(p=>p[0]))-margin,maxU=Math.max(...projections.map(p=>p[0]))+margin,minV=Math.min(...projections.map(p=>p[1]))-margin,maxV=Math.max(...projections.map(p=>p[1]))+margin;
   const world=(u,v,y)=>[cx+u*ux+v*vx,y,cz+u*uz+v*vz],roofY=base+court.canopyHeight;
   for(const u of [minU,maxU])for(const v of [minV,maxV]){const [x,,z]=world(u,v,0);box(.25,court.canopyHeight,.25,x,base+court.canopyHeight/2,z,steel);columns.push({x,z,radius:.2});}
   const midV=(minV+maxV)/2,roof=[];
@@ -64,6 +66,7 @@ export function addSiteDetails(THREE,scene,campus,terrain,network){
   }
   facilityLabels.push({name:court.name,x:cx,z:cz,y:roofY+2});
  }
+ const courtAccess=createCourtAccess(campus,terrain,network,sidewalkSurface);const courtAccessRendering=addCourtAccess(THREE,group,campus,terrain,courtAccess);blockers.push(...courtAccessRendering.blockers);
  const sportsGardens=addSportsGardens(THREE,group,campus,terrain);
  const sidegate=addSidegate(THREE,group,campus,network);blockers.push(...sidegate.blockers);
  const carports=addCarports(THREE,group,campus,network);blockers.push(...carports.blockers);columns.push(...carports.columns);
@@ -72,5 +75,5 @@ export function addSiteDetails(THREE,scene,campus,terrain,network){
  const {bridgeLevel,courtyardLevel,bioLevel}=connections;blockers.push(...connections.blockers);
  // Guardhouse touches the flowerbed tip; the two barrier arms sit in separate lanes.
  const guard=campus.gatehouse;if(guard){const [x,z]=guard.center,y=network.surfaceHeight(x,z);box(guard.width,guard.height,guard.depth,x,y+guard.height/2,z,cream).name='entrance-guardhouse';box(guard.width+.8,.25,guard.depth+.8,x,y+guard.height,z,steel);for(const side of [-1,1])box(.04,1.35,guard.depth-2,x+side*(guard.width/2+.025),y+2,z,glass);for(const [gx,gz] of guard.gates){const gy=network.surfaceHeight(gx,gz);box(.35,1.1,.35,gx-2.8,gy+.55,gz,steel);for(let i=0;i<6;i++)box(.9,.12,.13,gx-2.25+i*.9,gy+1.1,gz,i%2?cream:material(0xb74732));}}
- return{group,sidewalks,blockers,columns,bridgeLevel,courtyardLevel,bioLevel,facilityLabels,waterMeshes,sidewalkSurface,sidewalkAt(x,z){return sidewalkSurface.heightAt(x,z);},update(now,camera){for(const {mesh,roofY}of courtRoofs){const above=camera&&camera.y>roofY+1;mesh.material.transparent=!!above;mesh.material.opacity=above ? .16 : 1;mesh.material.depthWrite=!above;mesh.castShadow=!above;}bump.offset.set(now*.000006,Math.sin(now*.0001)*.05);},blocked(x,z,r,y){return sportsGardens.blocked(x,z,r)||huanyu.blocked(x,z,r,y)||sidegate.blocked(x,z,r)||connections.solidBlocked(x,z,r,y)||(campus.gatehouse&&Math.abs(x-campus.gatehouse.center[0])<campus.gatehouse.width/2+r&&Math.abs(z-campus.gatehouse.center[1])<campus.gatehouse.depth/2+r)||columns.some(p=>Math.hypot(p.x-x,p.z-z)<r+p.radius);}};
+ return{group,courtAccess,sidewalks,blockers,columns,bridgeLevel,courtyardLevel,bioLevel,facilityLabels,waterMeshes,sidewalkSurface,sidewalkAt(x,z){return sidewalkSurface.heightAt(x,z);},update(now,camera){for(const {mesh,roofY}of courtRoofs){const above=camera&&camera.y>roofY+1;mesh.material.transparent=!!above;mesh.material.opacity=above ? .16 : 1;mesh.material.depthWrite=!above;mesh.castShadow=!above;}bump.offset.set(now*.000006,Math.sin(now*.0001)*.05);},blocked(x,z,r,y){return courtAccess.blocked(x,z,r,y)||sportsGardens.blocked(x,z,r)||huanyu.blocked(x,z,r,y)||sidegate.blocked(x,z,r)||connections.solidBlocked(x,z,r,y)||(campus.gatehouse&&Math.abs(x-campus.gatehouse.center[0])<campus.gatehouse.width/2+r&&Math.abs(z-campus.gatehouse.center[1])<campus.gatehouse.depth/2+r)||columns.some(p=>Math.hypot(p.x-x,p.z-z)<r+p.radius);}};
 }

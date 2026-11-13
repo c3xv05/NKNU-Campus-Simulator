@@ -31,6 +31,8 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   for(const area of campus.water) element('polygon',{points:polygon(area.ring),fill:'#5a9cb2'});
   for(const area of campus.courts){element('polygon',{points:polygon(area.ring),fill:'#809d88'});for(const field of area.playingCourts||[])element('polygon',{points:polygon(field.ring),fill:'none',stroke:'#f0f0df','stroke-width':.4,'aria-label':field.id});}
   for(const garden of campus.sportsGardens||[])element('polygon',{points:polygon(garden.ring),fill:'#92a571','aria-label':'球場間階梯式花圃'});
+  for(const a of campus.sportsAccess?.surfaces||[])if(a.kind!=='shoulder')for(const [outer,...holes]of a.regions)element('path',{d:[outer,...holes].map(r=>'M '+r.map(p=>p.join(' ')).join(' L ')+' Z').join(' '),fill:a.kind==='stairs'?'#ada99b':'#c0c2b5','fill-rule':'evenodd','aria-label':a.id},svg);
+  for(const f of campus.sportsAccess?.fences||[])element('polyline',{points:polygon(f.line),fill:'none',stroke:'#52736b','stroke-width':.5,'aria-label':'籃球場防球網'},svg);
 
   for(const road of campus.roads.filter(r=>r.width<=2.5))element('polyline',{points:polygon(road.line),fill:'none',stroke:road.width<=2.5?'#c8c3b4':'#52595a','stroke-width':road.width,'stroke-linecap':'round','stroke-linejoin':'round'});
   drawPlanSvg(svg,sidewalkPlan,'#e5e5dd');
