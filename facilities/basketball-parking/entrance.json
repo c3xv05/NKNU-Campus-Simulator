@@ -6,7 +6,7 @@
   "localWaypoints": [
     [
       -116,
-      -140
+      -147
     ],
     [
       -117,
@@ -21,7 +21,7 @@
       -147
     ]
   ],
-  "roadContactAcross": -140,
+  "roadContactAcross": -147,
   "portalIndex": 3,
-  "reference": "使用者更正右下角朝南路入口，取代左下入口；寬度、同高接路及地下支撐保留。"
+  "reference": "右下角朝南側道路，單一直線無轉彎，完整寬度接路同高。"
 }
