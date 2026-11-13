@@ -1,3 +1,4 @@
+import {r04RegionAt,r04Vegetation} from './r04-vegetation.js';
 import {perimeterWallRings} from './facilities/s24-sidegate/west-wall.js';
 import {sidegateWalls} from './facilities/s24-sidegate/renderer.js';
 import {sidewalkSides,SIDEWALK_WIDTH} from './sidewalk-layout.js';
@@ -13,7 +14,7 @@ export function entranceBed(){
 }
 export function createLandscapeLayout(campus,network,height){
  let seed=170491;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- const bed=entranceBed(),areas=[...(campus.huanyuAccess?[campus.huanyuAccess,campus.huanyuAccess.ramp]:[]),campus.bioConnection.stairs,...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[]),...campus.places,...campus.buildings,...campus.water,...campus.courts,...(campus.sportsAccess?.surfaces||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.sportsGardens||[]),...(campus.pavedAreas||[]),...(campus.junctionFillets||[]),...(campus.sidewalkFrontages||[]),...(campus.pedestrianAreas||[]),...(campus.pedestrianLinks||[]),...perimeterWallRings(campus.perimeterWalls).map(ring=>({ring})),...(campus.sideGate?sidegateWalls(campus.sideGate).map(ring=>({ring})):[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.levelLink?.ring?[campus.levelLink]:[]),...(campus.welcomeBoard?[campus.welcomeBoard]:[])].map(a=>{const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{...a,west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs)};});
+ const bed=entranceBed(),areas=[...(campus.yongxuLandscape?[campus.yongxuLandscape.lawn]:[]),...(campus.huanyuAccess?[campus.huanyuAccess,campus.huanyuAccess.ramp]:[]),campus.bioConnection.stairs,...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[]),...campus.places,...campus.buildings,...campus.water,...campus.courts,...(campus.sportsAccess?.surfaces||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.sportsGardens||[]),...(campus.pavedAreas||[]),...(campus.junctionFillets||[]),...(campus.sidewalkFrontages||[]),...(campus.pedestrianAreas||[]),...(campus.pedestrianLinks||[]),...perimeterWallRings(campus.perimeterWalls).map(ring=>({ring})),...(campus.sideGate?sidegateWalls(campus.sideGate).map(ring=>({ring})):[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.levelLink?.ring?[campus.levelLink]:[]),...(campus.welcomeBoard?[campus.welcomeBoard]:[])].map(a=>{const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{...a,west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs)};});
  function eligible(x,z,margin=0){
   if(ringDistance(x,z,campus.boundary)!==0)return false;
   const road=network.nearest(x,z);if(road){const s=road.segment,side=Math.sign((x-s.a.x)*(-s.dz)+(z-s.a.z)*s.dx),walk=(campus.sidewalkRoadIds||[]).includes(s.route.osm)&&sidewalkSides(campus,s.route.osm).includes(side)?SIDEWALK_WIDTH:0;if(road.d<road.width/2+walk+margin)return false;}
@@ -23,8 +24,9 @@ export function createLandscapeLayout(campus,network,height){
  const trees=[],flowers=[],weeds=[];
  for(let z=-545;z<535;z+=9)for(let x=-410;x<425;x+=9){
   const px=x+(random()-.5)*7,pz=z+(random()-.5)*7;
-  if(coverAt(px,pz)==='forest'&&eligible(px,pz,3))trees.push({x:px,z:pz,y:height(px,pz),size:.85+random()*.65,tint:random()});
+  if(coverAt(px,pz)==='forest'&&r04RegionAt(px,pz)?.category!=='forest'&&eligible(px,pz,3))trees.push({x:px,z:pz,y:height(px,pz),size:.85+random()*.65,tint:random()});
  }
+ for(let z=-305;z<530;z+=r04Vegetation.forestSpacing)for(let x=-420;x< -25;x+=r04Vegetation.forestSpacing){const px=x+(random()-.5)*4,pz=z+(random()-.5)*4;if(r04RegionAt(px,pz)?.category==='forest'&&eligible(px,pz,2.8))trees.push({x:px,z:pz,y:height(px,pz),size:1+random()*.6,tint:random()});}
  for(let z=185;z<530;z+=2.8)for(let x=-240;x< -50;x+=2.4){
   const px=x+(random()-.5)*.6,pz=z+(random()-.5)*.5;
   if(coverAt(px,pz)==='flowers'&&eligible(px,pz,.8))flowers.push({x:px,z:pz,y:height(px,pz),size:.6+random()*.4,tint:Math.floor((x+245)/13)%3});

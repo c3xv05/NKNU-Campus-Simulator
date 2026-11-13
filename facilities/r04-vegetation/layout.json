@@ -1,0 +1,14 @@
+{
+  "parent": "R04",
+  "reference": "使用者確認R04除三棟建築及教學大樓區域外基本是茂密樹林，並要求細分非樹林處。建築前庭、實際鋪面與附圖詠絮草皮獨立保留；林地南北切線為便於校正的模型子區界，非實測植被邊界。",
+  "forestBands": [
+    {"id":"R04-F1","name":"北側教學區外圍樹林","north":-600,"south":-110},
+    {"id":"R04-F2","name":"宿舍與詠絮周邊樹林","north":-110,"south":150},
+    {"id":"R04-F3","name":"大門西側山坡樹林","north":150,"south":600}
+  ],
+  "openBuildingIds": [381732645,381734405,381735423],
+  "teachingBuildingIds": [444867692,444867693,444867694],
+  "forecourtBuffer": 4,
+  "teachingBuffer": 6,
+  "forestSpacing": 6.5
+}

@@ -28,6 +28,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
     const lightness=Math.max(43,Math.min(80,78-(terrainHeight(x,z)+datum-45)*.3));
     element('rect',{x,y:z,width:20.1,height:20.1,fill:`hsl(95 24% ${lightness}%)`},tint);
   }
+  if(campus.yongxuLandscape)element('polygon',{points:polygon(campus.yongxuLandscape.lawn.ring),fill:'#86ac68','aria-label':'詠絮樓內側草皮'});
   if(campus.flowerbed)element('polygon',{points:polygon(campus.flowerbed.ring),fill:'#d69baf',stroke:'#f5e6c6','stroke-width':1},svg);
   for(const area of campus.water) element('polygon',{points:polygon(area.ring),fill:'#5a9cb2'});
   for(const area of campus.courts){element('polygon',{points:polygon(area.ring),fill:'#809d88'});for(const field of area.playingCourts||[])element('polygon',{points:polygon(field.ring),fill:'none',stroke:'#f0f0df','stroke-width':.4,'aria-label':field.id});}

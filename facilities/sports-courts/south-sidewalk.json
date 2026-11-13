@@ -2,7 +2,6 @@
   "id": "basketball-south-sidewalk",
   "name": "籃球場南側人行道",
   "width": 3.6,
-  "offsetFromCourt": 4.2,
   "connection": "S09",
   "connectionRoad": 218881793,
   "removeFootpath": {
@@ -20,5 +19,7 @@
     "width": 2,
     "reason": "使用者確認先移除原籃球場南方步道，以新南側人行道連接S09。"
   },
-  "reference": "使用者確認籃球場南側有人行道並接S09；位置、寬與局部連接為模型近似。"
+  "reference": "使用者確認籃球場南側有人行道並接S09；位置、寬與局部連接為模型近似。；最新要求南側人行道貼齊南側馬路外緣，採原路邊線向場側偏移3.6m，左端接向陽路路口、右端接S09。",
+  "roadEdge": 218881799,
+  "side": -1
 }

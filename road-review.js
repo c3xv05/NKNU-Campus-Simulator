@@ -4,7 +4,7 @@ import {roadRegionRevision} from './data/road-regions.js';
 import {linePoint} from './road-names.js';
 import {isDeveloper} from './developer-auth.js';
 export const REVIEW_KEY='nknu-road-review-'+roadRegionRevision;
-const vegetation={unknown:'待確認',grass:'草地',forest:'樹林',mixed:'草地與樹林混合',flowers:'花田',weeds:'雜草'};
+const vegetation={lawn:'草皮',open:'建築／前庭開放區',unknown:'待確認',grass:'草地',forest:'樹林',mixed:'草地與樹林混合',flowers:'花田',weeds:'雜草'};
 const sidewalks={unknown:'待確認',both:'兩側都有',left:'只有左側',right:'只有右側',partial:'部分路段有',none:'兩側都沒有'};
 export function readReview(storage){try{const d=JSON.parse(storage.getItem(REVIEW_KEY)||'{}');return{regions:d.regions&&typeof d.regions==='object'?d.regions:{},sidewalks:d.sidewalks&&typeof d.sidewalks==='object'?d.sidewalks:{}};}catch{return{regions:{},sidewalks:{}};}}
 export function reviewText(d){const lines=['道路分區版本：'+roadRegionRevision];for(const z of zones){const a=d.regions[z.id];if(a&&(a.category!=='unknown'||a.note))lines.push(`${z.id}（${z.name}）：${vegetation[a.category]||'待確認'}${a.note?'；'+a.note:''}`);}for(const s of sidewalkSections){const a=d.sidewalks[s.id]||(s.status==='confirmed'?s:null);if(a&&(a.category!=='unknown'||a.note)){const label=a.category==='left'&&s.leftLabel?'只有'+s.leftLabel:a.category==='right'&&s.rightLabel?'只有'+s.rightLabel:sidewalks[a.category]||'待確認';lines.push(`${s.id}（${s.name}；A→B）：${label}${a.note?'；'+a.note:''}`);}}return lines.length>1?lines.join('\n'):lines[0]+'\n尚未填寫。';}
