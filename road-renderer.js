@@ -107,10 +107,18 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
     for(const piece of area.triangles||pavement.clip(area.ring,area.id,true))for(let i=1;i<piece.length-1;i++)triangle(piece[0],piece[i],piece[i+1],area.triangles?0:3);footprints.push(...(area.triangles||[area.ring]));
     for(let i=0;i<area.ring.length;i++)skirt(area.ring[i],area.ring[(i+1)%area.ring.length]);
   }
+  // Seal the newly graded Yongxu road/forecourt against the coarser terrain cut.
+  // Work on the actual union boundary, including the road-to-door apron.
+  if(campus?.yongxuAccess)for(const region of motorPavementPlan.regions)for(const ring of region)for(let i=0;i<ring.length;i++){
+   const a=ring[i],b=ring[(i+1)%ring.length],mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2;
+   if(mx< -224||mx> -132||mz< -94||mz> -27)continue;
+   const count=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.75));
+   for(let j=0;j<count;j++){const at=t=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],p=at(j/count),q=at((j+1)/count),high=p=>[p[0],Math.max(network.surfaceHeight(...p)+.015,groundHeight(...p)+.02),p[1]],v=high(p),w=high(q),low=p=>[p[0],Math.min(network.surfaceHeight(...p)-.3,groundHeight(...p)-.6),p[1]],r=low(p),s=low(q);batches.earth.push(...v,...r,...w,...w,...r,...s);}
+  }
   // Motor asphalt and raised kerbs share one boundary and the same grade triangles.
   batches.asphalt.length=0;eachPlanTriangle(motorPavementPlan,triangle=>{for(const p of triangle)batches.asphalt.push(...vertex(...p,'asphalt'));});
   if(campus?.entranceApron?.ring)for(let i=0;i<entranceMesh.length;i+=6)for(let k=0;k<6;k+=2)batches.asphalt.push(...vertex(entranceMesh[i+k],entranceMesh[i+k+1],'asphalt'));
-  const entranceIds=new Set(network.routes.filter(r=>r.entrance).map(r=>r.osm));footprints.length=0;for(const a of pavement.all)if(!a.actual&&!entranceIds.has(a.osm))footprints.push(a.points);footprints.push(...pathFootprints);
+  const entranceIds=new Set(network.routes.filter(r=>r.entrance).map(r=>r.osm));footprints.length=0;for(const a of pavement.all)if(!a.actual&&!entranceIds.has(a.osm))footprints.push(a.points);if(campus?.yongxuAccess?.groundFootprints){const kept=footprints.flatMap(p=>subtract(p.map(([x,z])=>[x,0,z]),campus.yongxuAccess.groundClipRing).map(q=>q.map(([x,,z])=>[x,z])));footprints.length=0;footprints.push(...kept,...campus.yongxuAccess.groundFootprints);}footprints.push(...pathFootprints);
   for(const [type,positions] of Object.entries(batches)){
     if(!positions.length)continue;
     if(type==='asphalt'||type==='concrete')for(let i=0;i<positions.length;i+=9){const cross=(positions[i+3]-positions[i])*(positions[i+8]-positions[i+2])-(positions[i+5]-positions[i+2])*(positions[i+6]-positions[i]);if(cross>0)for(let k=0;k<3;k++){const v=positions[i+3+k];positions[i+3+k]=positions[i+6+k];positions[i+6+k]=v;}}

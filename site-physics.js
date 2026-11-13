@@ -1,3 +1,4 @@
+import {passageSupportAt} from './building-passages.js';
 import {courtyardSupportAt} from './facilities/teaching-courtyard/surface.js';
 import {huanyuSupportAt} from './facilities/huanyu-platform/surface.js';
 import {subtract} from './road-ground.js';
@@ -25,6 +26,7 @@ export function sidewalkSections(campus,network){
  return sections;
 }
 export function platformHeightAt(x,z,currentY,campus,terrain,network){
+ const passage=passageSupportAt(x,z,currentY,campus,terrain);if(passage!==null)return passage;
  const huanyu=huanyuSupportAt(x,z,currentY,campus,terrain,network);if(huanyu!==null)return huanyu;
  const bio=campus.bioConnection;if(bio?.ramp){const q=projectOnLine(x,z,...bio.ramp);if(q.t>=0&&q.t<=1&&q.distance<(bio.accessWidth||4)/2){const base=terrain.platformHeight(campus.places.find(a=>a.osm===bio.from))+3.6,start=terrain.height(...bio.ramp[0]);return start+(base-start)*q.t;}}
 

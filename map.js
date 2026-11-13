@@ -40,6 +40,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   svgApron(svg,campus);
   if(campus.huanyuAccess)for(const a of [campus.huanyuAccess,campus.huanyuAccess.ramp])element('polygon',{points:polygon(a.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);
   if(campus.courtyard)element('polygon',{points:polygon(campus.courtyard.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);
+  for(const [outer,...holes] of campus.courtyard?.floorRegions?.upper||[])element('path',{d:[outer,...holes].map(r=>'M '+r.map(p=>p.join(' ')).join(' L ')+' Z').join(' '),fill:'#ecebe0','fill-rule':'evenodd',stroke:'#a59c87','stroke-width':.7,'aria-label':'中央廣場二層 L 型'},svg);
   if(campus.courtyard?.floors===2)element('text',{x:-140,y:-206,'font-size':12,fill:'#594f3e',stroke:'#fff','stroke-width':2,'paint-order':'stroke'},svg,'中央廣場 1F／2F');
   if(campus.welcomeBoard)element('polygon',{points:polygon(campus.welcomeBoard.ring),fill:'#eebd65','aria-label':'校門迎賓看板'},svg);
   if(campus.gatehouse)element('polygon',{points:polygon(campus.gatehouse.ring),fill:'#8d8073'},svg);
@@ -48,6 +49,8 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
     element('polygon',{points:polygon(area.ring),fill:area.height?'#33556c':'#a55247'});
     if(!area.height)element('polygon',{points:polygon(area.holes[0]),fill:'#7db67e'});
   });
+  for(const a of campus.places.filter(a=>a.passage))element('polygon',{points:polygon(a.passage.ring),fill:'#ecebe0','aria-label':'寰宇三樓穿堂通中央廣場二層'},svg);
+  for(const tank of campus.sideGate?.tanks||[])element('circle',{cx:tank.center[0],cy:tank.center[1],r:tank.radius,fill:'#a3b7b1',stroke:'#e0e6dc','stroke-width':.5},svg);
   element('text',{x:bounds.west+22,y:bounds.north+40,'font-size':28,'font-weight':800,fill:'#24382e'},svg,'N ↑');
   element('path',{d:`M ${bounds.east-135} ${bounds.south-30} h 100`,stroke:'#24382e','stroke-width':4});
   element('text',{x:bounds.east-85,y:bounds.south-45,'text-anchor':'middle','font-size':20,fill:'#24382e'},svg,'100 m');

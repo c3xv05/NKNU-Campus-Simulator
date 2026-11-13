@@ -1,3 +1,4 @@
+import {passageLevel} from '../building-passages.js';
 import {SIDEWALK_RISE,ROAD_SURFACE_LIFT} from '../sidewalk-layout.js';
 import {selectFront} from '../building-layout.js';
 // Original geometry and procedural materials, derived from the supplied facade references.
@@ -12,7 +13,19 @@ export function addBuildings(THREE,scene,campus,terrain,profiles,network){
   if(p.style==='gatehouse'){const detail=new THREE.Group(),shell=scene.getObjectByName('entrance-guardhouse');group.add(detail);if(shell)blockers.push(shell);entries.push({id:p.id,cx,cz,detail,shell,limit:p.detailDistance||145});continue;}
   const wall=material(p.wall,['canteen','technology','library'].includes(p.style)?'tiles':['brick-frame','foresight','academic','dorm-two-tone','guesthouse'].includes(p.style)),accent=material(p.accent||p.wall),frame=material(p.frame),glass=material(p.glass),dark=material('#25363c'),awning=material('#477f7b');
   const lowerBase=Math.min(base-3,...a.ring.map(([x,z])=>(network?network.integratedHeight(x,z,terrain.height(x,z)):terrain.height(x,z))-1));
-  const shape=outline(a.ring);shape.holes=(a.holes||[]).map(outline);const g=new THREE.ExtrudeGeometry(shape,{depth:a.height+base-Math.min(base-3,...a.ring.map(([x,z])=>(network?network.integratedHeight(x,z,terrain.height(x,z)):terrain.height(x,z))-1)),bevelEnabled:false});g.rotateX(-Math.PI/2);const shell=new THREE.Mesh(g,wall);shell.position.y=Math.min(base-3,...a.ring.map(([x,z])=>(network?network.integratedHeight(x,z,terrain.height(x,z)):terrain.height(x,z))-1));shell.name='building-shell-'+p.id;shell.castShadow=true;shell.receiveShadow=true;group.add(shell);blockers.push(shell);
+  const shape=outline(a.ring);shape.holes=(a.holes||[]).map(outline);
+  function solid(shape,bottom,top,name){const g=new THREE.ExtrudeGeometry(shape,{depth:top-bottom,bevelEnabled:false});g.rotateX(-Math.PI/2);const mesh=new THREE.Mesh(g,wall);mesh.position.y=bottom;mesh.name=name;mesh.castShadow=true;mesh.receiveShadow=true;group.add(mesh);blockers.push(mesh);return mesh;}
+  let shell;
+  if(p.style==='water-towers'){
+   const concrete=material('#a7aaa2'),tankMat=material('#b9bcb7'),water=material('#687d7a');
+   shell=solid(shape,lowerBase,base+.3,'water-tower-platform');
+   for(const [i,t]of p.tanks.entries()){const tank=new THREE.Mesh(new THREE.CylinderGeometry(t.radius,t.radius,a.height-.3,24),tankMat);tank.position.set(t.center[0],base+(a.height+.3)/2,t.center[1]);tank.name='sidegate-water-tank-'+i;tank.castShadow=true;group.add(tank);blockers.push(tank);const lid=new THREE.Mesh(new THREE.CylinderGeometry(t.radius-.25,t.radius-.25,.14,24),water);lid.position.set(t.center[0],base+a.height+.06,t.center[1]);group.add(lid);const rim=new THREE.Mesh(new THREE.TorusGeometry(t.radius-.12,.16,6,24),concrete);rim.rotation.x=Math.PI/2;rim.position.set(t.center[0],base+a.height+.13,t.center[1]);group.add(rim);}
+   const detail=new THREE.Group();group.add(detail);entries.push({id:p.id,cx,cz,detail,shell,limit:p.detailDistance||145});continue;
+  }else if(a.passage){
+   const level=passageLevel(a,terrain);shell=solid(shape,lowerBase,level,'building-shell-'+p.id);
+   for(const [i,region]of a.passage.shellRegions.entries()){const part=outline(region[0]);part.holes=region.slice(1).map(outline);solid(part,level,level+a.passage.clearHeight,'building-passage-side-'+i);}
+   solid(shape,level+a.passage.clearHeight,base+a.height,'building-passage-ceiling-'+p.id);
+  }else shell=solid(shape,lowerBase,base+a.height,'building-shell-'+p.id);
   if(p.upperWall){const split=(p.splitAt||1)*(a.floorHeight||3.6),ug=new THREE.ExtrudeGeometry(shape,{depth:Math.max(.1,a.height-split),bevelEnabled:false});ug.rotateX(-Math.PI/2);const upper=new THREE.Mesh(ug,material(p.upperWall));upper.position.set(cx*(1-1.0005),base+split+.015,cz*(1-1.0005));upper.scale.set(1.0005,1,1.0005);upper.name='upper-plaster-'+p.id;group.add(upper);}
   const detail=new THREE.Group();detail.name='building-details-'+p.id;group.add(detail);const batches=new Map();
   function box(w,h,d,x,y,z,mat,angle=0){if(!batches.has(mat))batches.set(mat,[]);batches.get(mat).push({w,h,d,x,y,z,angle});}
@@ -22,7 +35,11 @@ export function addBuildings(THREE,scene,campus,terrain,profiles,network){
    const v=a.ring[i],q=a.ring[(i+1)%a.ring.length],dx=q[0]-v[0],dz=q[1]-v[1],len=Math.hypot(dx,dz),nx=dz/len*Math.sign(area),nz=-dx/len*Math.sign(area),angle=Math.atan2(-dz,dx);if(len<1)continue;
    const edge={v,q,dx,dz,len,nx,nz,angle};edges.push(edge);
    const at=(u,y,out=0)=>[v[0]+dx*u+nx*out,base+y,v[1]+dz*u+nz*out];
-   const put=(w,h,d,u,y,out,mat)=>box(w,h,d,...at(u,y,out),mat,angle);
+   const put=(w,h,d,u,y,out,mat)=>{
+    if(a.passage){const level=(a.passage.floor-1)*fh,[start,end]=a.passage.line,px=v[0]+dx*u,pz=v[1]+dz*u,l=Math.hypot(end[0]-start[0],end[1]-start[1]),distance=Math.abs((px-start[0])*(end[1]-start[1])-(pz-start[1])*(end[0]-start[0]))/l;
+     if(distance<a.passage.width/2+w/2+.2&&y+h/2>level&&y-h/2<level+a.passage.clearHeight){if(h>a.passage.clearHeight+1){const low=Math.max(0,level-(y-h/2)),high=Math.max(0,y+h/2-level-a.passage.clearHeight);if(low)box(w,low,d,...at(u,y-h/2+low/2,out),mat,angle);if(high)box(w,high,d,...at(u,level+a.passage.clearHeight+high/2,out),mat,angle);}return;}}
+    box(w,h,d,...at(u,y,out),mat,angle);
+   };
    for(let f=1;f<=floors;f++)put(len,.28,.24,.5,f*fh-.14,.07,frame);
    const bays=Math.max(1,Math.floor(len/4.6)),bay=len/bays;
    for(let j=0;j<=bays;j++)if(p.style!=='foresight')put(.28,a.height,.32,j/bays,a.height/2,.12,frame);
@@ -39,8 +56,8 @@ export function addBuildings(THREE,scene,campus,terrain,profiles,network){
   }
   // Pick the front facade from each building's own reference metadata.
   const front=selectFront(a,p,network);
-  if(front&&p.showEntrance!==false){const e=front,x=(e.v[0]+e.q[0])/2,z=(e.v[1]+e.q[1])/2,w=Math.min(e.len*.72,12),entryBase=p.entranceAtSidewalk&&network?network.surfaceHeight(x,z)+ROAD_SURFACE_LIFT+SIDEWALK_RISE:base+((p.entranceFloor||1)-1)*fh,place=(along,y,out)=>[x+e.dx/e.len*along+e.nx*out,entryBase+y,z+e.dz/e.len*along+e.nz*out];
-   box(w,2.7,.2,...place(0,1.35,.25),dark,e.angle);for(const t of [-w/2,w/2])box(.6,3.6,2.4,...place(t,1.8,1.1),frame,e.angle);box(w+1,.45,3.2,...place(0,3.35,1.4),frame,e.angle);
+  if(front&&p.showEntrance!==false){const e=front,x=(e.v[0]+e.q[0])/2,z=(e.v[1]+e.q[1])/2,w=a.passage?a.passage.width:Math.min(e.len*.72,12),entryBase=p.entranceAtSidewalk&&network?network.surfaceHeight(x,z)+ROAD_SURFACE_LIFT+SIDEWALK_RISE:base+((p.entranceFloor||1)-1)*fh,place=(along,y,out)=>[x+e.dx/e.len*along+e.nx*out,entryBase+y,z+e.dz/e.len*along+e.nz*out];
+   if(!a.passage)box(w,2.7,.2,...place(0,1.35,.25),dark,e.angle);for(const t of [-w/2,w/2])box(.6,3.6,2.4,...place(t,1.8,1.1),frame,e.angle);box(w+1,.45,3.2,...place(0,3.35,1.4),frame,e.angle);
    if(p.style==='canteen'){for(const side of [-1,1])box(.35,5,1,...place(side*1.7,a.height+1.8,.4),frame,e.angle);for(let i=0;i<4;i++)box(3.4,.25,1,...place(0,a.height-.5+i*1.35,.4),frame,e.angle);}
    if(p.style==='brick-frame'){for(const t of [-w/2,w/2])box(.4,fh*2.6,.8,...place(t,fh*2,.6),frame,e.angle);box(w+.7,.7,1.2,...place(0,fh*3.2,.7),frame,e.angle);}
    const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=256;const ctx=canvas.getContext('2d');ctx.fillStyle='#8e8d80';ctx.fillRect(0,0,1024,256);ctx.fillStyle='#e9cb83';ctx.textAlign='center';ctx.font='bold 90px serif';ctx.fillText(p.sign,512,112);ctx.font='32px sans-serif';ctx.fillText(p.english,512,190);const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;const sign=new THREE.Mesh(new THREE.PlaneGeometry(w,.25*w),new THREE.MeshBasicMaterial({map:tex,side:THREE.FrontSide}));sign.name='facade-sign-'+p.id;sign.position.set(...place(0,4.2,3.03));sign.rotation.y=e.angle+(Math.sign(area)>0?Math.PI:0);detail.add(sign);

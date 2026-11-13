@@ -1,3 +1,4 @@
+import {campusSiteLayout} from './data/site-layout.js';
 import {createSiteLevels} from './site-levels.js';
 import {widthAtDistance} from './road-width.js';
 import {gradeGrid} from './grade-grid.js';
@@ -174,7 +175,11 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
   const siteLevels=createSiteLevels(height);
   const paved=(options.pavedAreas||[]).map(a=>({...a,level:roadSurfaceHeight(...a.anchor),west:Math.min(...a.ring.map(p=>p[0])),east:Math.max(...a.ring.map(p=>p[0])),north:Math.min(...a.ring.map(p=>p[1])),south:Math.max(...a.ring.map(p=>p[1]))}));
   function pavedWeight(a,x,z){if(x<a.west-12||x>a.east+12||z<a.north-12||z>a.south+12)return 0;return 1-ease(0,12,ringDistance(x,z,a.ring));}
-  function ungriddedSurfaceHeight(x,z){let h=roadSurfaceHeight(x,z);for(const a of paved){const w=pavedWeight(a,x,z);if(w)h+=(a.level-h)*w;}return siteLevels.heightAt(x,z,h);}
+  function ungriddedSurfaceHeight(x,z){let h=roadSurfaceHeight(x,z);for(const a of paved){const w=pavedWeight(a,x,z);if(w)h+=(a.level-h)*w;}h=siteLevels.heightAt(x,z,h);
+   const access=campusSiteLayout.yongxuAccess;if(!access)return h;const [a,b]=access.line,dx=b[0]-a[0],dz=b[1]-a[1],length=Math.hypot(dx,dz),along=((x-a[0])*dx+(z-a[1])*dz)/length,across=Math.abs((x-a[0])*dz-(z-a[1])*dx)/length;
+   if(along<0||along>length+2||across>access.width/2+3)return h;
+   const base=siteLevels.levelAt(...a)??roadSurfaceHeight(...a),t=clamp(along/length,0,1),end=siteLevels.levelAt(...b)??base+access.rise,target=base+(end-base)*t*t*(3-2*t),weight=1-ease(access.width/2,access.width/2+3,across);return h+(target-h)*weight;
+  }
   const surfaceHeight=options.sharedGradeGrid?gradeGrid(ungriddedSurfaceHeight,undefined,{smooth:true}):ungriddedSurfaceHeight;
   function gradeTerrain(mesh,protectedAreas=[]) {
     for(let r=0;r<mesh.rows;r++)for(let c=0;c<mesh.columns;c++){

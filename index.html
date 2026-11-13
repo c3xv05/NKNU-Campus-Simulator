@@ -33,6 +33,7 @@ import {createRoadNetwork} from './roads.js';
 import {addRoads} from './road-renderer.js';
 import {cutRoadsFromGround} from './road-ground.js';
 import {findDestinations,findBuildingDestinations,stepScooter} from './travel.js';
+import {passageAt} from './building-passages.js';
 import {isDeveloper} from './developer-auth.js';
 import {createScooter} from './scooter.js';
 import {createAvatar} from './avatar.js';
@@ -435,6 +436,7 @@ campus.roads.filter(r=>r.width<=2.5).forEach(({line,width})=>{overviewCtx.beginP
 for(const rings of sidewalkPlan.regions)fillArea(overviewCtx,{ring:rings[0],holes:rings.slice(1)},'#e5e5dd');
 for(const rings of motorPavementPlan.regions)fillArea(overviewCtx,{ring:rings[0],holes:rings.slice(1)},'#52595a');
 if(campus.courtyard)fillArea(overviewCtx,campus.courtyard,'#d5cebc');
+for(const [ring,...holes] of campus.courtyard?.floorRegions?.upper||[])fillArea(overviewCtx,{ring,holes},'#ecebe0');
 if(campus.huanyuAccess){fillArea(overviewCtx,campus.huanyuAccess,'#d5cebc');fillArea(overviewCtx,campus.huanyuAccess.ramp,'#d5cebc');}
 if(campus.gatehouse)fillArea(overviewCtx,campus.gatehouse,'#8d8073');
 if(campus.welcomeBoard)fillArea(overviewCtx,campus.welcomeBoard,'#eebd65');
@@ -446,6 +448,8 @@ places.forEach(area => {
   if (!area.height) fillArea(overviewCtx, { ring: area.holes[0] }, '#7db67e');
   fillArea(overviewCtx, area, area.height ? '#33556c' : '#a55247');
 });
+for(const a of campus.places.filter(a=>a.passage))fillArea(overviewCtx,{ring:a.passage.ring},'#ecebe0');
+for(const tank of campus.sideGate?.tanks||[]){overviewCtx.beginPath();overviewCtx.arc(...tank.center,tank.radius,0,Math.PI*2);overviewCtx.fillStyle='#c5d5ce';overviewCtx.fill();}
 for(const a of campus.buildings.filter(a=>a.mapLabel)){const c=outlineCenter(a.ring);overviewCtx.font='bold 50px system-ui';overviewCtx.textAlign='center';overviewCtx.lineWidth=10;overviewCtx.strokeStyle='#fff';overviewCtx.strokeText(a.name,c.x,c.z);overviewCtx.fillStyle='#173c4d';overviewCtx.fillText(a.name,c.x,c.z);}
 const dorm=campus.places.find(b=>b.name==='詠絮樓');if(dorm){const c=outlineCenter(dorm.ring);overviewCtx.font='bold 55px system-ui';overviewCtx.textAlign='center';overviewCtx.lineWidth=12;overviewCtx.strokeStyle='#fff';overviewCtx.strokeText('詠絮',c.x,c.z-5);overviewCtx.fillStyle='#173c4d';overviewCtx.fillText('詠絮',c.x,c.z-5);}
 if(campus.levelLink){overviewCtx.beginPath();trace(overviewCtx,campus.levelLink.line,false);overviewCtx.lineWidth=5;overviewCtx.strokeStyle='#dfad4f';overviewCtx.stroke();}
@@ -499,7 +503,7 @@ function movePlayer(dx,dz,radius){
   const linkLevel=siteDetails.bridgeLevel,connection=motion.riding?null:(stairHeightAt(x,z,player.position.y,campus,terrain,roadNetwork)??platformHeightAt(x,z,player.position.y,campus,terrain,roadNetwork)??bridgeHeight(x,z,player.position.y,campus.levelLink,linkLevel)??bridgeHeight(x,z,player.position.y,campus.bioConnection,siteDetails.bioLevel));
   const lake=lakeAt(x,z,campus);
   if(lake){const road=roadNetwork.nearest(x,z);if(!(road&&road.d<road.width/2&&roadNetwork.surfaceHeight(x,z)>terrain.platformHeight(lake)+.2)){motion.speed=0;showToast('前方是湖泊，請沿岸行走');return false;}}
-  const blockedBuilding=obstacles.some(({ring,osm})=>distanceToRing(x,z,ring)<radius&&!(connection!==null&&[campus.levelLink.from,campus.levelLink.to,444867694,campus.bioConnection.from,campus.bioConnection.to].includes(osm)));
+  const blockedBuilding=obstacles.some(building=>distanceToRing(x,z,building.ring)<radius&&!(building.passage&&!motion.riding&&passageAt(x,z,player.position.y,building,terrain,radius))&&!(connection!==null&&[campus.levelLink.from,campus.levelLink.to,campus.bioConnection.from,campus.bioConnection.to].includes(building.osm)));
   if(welcomeBoard.blocked(x,z,radius)||blockedBuilding||landscapeLayout.blocked(x,z,radius)||siteDetails.blocked(x,z,radius,player.position.y)){motion.speed=0;return false;}
   player.position.set(x,connection??walkHeight(x,z),z);
  }
