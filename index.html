@@ -94,7 +94,7 @@ const protectedPlatforms=[...campus.places.filter(a=>!a.height),...campus.water,
 });
 roadNetwork.gradeTerrain(terrain.mesh,protectedPlatforms);
 let siteDetails=null;
-const walkHeight=(x,z)=>{const court=campus.courts.find(a=>distanceToRing(x,z,a.ring)===0);return court?terrain.platformHeight(court)+.15:siteDetails?.sidewalkAt(x,z)??roadNetwork.walkHeight(x,z,terrainHeight(x,z));};
+const walkHeight=(x,z)=>{const court=campus.courts.find(a=>distanceToRing(x,z,a.ring)===0);return court?terrain.platformHeight(court)+.15:siteDetails?.courtAccess.heightAt(x,z)??siteDetails?.sidewalkAt(x,z)??roadNetwork.walkHeight(x,z,terrainHeight(x,z));};
 const terrainGeometry = new THREE.BufferGeometry();
 const terrainPositions = [], terrainIndices = [];
 const tm = terrain.mesh;
@@ -182,7 +182,7 @@ const labelMeshes = [];
 
 siteDetails=addSiteDetails(THREE,scene,campus,terrain,roadNetwork);cameraObstacles.push(...siteDetails.blockers);
 const roadRendering=addRoads(THREE,scene,roadNetwork,terrainHeight,campus);
-const cutGround=cutRoadsFromGround(terrain.mesh,[...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points),...(campus.courtyard.footprints||[]),...(campus.huanyuAccess?.footprints||[]),campus.bioConnection.stairs.ring,...[...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[])].map(s=>s.ring)],terrainGeometry.getAttribute('normal').array);
+const cutGround=cutRoadsFromGround(terrain.mesh,[...campus.courts.filter(a=>a.playingCourts).map(a=>a.ring),...(campus.sportsAccess?.footprints||[]),...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points),...(campus.courtyard.footprints||[]),...(campus.huanyuAccess?.footprints||[]),campus.bioConnection.stairs.ring,...[...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[])].map(s=>s.ring)],terrainGeometry.getAttribute('normal').array);
 const cutGeometry=new THREE.BufferGeometry();
 // Clipping preserves the original triangle interpolation. Resampling new cut points
 // independently produces non-conforming T-junctions and visible cracks.
@@ -196,7 +196,7 @@ for(let i=0;i<cutGround.positions.length;i+=3){
 }
 cutGeometry.setAttribute('color',new THREE.Float32BufferAttribute(landColors,3));groundMat.color.set(0xffffff);groundMat.vertexColors=true;
 ground.geometry.dispose();ground.geometry=cutGeometry;
-campus.courts.forEach(area => surface(area, .07, courtMaterial));
+campus.courts.forEach(area => {const mesh=surface(area,.07,courtMaterial);mesh.name='flat-court-slab-'+area.osm;});
 const buildingRendering=addBuildings(THREE,scene,campus,terrain,buildingProfiles,roadNetwork);cameraObstacles.push(...buildingRendering.blockers);
 places.forEach((place, index) => {
   if (place.height) {
@@ -431,6 +431,8 @@ campus.water.forEach(area => fillArea(overviewCtx, area, '#3e96b7'));
 if(campus.flowerbed)fillArea(overviewCtx,campus.flowerbed,'#d69baf');
 campus.courts.forEach(area => {fillArea(overviewCtx,area,'#809d88');for(const field of area.playingCourts||[]){overviewCtx.strokeStyle='#e5eadc';overviewCtx.lineWidth=.35;overviewCtx.beginPath();trace(overviewCtx,field.ring);overviewCtx.stroke();}});
 for(const garden of campus.sportsGardens||[])fillArea(overviewCtx,garden,'#92a571');
+for(const a of campus.sportsAccess?.surfaces||[])if(a.kind!=='shoulder')for(const [ring,...holes]of a.regions)fillArea(overviewCtx,{ring,holes},a.kind==='stairs'?'#ada99b':'#c0c2b5');
+for(const f of campus.sportsAccess?.fences||[]){overviewCtx.beginPath();trace(overviewCtx,f.line,false);overviewCtx.strokeStyle='#52736b';overviewCtx.lineWidth=.5;overviewCtx.stroke();}
 [...(campus.pavedAreas||[]),...(campus.junctionFillets||[])].forEach(area=>fillArea(overviewCtx,area,'#52595a'));
 
 campus.roads.filter(r=>r.width<=2.5).forEach(({line,width})=>{overviewCtx.beginPath();trace(overviewCtx,line,false);overviewCtx.lineWidth=width;overviewCtx.strokeStyle=width<=2.5?'#c8c3b4':'#52595a';overviewCtx.lineCap='round';overviewCtx.lineJoin='round';overviewCtx.stroke();});
