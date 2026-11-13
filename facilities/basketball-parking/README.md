@@ -4,4 +4,6 @@
 
 先有最新球場／道路資料與motor-pavement-plan，再執行build-garage-access.py定位南側路緣並生成campus.courtParking.entrance的三角面及地形裁切；接著重建人行道、motor-plan及court-access。入口不新增成平面馬路以免抬升地下層；access.js、surface.js供步行／騎車／渲染共用高度，接路端連完整入口寬度都取道路同一高度場。
 
-南側人行道在入口切出開口；先保留10m接路前坪以供橫越，再下坡到地下層。擋土牆留門洞、球場裙邊避門洞、坡面支撐不重複建側牆；避免露空或閃爍。驗證access-corrections.mjs／access-corrections-browser.py，並保留arrival-landscape回歸。
+南側人行道在入口切出開口；先保留4.5m接路前坪以供橫越，再下坡到地下層。擋土牆留門洞、球場裙邊避門洞、坡面支撐不重複建側牆；避免露空或閃爍。驗證access-corrections.mjs／access-corrections-browser.py，並保留arrival-landscape回歸。
+
+最新入口同軸直線朝南，不再使用前版折線。
