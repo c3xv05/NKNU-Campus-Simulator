@@ -89,5 +89,11 @@
       "bottomLevel": "zhili-ground",
       "desc": "依使用者要求於廣場中央開口，由二樓小樓梯通往下方一樓；尺寸為模型近似。"
     }
-  ]
+  ],
+  "communicationAlias": {
+    "name": "便利商店",
+    "location": "致理／高斯連接處",
+    "mapVisible": false,
+    "purpose": "僅為使用者與開發者溝通位置的代稱，不建立店家、招牌或地圖標記。"
+  }
 }
