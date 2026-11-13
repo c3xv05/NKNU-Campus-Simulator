@@ -1,0 +1,10 @@
+{
+  "road": 218881795,
+  "direction": "north-to-south-downhill",
+  "minimumSlope": 0.02,
+  "uniformBlend": 0.35,
+  "core": 7.5,
+  "fade": 30,
+  "buildingBlend": 2,
+  "reference": "使用者確認向陽路南行過球場長條建築後仍須下降，整條坡度較平均。保留原端點高程、路線與路寬，以連續單調下降剖面平滑調整並連動鄰側地形；數值為模型校正，非實測。"
+}

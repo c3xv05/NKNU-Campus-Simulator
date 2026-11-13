@@ -87,7 +87,7 @@ const terrainHeight = terrain.height;
 const roadTagsResponse=await fetch('./data/road-tags.json');
 if(!roadTagsResponse.ok)throw new Error('道路資料載入失敗');
 const roadTags=await roadTagsResponse.json();
-const roadNetwork=createRoadNetwork(campus.roads,terrain.rawHeight,roadTags,{apron:campus.entranceApron,pavedAreas:campus.pavedAreas,junctionFillets:campus.junctionFillets,sharedGradeGrid:true,edgePavement:motorPavementPlan.infillTriangles});
+const roadNetwork=createRoadNetwork(campus.roads,terrain.rawHeight,roadTags,{apron:campus.entranceApron,pavedAreas:campus.pavedAreas,junctionFillets:campus.junctionFillets,sharedGradeGrid:true,edgePavement:motorPavementPlan.infillTriangles,gradeObstacles:[...campus.places,...campus.buildings].filter(a=>a.height)});
 const protectedPlatforms=[...campus.places.filter(a=>!a.height),...campus.water,...campus.courts].map(area=>{
   const xs=area.ring.map(p=>p[0]),zs=area.ring.map(p=>p[1]);
   return {west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs),contains:(x,z)=>distanceToRing(x,z,area.ring)===0};

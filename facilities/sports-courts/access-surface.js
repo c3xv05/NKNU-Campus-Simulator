@@ -26,6 +26,6 @@ export function createCourtAccess(campus,terrain,network,sidewalk){
  });
  function heightAt(x,z){for(const a of [...surfaces.filter(a=>a.kind==='stairs'),...surfaces.filter(a=>a.kind==='ramp'),...surfaces.filter(a=>a.kind==='shoulder')]){const h=a.heightAt(x,z);if(h!==null)return h;}return null;}
  const court=campus.courts.find(c=>c.sport==='basketball'),fenceBase=terrain.platformHeight(court)+.07;
- function blocked(x,z,r,y){return y<fenceBase+3&&source.fences.some(f=>{const [a,b]=f.line,dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/(dx*dx+dz*dz)));return Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t)<r+.06;});}
+ function blocked(x,z,r,y){return y>=fenceBase-.5&&y<fenceBase+3&&source.fences.some(f=>{const [a,b]=f.line,dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/(dx*dx+dz*dz)));return Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t)<r+.06;});}
  return{surfaces,heightAt,blocked,fenceBase,outsideFloorAt:(x,z)=>outside(x,z).floor};
 }
