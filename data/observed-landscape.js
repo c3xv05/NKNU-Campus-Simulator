@@ -1,0 +1,2 @@
+// Generated from user-observed R09 forest and R02 flower sources.
+export const observedLandscape={"r09":{"parent":"R09","spacing":6.5,"reference":"使用者確認R09建築物以外為茂密樹林；保留車道、人行道與實際廣場等通行設施，樹距為模型配置。"},"r02":{"parent":"R02","seed":20319,"count":18000,"minimumSpacing":0.65,"palette":["#ffcf33","#ff795b","#ef4e91","#bf6bf0","#7b9aff","#f8f4e7","#ffb9db","#8f65cf"],"reference":"使用者要求R02繽紛花海、位置較隨機；使用固定種子的散點、8色混搭及大小旋轉差異，並避讓道路建築。"}};

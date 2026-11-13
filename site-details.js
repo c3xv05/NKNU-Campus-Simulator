@@ -68,7 +68,7 @@ export function addSiteDetails(THREE,scene,campus,terrain,network){
   }
   facilityLabels.push({name:court.name,x:cx,z:cz,y:roofY+2});
  }
- const parking=addBasketballParking(THREE,group,campus,terrain);blockers.push(...parking.blockers);
+ const parking=addBasketballParking(THREE,group,campus,terrain,network);blockers.push(...parking.blockers);
  const courtAccess=createCourtAccess(campus,terrain,network,sidewalkSurface);const courtAccessRendering=addCourtAccess(THREE,group,campus,terrain,courtAccess);blockers.push(...courtAccessRendering.blockers);
  const sportsGardens=addSportsGardens(THREE,group,campus,terrain);
  const perimeterWalls=addPerimeterWalls(THREE,group,campus,terrain,network);blockers.push(...perimeterWalls.blockers);

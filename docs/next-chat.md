@@ -8,6 +8,16 @@
 
 ## 最新完成（2026-11-13）
 
+- **最新六項配置**：R09除建築／通行鋪面外改茂密森林，6.5m模型格距生成約1,190棵；observed-landscape.js依現行R09多邊形分類，原R04七區保留。R02全區改八色、18,000株固定種子散點花海，位置／大小／朝向隨機，最小株距0.65m；來源r09-vegetation、r02-flowers，生成data/observed-landscape.js。
+- 側門北短牆端新增north-wall.json沿西北／北校界至科技大樓東側馬路旁；與瀝青／白磚零交集、距車道至少約1.55m，路邊停止、不跨路。原側門至大門西牆保留；兩條牆都隨實際地形貼地，不抬升地形。
+- 詠絮內側空地向北補約50m²，接到北橫翼內側外牆；草皮及原共同平台／8cm額外微坡上限保留，原始高程不變。source satellite-sketch.json存beforeNorthInfill，凹道路仍須三角化。
+- **停車場入口已定位，取代前版未定位**：球場左下朝南側道路218881799，4.8m寬、約33m折線下坡接原B1。原3.6m地下層高與球場水平面不變；外側白磚／接地坡面／地形均裁出入口，南擋土牆留5.6m門洞。接路端與道路共用高度，完整寬度順接，前4.5m留平順通行前坪並可跨越南側人行道，後段連續下坡；入口及坡長為模型配置非實測。步行及騎車共用分層支撐，不能駛入就跳上球場。
+- garage source：basketball-parking/layout.json與entrance.json；build-garage-access.py生成campus內三角面與cutouts，access.js供高度／渲染／通行共用。渲染接縫只保留單側牆面，避免同肩坡面閃爍；球場裙邊在門洞留空。
+- 文萃原支路399908546改為飯店式雙端迎賓曲線，兩端都接詠霽路382869349，保留4.5m寬及門前停靠段；移除舊單端支路兩片過期路口補片，避免中庭有殘留瀝青尖角。來源wencui-arrival/layout.json、生成build-wencui-arrival.py。未更動文萃建築外觀。
+- 道路分區改以vegetation/region-index.json固定錨點維持R01–R12，新迎賓中庭R13；不能因增加一個封閉車道就把後續R09等區號改掉。motor鋪面生成先修復自交小四邊形再定精度，凹道路仍用三角片。
+- 重建順序：原球場／建築來源→build-campus-plazas→build-wencui-arrival→build-sidegate→先有motor-plan以定位路緣→build-garage-access→build-pedestrian-patches→build-sidewalk-plan→build-motor-pavement-plan→build-court-access→build-road-regions→build-r04-vegetation→build-observed-landscape。回歸arrival-landscape.mjs、-geometry.py、-browser.py。
+
+
 - **最新球場與詠絮／R04更正**：籃球南側3.6m人行道改沿南側道路218881799北緣，約64m邊線直接貼路、右端接S09；取代前版離道路有草帶的獨立直條，場緣到步道仍用坡面銜接。左下出口改在西側（沿向陽路218881795），面朝向陽路，取消南側出口缺口；西網分兩段、南網完整、東網兩段，仍五段，東短梯保留。
 - 詠絮樓依本次俯瞰白框重描7轉角L形：北橫翼較薄、東縱翼及內側斜角，非原6角輪廓。附圖黑斜線為內側／南側道路，藍斜線為西凸半圓草皮；取消原半徑28m整片半圓路面與舊入口補片，改約631m²道路、163m²草皮。來源yongxu-access/satellite-sketch.json保存手繪像素輪廓與定位換算，不作材質。輪廓、比例是圖片近似，非實測。
 - S21原西段／路寬保留，前庭段改從草皮南側繞到新內側門前；8cm額外道路微調上限維持，詠絮／食巢共同平台仍64.285704m。原64地形fixture有61點不變，僅3點受新建築基座局部融合影響（最大約0.738m），限制在基座附近20m網格插值範圍，沒有整片抬升、原始高程檔不變。凹形路面必須保留triangles，供路緣／步道／地形裁切使用。

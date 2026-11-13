@@ -17,6 +17,7 @@ if c.get('huanyuAccess'):
  for a in [c['huanyuAccess'],c['huanyuAccess']['ramp']]:shape=shape.difference(Polygon(a['ring']))
 if c['courtyard'].get('floorRegions'):
  for region in c['courtyard']['floorRegions']['lower']+c['courtyard']['floorRegions']['upper']:shape=shape.difference(Polygon(region[0],region[1:]))
+if c.get('courtParking',{}).get('entrance'):shape=shape.difference(Polygon(c['courtParking']['entrance']['ring']))
 parts=list(shape.geoms) if hasattr(shape,'geoms') else [shape]
 shape=unary_union([Polygon(p.exterior,[h for h in p.interiors if Polygon(h).area>=.01]) for p in parts])
 # Remove micrometre clipping slivers; retain curb outlines to within a millimetre.

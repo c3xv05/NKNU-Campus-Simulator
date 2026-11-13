@@ -36,7 +36,7 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
     const nx=-dz/l,nz=dx/l,plus=network.nearest(mx+nx,mz+nz),minus=network.nearest(mx-nx,mz-nz),sign=(plus?.d||0)>(minus?.d||0)?1:-1;
     const outer=p=>[p[0]+nx*sign*.85,p[1]+nz*sign*.85],oa=outer(a),ob=outer(b);
     const polygon=[a,b,ob,oa];
-    for(const piece of pavement.clip(polygon,undefined,true))for(let i=1;i<piece.length-1;i++)for(const [x,z] of [piece[0],piece[i],piece[i+1]]){
+    let shoulderPieces=pavement.clip(polygon,undefined,true);if(campus?.courtParking?.entrance&&ringDistance(mx,mz,campus.courtParking.entrance.ring)<2)for(const cut of campus.courtParking.entrance.groundCuts)shoulderPieces=shoulderPieces.flatMap(p=>subtract(p.map(([x,z])=>[x,0,z]),cut).map(q=>q.map(([x,,z])=>[x,z])));for(const piece of shoulderPieces)for(let i=1;i<piece.length-1;i++)for(const [x,z] of [piece[0],piece[i],piece[i+1]]){
       const t=Math.max(0,Math.min(1,((x-a[0])*nx*sign+(z-a[1])*nz*sign)/.85));
       const y=(network.surfaceHeight(x,z)+.005)*(1-t)+(groundHeight(x,z)+.015)*t;
       batches.earth.push(x,y,z);
