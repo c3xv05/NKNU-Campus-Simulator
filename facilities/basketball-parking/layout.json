@@ -6,6 +6,7 @@
   "columnSpacing": 8,
   "columnSize": 0.45,
   "modelParkingBays": 24,
-  "vehicleEntrance": "unlocated",
-  "reference": "使用者確認籃球場下方約一層地下停車場；3.6m層高、柱網及停車格為模型近似，車道出入口尚未定位，未新增推測車行入口。"
+  "vehicleEntrance": "southwest-facing-south-road",
+  "reference": "使用者確認籃球場下方約一層地下停車場；3.6m層高、柱網及停車格為模型近似，車道出入口尚未定位，未新增推測車行入口。；最新使用者定位左下角朝南側馬路的入口，模型4.8m寬曲折下坡、接路同高，地下層高與球場高程保留。；最新使用者定位左下角朝南側馬路的入口，模型4.8m寬曲折下坡、接路同高，地下層高與球場高程保留。",
+  "entranceSource": "facilities/basketball-parking/entrance.json"
 }

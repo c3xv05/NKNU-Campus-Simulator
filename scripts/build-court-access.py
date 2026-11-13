@@ -34,7 +34,7 @@ for access,shape in [(accesses[0],sw),(accesses[2],east)]:
    for q in g.geoms:collect_edges(q)
   elif g.geom_type=='LineString' and g.length>1e-6:lines.append([[round(x,7),round(z,7)]for x,z in g.coords])
  collect_edges(boundary);access['contactEdges']=lines
-reserved=unary_union([sw,east,stairs]);mid=(c['sportsZones'][0]['bounds'][0]+c['sportsZones'][1]['bounds'][1])/2
+reserved=unary_union([sw,east,stairs]+([Polygon(c['courtParking']['entrance']['ring'])]if c.get('courtParking',{}).get('entrance')else[]));mid=(c['sportsZones'][0]['bounds'][0]+c['sportsZones'][1]['bounds'][1])/2
 shoulders=[]
 for z in c['sportsZones']:
  rect=zones[z['id']];side=Polygon([point(x,b)for x,b in ([(-500,-500),(mid,-500),(mid,500),(-500,500)]if z['id']=='tennis'else[(mid,-500),(500,-500),(500,500),(mid,500)])]);envelope=rect.buffer(p['transitionWidth'],join_style=2).intersection(side).difference(exclusions);shape=envelope.difference(allCourts).difference(reserved)

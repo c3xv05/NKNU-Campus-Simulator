@@ -7,7 +7,7 @@ from shapely.ops import unary_union
 from shapely import constrained_delaunay_triangles,set_precision
 root=Path(__file__).resolve().parents[1];c=json.loads((root/'data/campus.json').read_text())
 js="""import fs from 'node:fs';import{createRoadNetwork}from'./roads.js';import{pavementIndex}from'./pavement.js';const c=JSON.parse(fs.readFileSync('data/campus.json')),n=createRoadNetwork(c.roads,()=>0,JSON.parse(fs.readFileSync('data/road-tags.json')),{apron:c.entranceApron,pavedAreas:c.pavedAreas,junctionFillets:c.junctionFillets}),entrance=new Set(c.roads.filter(r=>r.entrance).map(r=>r.osm));process.stdout.write(JSON.stringify(pavementIndex(n).all.filter(a=>!a.actual&&!entrance.has(a.osm)&&a.osm!=='entrance-apron').map(a=>a.points)));"""
-polygons=json.loads(subprocess.check_output(['node','--input-type=module','-e',js],cwd=root));shape=unary_union([set_precision(Polygon(p),.001) for p in polygons if Polygon(p).area>1e-7]).buffer(0)
+polygons=json.loads(subprocess.check_output(['node','--input-type=module','-e',js],cwd=root));shape=unary_union([set_precision(Polygon(p).buffer(0),.001) for p in polygons if Polygon(p).area>1e-7]).buffer(0)
 shape=shape.difference(Polygon(c['entranceApron']['ring'],c['entranceApron']['holes']))
 for a in c['places']+c['buildings']:
  if a.get('height'):shape=shape.difference(Polygon(a['ring'],a.get('holes',[])).buffer(.015,join_style=2))

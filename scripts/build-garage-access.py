@@ -1,0 +1,11 @@
+"""Locate the confirmed southwest, south-facing basement entrance at the road edge."""
+import json,math
+from pathlib import Path
+from shapely.geometry import Polygon,LineString,Point,box
+from shapely.ops import unary_union
+from shapely import constrained_delaunay_triangles
+root=Path(__file__).resolve().parents[1];c=json.loads((root/'data/campus.json').read_text());p=json.loads((root/'facilities/basketball-parking/layout.json').read_text());s=json.loads((root/'facilities/sports-courts/layout.json').read_text());cfg=json.loads((root/'facilities/basketball-parking/entrance.json').read_text());u=s['axis'];v=[-u[1],u[0]];world=lambda a,b:[round(u[i]*a+v[i]*b,7)for i in range(2)];hi=s['basketball']['bounds'][1];road=json.loads((root/'data/motor-pavement-plan.js').read_text().split('=',1)[1].rstrip(';\n'));motor=unary_union([Polygon(r[0],r[1:])for r in road['regions']]);ray=LineString([world(hi,cfg['roadContactAcross']),world(hi+30,cfg['roadContactAcross'])]);hit=ray.intersection(motor);points=list(hit.coords)if hit.geom_type=='LineString'else[q for g in hit.geoms if hasattr(g,'coords')for q in g.coords];contact=min(points,key=lambda q:ray.project(Point(q)));startU=sum(contact[i]*u[i]for i in range(2))+.12;local=[[startU,cfg['roadContactAcross']]]+cfg['localWaypoints'];line=[world(*q)for q in local];width=cfg['width'];shape=LineString(line).buffer(width/2,cap_style=2,join_style=2);outer=shape.difference(Polygon(c['sportsZones'][0]['ring']));coords=lambda r:[[round(x,7),round(z,7)]for x,z in list(r.coords)[:-1]];tris=[]
+for x in range(math.floor(shape.bounds[0]),math.ceil(shape.bounds[2])):
+ for z in range(math.floor(shape.bounds[1]),math.ceil(shape.bounds[3])):
+  tris.extend(coords(t.exterior)for t in constrained_delaunay_triangles(shape.intersection(box(x,z,x+1,z+1))).geoms if t.area>1e-8)
+p.update(vehicleEntrance='southwest-facing-south-road',entrance={'line':line,'localLine':local,'portalIndex':cfg['portalIndex'],'width':width,'portalAcross':cfg['portalAcross'],'openingWidth':cfg['openingWidth'],'road':cfg['road'],'triangles':tris,'ring':coords(shape.exterior),'groundCuts':[coords(t.exterior)for t in constrained_delaunay_triangles(outer).geoms]});c['courtParking'].update(p);(root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n');print('Built southwest garage entrance',line)

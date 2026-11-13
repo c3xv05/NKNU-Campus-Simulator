@@ -1,3 +1,4 @@
+import {observedRegionAt,flowerPalette,observedLandscape} from './observed-landscape.js';
 import {r04RegionAt,r04Vegetation} from './r04-vegetation.js';
 import {perimeterWallRings} from './facilities/s24-sidegate/west-wall.js';
 import {sidegateWalls} from './facilities/s24-sidegate/renderer.js';
@@ -14,7 +15,7 @@ export function entranceBed(){
 }
 export function createLandscapeLayout(campus,network,height){
  let seed=170491;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- const bed=entranceBed(),areas=[...(campus.yongxuLandscape?[campus.yongxuLandscape.lawn]:[]),...(campus.huanyuAccess?[campus.huanyuAccess,campus.huanyuAccess.ramp]:[]),campus.bioConnection.stairs,...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[]),...campus.places,...campus.buildings,...campus.water,...campus.courts,...(campus.sportsAccess?.surfaces||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.sportsGardens||[]),...(campus.pavedAreas||[]),...(campus.junctionFillets||[]),...(campus.sidewalkFrontages||[]),...(campus.pedestrianAreas||[]),...(campus.pedestrianLinks||[]),...perimeterWallRings(campus.perimeterWalls).map(ring=>({ring})),...(campus.sideGate?sidegateWalls(campus.sideGate).map(ring=>({ring})):[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.levelLink?.ring?[campus.levelLink]:[]),...(campus.welcomeBoard?[campus.welcomeBoard]:[])].map(a=>{const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{...a,west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs)};});
+ const bed=entranceBed(),areas=[...(campus.courtParking?.entrance?[campus.courtParking.entrance]:[]),...(campus.yongxuLandscape?[campus.yongxuLandscape.lawn]:[]),...(campus.huanyuAccess?[campus.huanyuAccess,campus.huanyuAccess.ramp]:[]),campus.bioConnection.stairs,...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[]),...campus.places,...campus.buildings,...campus.water,...campus.courts,...(campus.sportsAccess?.surfaces||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.sportsGardens||[]),...(campus.pavedAreas||[]),...(campus.junctionFillets||[]),...(campus.sidewalkFrontages||[]),...(campus.pedestrianAreas||[]),...(campus.pedestrianLinks||[]),...perimeterWallRings(campus.perimeterWalls).map(ring=>({ring})),...(campus.sideGate?sidegateWalls(campus.sideGate).map(ring=>({ring})):[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.levelLink?.ring?[campus.levelLink]:[]),...(campus.welcomeBoard?[campus.welcomeBoard]:[])].map(a=>{const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{...a,west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs)};});
  function eligible(x,z,margin=0){
   if(ringDistance(x,z,campus.boundary)!==0)return false;
   const road=network.nearest(x,z);if(road){const s=road.segment,side=Math.sign((x-s.a.x)*(-s.dz)+(z-s.a.z)*s.dx),walk=(campus.sidewalkRoadIds||[]).includes(s.route.osm)&&sidewalkSides(campus,s.route.osm).includes(side)?SIDEWALK_WIDTH:0;if(road.d<road.width/2+walk+margin)return false;}
@@ -24,13 +25,11 @@ export function createLandscapeLayout(campus,network,height){
  const trees=[],flowers=[],weeds=[];
  for(let z=-545;z<535;z+=9)for(let x=-410;x<425;x+=9){
   const px=x+(random()-.5)*7,pz=z+(random()-.5)*7;
-  if(coverAt(px,pz)==='forest'&&r04RegionAt(px,pz)?.category!=='forest'&&eligible(px,pz,3))trees.push({x:px,z:pz,y:height(px,pz),size:.85+random()*.65,tint:random()});
+  if(coverAt(px,pz)==='forest'&&r04RegionAt(px,pz)?.category!=='forest'&&observedRegionAt(px,pz)!=='R09'&&eligible(px,pz,3))trees.push({x:px,z:pz,y:height(px,pz),size:.85+random()*.65,tint:random()});
  }
  for(let z=-305;z<530;z+=r04Vegetation.forestSpacing)for(let x=-420;x< -25;x+=r04Vegetation.forestSpacing){const px=x+(random()-.5)*4,pz=z+(random()-.5)*4;if(r04RegionAt(px,pz)?.category==='forest'&&eligible(px,pz,2.8))trees.push({x:px,z:pz,y:height(px,pz),size:1+random()*.6,tint:random()});}
- for(let z=185;z<530;z+=2.8)for(let x=-240;x< -50;x+=2.4){
-  const px=x+(random()-.5)*.6,pz=z+(random()-.5)*.5;
-  if(coverAt(px,pz)==='flowers'&&eligible(px,pz,.8))flowers.push({x:px,z:pz,y:height(px,pz),size:.6+random()*.4,tint:Math.floor((x+245)/13)%3});
- }
+ for(let z=-520;z< -9;z+=observedLandscape.r09.spacing)for(let x=-350;x<20;x+=observedLandscape.r09.spacing){const px=x+(random()-.5)*4,pz=z+(random()-.5)*4;if(observedRegionAt(px,pz)==='R09'&&eligible(px,pz,2.8))trees.push({x:px,z:pz,y:height(px,pz),size:1+random()*.6,tint:random()});}
+ let flowerSeed=observedLandscape.r02.seed;const flowerRandom=()=>{flowerSeed=(Math.imul(flowerSeed,1664525)+1013904223)>>>0;return flowerSeed/4294967296;};const flowerCells=new Map(),flowerCell=observedLandscape.r02.minimumSpacing;for(let attempt=0,planted=0;attempt<90000&&planted<observedLandscape.r02.count;attempt++){const px=-306+flowerRandom()*293,pz=87+flowerRandom()*391;if(observedRegionAt(px,pz)!=='R02'||!eligible(px,pz,.65))continue;const ix=Math.floor(px/flowerCell),iz=Math.floor(pz/flowerCell);let near=false;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(const f of flowerCells.get((ix+a)+','+(iz+b))||[])if(Math.hypot(px-f.x,pz-f.z)<flowerCell)near=true;if(near)continue;const f={x:px,z:pz,y:height(px,pz),size:.55+flowerRandom()*.85,tint:Math.floor(flowerRandom()*flowerPalette.length),angle:flowerRandom()*Math.PI*2};flowers.push(f);const key=ix+','+iz;if(!flowerCells.has(key))flowerCells.set(key,[]);flowerCells.get(key).push(f);planted++;}
  for(let z=-480;z<500;z+=5)for(let x=-400;x<425;x+=5){
   const px=x+(random()-.5)*4,pz=z+(random()-.5)*4;
   if(coverAt(px,pz)==='weeds'&&eligible(px,pz,.5))weeds.push({x:px,z:pz,y:height(px,pz),size:.6+random()*.9,tint:random()});
@@ -81,7 +80,7 @@ export function addLandscape(THREE,scene,layout,height){
   };
  }
  instances('flower-stems',new THREE.CylinderGeometry(.025,.03,1,3),material(0x5d7941),layout.flowers,(d,f)=>{d.position.set(f.x,f.y+.35*f.size,f.z);d.scale.set(1,.7*f.size,1);});
- instances('flower-heads',new THREE.IcosahedronGeometry(1,0),material(0xffffff),layout.flowers,(d,f)=>{d.position.set(f.x,f.y+.7*f.size,f.z);d.scale.set(.3*f.size,.15*f.size,.3*f.size);},f=>[0xf2c94c,0xe798bb,0xa69bd8][f.tint]);
+ instances('flower-heads',new THREE.IcosahedronGeometry(1,0),material(0xffffff),layout.flowers,(d,f)=>{d.position.set(f.x,f.y+.7*f.size,f.z);d.rotation.y=f.angle||0;d.scale.set(.48*f.size,.16*f.size,.38*f.size);},f=>flowerPalette[f.tint%flowerPalette.length]);
  const grass=new THREE.BufferGeometry();grass.setAttribute('position',new THREE.Float32BufferAttribute([-.2,0,0,.2,0,0,0,.55,0,0,0,-.2,0,0,.2,0,.4,0],3));grass.computeVertexNormals();
  instances('wild-grass',grass,new THREE.MeshStandardMaterial({color:0xffffff,side:THREE.DoubleSide,roughness:1}),layout.weeds,(d,w)=>{d.position.set(w.x,w.y,w.z);d.rotation.y=w.tint*Math.PI;d.scale.setScalar(w.size);},w=>new THREE.Color().setHSL(.19+w.tint*.08,.28,.35+w.tint*.12));
  const wallVertices=[];
