@@ -24,7 +24,7 @@ def first_contact(line):
   elif hasattr(g,'coords'):points.extend(list(g.coords))
  collect(inter);base=LineString(line);return list(min(points,key=lambda q:base.project(Point(q))))
 # The southwest gate joins the nearest exterior road/sidewalk along the south normal.
-g=p['southwest'];start=point(g['along'],g['across']);ray=[start,point(g['along']+25,g['across'])];end=first_contact(ray);swLine=[start,end];sw=LineString(swLine).buffer(p['gateWidth']/2,cap_style=2).difference(allCourts).difference(exclusions)
+g=p['southwest'];start=point(g['along'],g['across']);ray=[start,point(g['along']+g['direction'][0]*25,g['across']+g['direction'][1]*25)];end=first_contact(ray);swLine=[start,end];sw=LineString(swLine).buffer(p['gateWidth']/2,cap_style=2).difference(allCourts).difference(exclusions)
 g=p['northeast'];stairLine=[point(g['along'],g['across']),point(g['along'],g['across']-g['run'])];stairs=LineString(stairLine).buffer(p['gateWidth']/2,cap_style=2);line=[point(*q)for q in g['rampLine']];end=first_contact(line);path=LineString(line);endDistance=path.project(Point(end));line=[q for q in line if path.project(Point(q))<endDistance-1e-7]+[end];east=LineString(line).buffer(1.2,cap_style=2,join_style=2).difference(allCourts).difference(exclusions).difference(stairs)
 accesses=[{'id':'basketball-sw-ramp','kind':'ramp','court':444902481,'line':swLine,'startOffset':0,'regions':regions(sw),'triangles':triangles(sw)},{'id':'basketball-east-stairs','kind':'stairs','court':444902481,'line':stairLine,'steps':g['steps'],'rise':g['rise'],'regions':regions(stairs),'triangles':triangles(stairs)},{'id':'basketball-east-ramp','kind':'ramp','court':444902481,'line':line,'startOffset':-g['rise'],'regions':regions(east),'triangles':triangles(east)}]
 for access,shape in [(accesses[0],sw),(accesses[2],east)]:
@@ -42,7 +42,7 @@ for z in c['sportsZones']:
 lo,hi,left,right=c['sportsZones'][0]['bounds'];swV=p['southwest']['across'];neU=p['northeast']['along'];half=p['gateWidth']/2;fences=[]
 for side,a,b in [('east',point(lo,left),point(hi,left)),('south',point(hi,left),point(hi,right)),('west',point(hi,right),point(lo,right))]:
  if side=='east':parts=[(a,point(neU-half,left)),(point(neU+half,left),b)]
- elif side=='south':parts=[(a,point(hi,swV-half)),(point(hi,swV+half),b)]
+ elif side=='west':parts=[(a,point(p['southwest']['along']+half,right)),(point(p['southwest']['along']-half,right),b)]
  else:parts=[(a,b)]
  for a,b in parts:fences.append({'side':side,'line':[a,b],'height':p['fenceHeight']})
 c['sportsAccess']={'surfaces':shoulders+accesses,'fences':fences,'footprints':[t for a in shoulders+accesses for t in a['triangles']]};(root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n');print('Built rectangular-court shoulders, SW ramp, short east stair and road-side ramp, and five fence runs')

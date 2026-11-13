@@ -1,3 +1,4 @@
+import {r04RegionAt} from './r04-vegetation.js';
 import {siteLawnAt} from './site-levels.js';
 import {isS06WestForest} from './terrain-calibration.js';
 import {zones} from './legacy-zones.js';
@@ -14,6 +15,7 @@ export const landcover={
 export const northernRoad=[[-195,-259],[-181,-276],[-167,-289],[-121,-311],[-74,-358],[-64,-396],[-17,-427],[0,-435]];
 export function zoneAt(x,z){return zones.find(q=>{const[w,n,e,s]=q.box;return x>=w&&x<e&&z>=n&&z<s;});}
 export function coverAt(x,z){
+ const refined=r04RegionAt(x,z);if(refined)return refined.category==='forest'?'forest':'lawn';
  if(siteLawnAt(x,z))return 'lawn';
  if(isS06WestForest(x,z))return 'forest';
  const zone=zoneAt(x,z),record=zone&&landcover[zone.id];if(!record)return 'unknown';

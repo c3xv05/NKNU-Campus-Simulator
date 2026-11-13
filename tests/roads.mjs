@@ -35,7 +35,7 @@ assert(terrain.mesh.heights.every(Number.isFinite));
 for(const segment of roads.segments){
  const x=(segment.a.x+segment.b.x)/2,z=(segment.a.z+segment.b.z)/2;
  assert(Number.isFinite(roads.surfaceHeight(x,z)));
- const plaza=roads.siteLevelAt(x,z),expected=plaza!==null&&segment.route.style.path?plaza+.185:roads.surfaceHeight(x,z)+.035;assert(Math.abs(roads.walkHeight(x,z,terrain.height(x,z))-expected)<1e-6,'Walking height does not match pavement');
+ const plaza=roads.siteLevelAt(x,z),expected=plaza!==null&&!roads.onMotorRoad(x,z)?plaza+.185:roads.surfaceHeight(x,z)+.035;assert(Math.abs(roads.walkHeight(x,z,terrain.height(x,z))-expected)<1e-6,'Walking height does not match pavement');
 }
 const track=campus.places.find(p=>p.name==='操場'),field=track.holes[0].map(([x,z])=>terrain.height(x,z));
 assert(Math.max(...field)-Math.min(...field)<.01,'Road grading must preserve the sports field');

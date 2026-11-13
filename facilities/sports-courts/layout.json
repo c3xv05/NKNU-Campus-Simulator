@@ -76,12 +76,13 @@
     "fenceHeight": 3,
     "gateWidth": 4,
     "southwest": {
-      "along": -122.7,
-      "across": -105.5,
+      "along": -126.7,
+      "across": -101.5,
       "direction": [
-        1,
-        0
-      ]
+        0,
+        1
+      ],
+      "facesRoad": 218881795
     },
     "northeast": {
       "along": -151.5,
