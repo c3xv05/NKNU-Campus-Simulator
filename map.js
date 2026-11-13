@@ -1,3 +1,4 @@
+import {perimeterWallRings} from './facilities/s24-sidegate/west-wall.js';
 import {sidegateWalls} from './facilities/s24-sidegate/renderer.js';
 import {motorPavementPlan} from './data/motor-pavement-plan.js';
 import {sidewalkPlan} from './data/sidewalk-plan.js';
@@ -39,6 +40,7 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   for(const area of [...(campus.pavedAreas||[]),...(campus.junctionFillets||[])])element('polygon',{points:polygon(area.ring),fill:'#52595a','aria-label':area.name},svg);
   drawPlanSvg(svg,motorPavementPlan,'#52595a');
   for(const area of campus.carports||[])element('polygon',{points:polygon(area.ring),fill:area.roofColor,'aria-label':area.name},svg);
+  for(const ring of perimeterWallRings(campus.perimeterWalls))element('polygon',{points:polygon(ring),fill:'#9ba6a4','aria-label':'西側圍牆'},svg);
   if(campus.sideGate){for(const ring of sidegateWalls(campus.sideGate))element('polygon',{points:polygon(ring),fill:'#9ba6a4'},svg);element('text',{x:campus.sideGate.center[0],y:campus.sideGate.center[1]-10,'text-anchor':'middle','font-size':14,fill:'#173c43',stroke:'#fff','stroke-width':2,'paint-order':'stroke'},svg).textContent='側門';}
   svgApron(svg,campus);
   if(campus.huanyuAccess)for(const a of [campus.huanyuAccess,campus.huanyuAccess.ramp])element('polygon',{points:polygon(a.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);

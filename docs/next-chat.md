@@ -8,6 +8,13 @@
 
 ## 最新完成（2026-11-13）
 
+- **側門最新更正**：警衛室-2401往西南移並沿牆轉向，保留10×7m量體，西側貼北短牆、南端距實際路緣約1.6cm且零重疊。取代前版約10.4m道路退縮；回收場／水塔不動。北短牆reach10.6m，南短牆仍9m，門口5.2m不變。
+- S23南北車棚北端／接路固定，總長按使用者「1.5倍」由42→63m，南加21m至z72.7；寬9m、淨高3.2m維持，中央步行騎車通道開放，支架改11跨。carport.json及pavedAreas同步，重建瀝青mesh。
+- 新西側圍牆：facilities/s24-sidegate/west-wall.json，從側門南短牆接車棚西側，再依既有西校界近似線至大門西側牆端[-280,525.8]。這次已確認的西段才新增，不是整圈牆、也不是恢復擋土牆。高1.6m厚0.28m、校界西偏避讓為模型近似。與實際車道／白磚／建築零重疊，兩門開口保留。
+- west-wall.js共用圍牆線形供渲染／碰撞／地圖／植栽避讓；每公尺依實際地形採樣，底部埋入，不為牆抬升地形。來源改後跑build-building-catalog、build-carports、build-sidegate，再重建pedestrian-patches／sidewalk-plan／motor-pavement-plan／court-access。
+- 新回歸：sidegate-west-wall.mjs、sidegate-west-wall-geometry.py、sidegate-west-wall-browser.py。舊sidewalk-upgrade曲線冪等檢查排除有明確entryExtensionReference的詠絮延伸路，另核對其門前端點，保留其他路重建檢查。
+
+
 - **最新南側縮退與道路坡度**：籃球南緣向北縮7.2m（兩個3.6m人行道），四座標線與八籃框整體向北移7.2m；新外圍32.8×49.5m，仍水平、矩形且不與車道／人行道重疊。保留兩出口、東短梯與東南西鐵網。
 - 移除使用者指定舊南側2m步道445696824，其他非W步道36條保留。新南側3.6m白磚人行道接S09；和南場緣留4.2m坡面過渡，不擅自刪別條步道。來源sports-courts/south-sidewalk.json。
 - 籃球下方增加約一層地下停車場結構：模型層高3.6m，樓板、頂板、柱與格線；來源basketball-parking/layout.json，車道入口尚未定位，未新增推測車行入口，24格僅模型配置。地下樓層支撐獨立，地上球場仍在原高程。
