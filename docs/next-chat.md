@@ -8,6 +8,15 @@
 
 ## 最新完成（2026-11-13）
 
+- **最新更正取代PR57部分配置**：籃球B1入口改右下角，portalAcross=-147，朝南側道路、接路仍同高；原左下入口補回人行道／肩坡／南牆。入口附近地下柱避讓車道，騎車使用實際半徑檢查；接路前坪延至10m以保留南人行道橫越，不以舊左側位置判定。
+- 文萃迎賓道取消，399908546恢復PR56的原單端支路，兩片舊路口補片回復；wencui-arrival/layout.json enabled=false，生成器禁用，不能再自動恢復迎賓環道。R13隨環道取消，R01–R12名稱編號保留。
+- 便利商店代稱仍不顯示地圖。兩組致理階梯每層7階、兩層共14階，北移靠致理，樓梯避開S05原人行道；兩層梯跑均正面朝S05，沿致理東側立面配置，禁止沿建築縱向轉向。階數依使用者要求，高程沿原樓層模型。
+- 原人行磁磚區降至S05道路高度，保留白磁磚／UV材質、圓弧外緣；不再一律加15cm。lowered-tiles.js連動局部地形與6m融合帶；sidewalk-surface及index共用實際路面支撐，不能讓角色離開白磚就跳回高台。三個核心樣本白磚與S05相差<1cm。
+- 階梯左側新致理B1車道為zhili-drive.js獨立分層設施，不作地面普通道路；來源building-access/latest-ground-access.json，build-building-access生成三角面。車道由S05接入、繞階梯左側至建築B1（樓基準-3.6m），與階梯交集零；下穿廣場／階梯時不受上層碰撞誤擋。
+- 新階梯及下沉區須重跑build-teaching-courtyard，補回舊開口並裁出新階梯／下沉區；下層廣場邊緣補至地形，致理B1門洞保留。S07／S20／S22交匯新增局部圓角磁磚過渡區，依本次照片參考，不擅自加整條S22人行道。
+- 重建：PYTHONPATH加Shapely後build-building-access→build-teaching-courtyard→build-campus-plazas→build-garage-access→pedestrian／sidewalk／motor／court-access／road-regions／r04。新回歸tests/access-corrections.mjs及-browser.py。前版arrival測試文萃環道改為可禁用，不能再要求已撤回的環道。
+
+
 - **最新六項配置**：R09除建築／通行鋪面外改茂密森林，6.5m模型格距生成約1,190棵；observed-landscape.js依現行R09多邊形分類，原R04七區保留。R02全區改八色、18,000株固定種子散點花海，位置／大小／朝向隨機，最小株距0.65m；來源r09-vegetation、r02-flowers，生成data/observed-landscape.js。
 - 側門北短牆端新增north-wall.json沿西北／北校界至科技大樓東側馬路旁；與瀝青／白磚零交集、距車道至少約1.55m，路邊停止、不跨路。原側門至大門西牆保留；兩條牆都隨實際地形貼地，不抬升地形。
 - 詠絮內側空地向北補約50m²，接到北橫翼內側外牆；草皮及原共同平台／8cm額外微坡上限保留，原始高程不變。source satellite-sketch.json存beforeNorthInfill，凹道路仍須三角化。

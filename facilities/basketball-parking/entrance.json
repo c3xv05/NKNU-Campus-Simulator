@@ -1,27 +1,27 @@
 {
   "width": 4.8,
-  "portalAcross": -105.5,
+  "portalAcross": -147,
   "openingWidth": 5.6,
   "road": 218881799,
   "localWaypoints": [
     [
       -116,
-      -113
+      -140
     ],
     [
       -117,
-      -105.5
+      -147
     ],
     [
       -122.7,
-      -105.5
+      -147
     ],
     [
       -137,
-      -105.5
+      -147
     ]
   ],
-  "roadContactAcross": -113,
+  "roadContactAcross": -140,
   "portalIndex": 3,
-  "reference": "使用者確認左下角朝南側馬路入口。端點依實際路緣自動定位；折線、4.8m寬與地下坡道為模型配置，入口與馬路共用高程。"
+  "reference": "使用者更正右下角朝南路入口，取代左下入口；寬度、同高接路及地下支撐保留。"
 }

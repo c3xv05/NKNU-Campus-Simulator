@@ -10,3 +10,5 @@ Each building definition lives in its own folder. Run `python scripts/build-buil
 For a fresh conversation, also read `docs/next-chat.md` for the current state and preserved requirements; it summarizes the journal and does not override the user's latest instructions.
 
 When changing roads, courts, sidewalks or elevations, adjust the neighboring terrain with the same continuous height field. Keep rendered and walking surfaces aligned; check seams from ground and aerial views. The user explicitly requires no abrupt terrain steps, open gaps or floating paving. Preserve this requirement across future changes.
+
+The Zhili / convenience-store entrance stairs must face S05 directly. Preserve the original street sidewalk width; do not rotate the stair flights parallel to the building to make room. Each of the two levels has seven steps, per the latest user correction.

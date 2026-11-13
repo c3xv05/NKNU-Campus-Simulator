@@ -40,6 +40,8 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
  for(const side of [-1,1])box(.65,3.1,.65,sa[0]+normal[0]*side*(stairs.topWidth/2+.2)-1.2,bioLevel+1.55,sa[1]+normal[1]*side*(stairs.topWidth/2+.2),concrete);
  const canvas=document.createElement('canvas');canvas.width=768;canvas.height=128;const ctx=canvas.getContext('2d');ctx.fillStyle='#b9b7a9';ctx.fillRect(0,0,768,128);ctx.fillStyle='#c9ad62';ctx.font='bold 70px serif';ctx.textAlign='center';ctx.fillText('生 科 大 樓',384,90);const sign=new THREE.Mesh(new THREE.PlaneGeometry(8,.85),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(canvas),side:THREE.DoubleSide}));sign.position.set(sa[0]-.15,bioLevel+3.4,sa[1]);sign.rotation.y=Math.PI/2;sign.name='biology-central-lintel-sign';group.add(sign);
  return{blockers,bridgeLevel,courtyardLevel,bioLevel,stairsBottom:bottom,solidBlocked(x,z,r,currentY=Infinity){
+  if(campus.zhiliBasementDrive&&currentY<bridgeLevel-1.8&&ringDistance(x,z,campus.zhiliBasementDrive.ring)===0)return false;
+  if(stairHeightAt(x,z,currentY,campus,terrain,network)!==null)return false;
   if(plaza.blocked(x,z,r,currentY))return true;
   if(campus.courtyard.accessRampRing&&ringDistance(x,z,campus.courtyard.accessRampRing)===0&&platformHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(planters.some(p=>Math.hypot(x-p.x,z-p.z)<p.radius+r&&Math.abs(currentY-p.y)<2))return true;

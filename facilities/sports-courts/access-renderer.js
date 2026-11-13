@@ -1,6 +1,8 @@
+import {garageAccess} from '../basketball-parking/access.js';
 import {edgeDistance} from './access-surface.js';
-export function addCourtAccess(THREE,group,campus,terrain,access){
+export function addCourtAccess(THREE,group,campus,terrain,access,network){
  if(!campus.sportsAccess)return{blockers:[]};
+ const driveway=garageAccess(campus,terrain,network);
  const pavement=new THREE.MeshStandardMaterial({color:0xb9b9aa,roughness:1,side:THREE.DoubleSide}),earth=new THREE.MeshStandardMaterial({color:0x82916d,roughness:1,side:THREE.DoubleSide}),steel=new THREE.MeshStandardMaterial({color:0x52736b,roughness:.75}),wire=new THREE.LineBasicMaterial({color:0x55716a}),blockers=[];
  const mesh=(positions,mat,name)=>{const g=new THREE.BufferGeometry(),points=[],indices=[],lookup=new Map();for(let i=0;i<positions.length;i+=3){const p=positions.slice(i,i+3).map(Math.fround),key=p.join(',');if(!lookup.has(key)){lookup.set(key,points.length/3);points.push(...p);}indices.push(lookup.get(key));}g.setAttribute('position',new THREE.Float32BufferAttribute(points,3));g.setIndex(indices);g.computeVertexNormals();const m=new THREE.Mesh(g,mat);m.name=name;m.receiveShadow=true;group.add(m);return m;};
  const sides=[];
@@ -11,7 +13,7 @@ export function addCourtAccess(THREE,group,campus,terrain,access){
   const sample=(surface,p)=>{const h=surface.floorAt(...p);if(h!==null)return h;for(const [dx,dz]of[[.0002,0],[-.0002,0],[0,.0002],[0,-.0002]]){const y=surface.floorAt(p[0]+dx,p[1]+dz);if(y!==null)return y;}return null;};
   for(const region of a.regions)for(const ring of region)for(let i=0;i<ring.length;i++){
    const p=ring[i],q=ring[(i+1)%ring.length],count=Math.max(1,Math.ceil(Math.hypot(q[0]-p[0],q[1]-p[1])/.2));
-   for(let j=0;j<count;j++){const at=t=>[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t],pa=at(j/count),pb=at((j+1)/count),h=sample(a,pa),hh=sample(a,pb);if(h===null||hh===null)continue;const mid=[(pa[0]+pb[0])/2,(pa[1]+pb[1])/2];if(campus.courtParking?.entrance&&edgeDistance(...mid,[[campus.courtParking.entrance.ring]])<.003)continue;if(edgeDistance(...mid,campus.sportsZones.map(z=>[z.ring]))<.002)continue;if(a.kind==='shoulder'&&access.surfaces.some(s=>s.kind!=='shoulder'&&edgeDistance(...mid,s.regions)<.002))continue;
+   for(let j=0;j<count;j++){const at=t=>[p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t],pa=at(j/count),pb=at((j+1)/count),h=sample(a,pa),hh=sample(a,pb);if(h===null||hh===null)continue;const mid=[(pa[0]+pb[0])/2,(pa[1]+pb[1])/2];if(driveway&&edgeDistance(...mid,[[driveway.ring]])<.003){const rh=driveway.sample(...pa).height,rhh=driveway.sample(...pb).height;sides.push(pa[0],h,pa[1],pa[0],rh,pa[1],pb[0],hh,pb[1],pb[0],hh,pb[1],pa[0],rh,pa[1],pb[0],rhh,pb[1]);continue;}if(edgeDistance(...mid,campus.sportsZones.map(z=>[z.ring]))<.002)continue;if(a.kind==='shoulder'&&access.surfaces.some(s=>s.kind!=='shoulder'&&edgeDistance(...mid,s.regions)<.002))continue;
     const neighbor=p=>{if(a.kind!=='shoulder')for(const s of access.surfaces.filter(s=>s.kind==='shoulder')){const y=sample(s,p);if(y!==null)return y;}return access.outsideFloorAt(...p);},ph=neighbor(pa),qh=neighbor(pb),v=[pa[0],Math.max(h,ph)+.04,pa[1]],w=[pb[0],Math.max(hh,qh)+.04,pb[1]],r=[pa[0],Math.min(h,ph,terrain.height(...pa))-.7,pa[1]],z=[pb[0],Math.min(hh,qh,terrain.height(...pb))-.7,pb[1]];sides.push(...v,...r,...w,...w,...r,...z);
    }
   }
