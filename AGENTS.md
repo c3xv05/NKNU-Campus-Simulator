@@ -8,3 +8,5 @@ Read `docs/research/buildings.md` before changing unverified facades, and `docs/
 Each building definition lives in its own folder. Run `python scripts/build-building-catalog.py` after edits, then appropriate pure and browser checks. Do not put credentials in public browser code. Keep developer entry code as an interface convenience, not remote write authorization.
 
 For a fresh conversation, also read `docs/next-chat.md` for the current state and preserved requirements; it summarizes the journal and does not override the user's latest instructions.
+
+When changing roads, courts, sidewalks or elevations, adjust the neighboring terrain with the same continuous height field. Keep rendered and walking surfaces aligned; check seams from ground and aerial views. The user explicitly requires no abrupt terrain steps, open gaps or floating paving. Preserve this requirement across future changes.

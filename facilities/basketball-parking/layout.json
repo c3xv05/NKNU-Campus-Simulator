@@ -1,0 +1,11 @@
+{
+  "court": 444902481,
+  "levels": 1,
+  "depth": 3.6,
+  "slabThickness": 0.25,
+  "columnSpacing": 8,
+  "columnSize": 0.45,
+  "modelParkingBays": 24,
+  "vehicleEntrance": "unlocated",
+  "reference": "使用者確認籃球場下方約一層地下停車場；3.6m層高、柱網及停車格為模型近似，車道出入口尚未定位，未新增推測車行入口。"
+}

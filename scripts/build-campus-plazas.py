@@ -20,6 +20,7 @@ for link in layout['pedestrianLinks']:
 c['yongxuAccess']=json.loads((root/'facilities/yongxu-access/layout.json').read_text());layout['yongxuAccess']=c['yongxuAccess']
 road=next(r for r in c['roads'] if r['osm']==c['yongxuAccess']['road']);road.setdefault('beforeEntryExtension',road['line']);road['line']=road['beforeEntryExtension']+[c['yongxuAccess']['roadEnd']];road['entryExtensionReference']='facilities/yongxu-access/layout.json'
 entry=next(a for a in c['pavedAreas'] if a['id']=='yongxu-entry-apron');entry['reference']='2026-11-13使用者要求門口馬路延伸到詠絮樓；S21中心線延至門前，與半圓及原入口鋪面聯集，精確共用正面兩端頂點，不侵入建築。'
+south=json.loads((root/'facilities/sports-courts/south-sidewalk.json').read_text());c['roads']=[r for r in c['roads']if r['osm']!=south['removeFootpath']['osm']]
 for key in ['levelAreas','pedestrianAreas','pedestrianLinks']:c[key]=layout[key]
 (root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n')
 (root/'data/site-layout.js').write_text('// Shared flat campus quarters and pedestrian additions; source: facilities/campus-plazas/layout.json.\nexport const campusSiteLayout='+json.dumps(layout,ensure_ascii=False,separators=(',',':'))+';\n')
