@@ -195,3 +195,5 @@ python scripts/build-motor-pavement-plan.py
 寰宇二樓入口平台由 `facilities/huanyu-platform/layout.json` 設定，執行 `python scripts/build-huanyu-platform.py` 後再生成 walk obstacles、pedestrian patches、sidewalk plan、motor pavement plan。`surface.js` 共用坡面渲染／通行網格。三棟各自的 `geometry.platformOffset` 保存半層下降；`platformAnchor` 及 `levelLink.terrainAnchors` 固定既有高程採樣，局部退縮不會順帶改動全校道路。驗證：`node tests/teaching-quarter.mjs`、`python tests/teaching-quarter-browser.py`。
 
 中央廣場的兩層白磚、樓板及邊界由 `facilities/teaching-courtyard` 維護，內側牆面從建築頂點引用，避免退縮後留空隙。依序執行 `build-building-access.py`（含中央樓梯）、`build-teaching-courtyard.py`、`build-huanyu-platform.py`，再重建一般鋪面。兩層共用原白磚材質但分開實際支撐面；相機按所在樓層避障。寰宇平台來源現為三樓T形，橫段沿詠霽路人行道、直段接門口。高斯兩段支路的新曲線保存在原道路資料及buildingBypass備註；保留路寬與其餘道路。驗證：`node tests/two-level-plaza.mjs`、`python tests/two-level-plaza-browser.py`。
+
+開發者登入後，快速傳送新增其餘建築，涵蓋全部20棟（含原公開四棟，另保留大門）；登出即回五個公開點，實際傳送亦檢查登入。新對話可先讀 [接續摘要](docs/next-chat.md) 及Issue #9，不必重貼整段聊天。歸燕入口補面在campus-plazas的swallow-entrance-infill，修改後走既有人行道生成流程。驗證：`node tests/developer-travel.mjs`、`python tests/developer-travel-browser.py`。

@@ -6,3 +6,5 @@ Read the project's GitHub Issues containing `<!-- nknu-dev-record -->` (includin
 Read `docs/research/buildings.md` before changing unverified facades, and `docs/research/story-seeds.md` before adding NPCs/events. Separate verified source facts, user site observations and model approximations. Story seeds are notes, not approval to add gameplay.
 
 Each building definition lives in its own folder. Run `python scripts/build-building-catalog.py` after edits, then appropriate pure and browser checks. Do not put credentials in public browser code. Keep developer entry code as an interface convenience, not remote write authorization.
+
+For a fresh conversation, also read `docs/next-chat.md` for the current state and preserved requirements; it summarizes the journal and does not override the user's latest instructions.
