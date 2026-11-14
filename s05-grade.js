@@ -1,5 +1,5 @@
 // Preserve S05 endpoints. Keep the main climb even and ease it beyond Gauss.
-export const S05_GRADE = Object.freeze({road:218881800,gaussNorthZ:-217.239336,transitionLength:32,northernSlopeRatio:.2,core:5.4,fade:14});
+export const S05_GRADE = Object.freeze({road:218881800,gaussNorthZ:-217.239336,transitionLength:32,northernSlopeRatio:.2,core:9.2,fade:14});
 export function createS05Grade(routes,height){
  const r=routes.find(r=>r.osm===S05_GRADE.road);if(!r)return null;
  const p=r.points,s=[0];for(let i=1;i<p.length;i++)s.push(s.at(-1)+Math.hypot(p[i].x-p[i-1].x,p[i].z-p[i-1].z));
