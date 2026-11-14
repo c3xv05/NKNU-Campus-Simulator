@@ -10,3 +10,5 @@ Each building definition lives in its own folder. Run `python scripts/build-buil
 For a fresh conversation, also read `docs/next-chat.md` for the current state and preserved requirements; it summarizes the journal and does not override the user's latest instructions.
 
 When changing roads, courts, sidewalks or elevations, adjust the neighboring terrain with the same continuous height field. Keep rendered and walking surfaces aligned; check seams from ground and aerial views. The user explicitly requires no abrupt terrain steps, open gaps or floating paving. Preserve this requirement across future changes.
+
+For the Jiyuan S07/S20/S22 tiled corner, resolve section IDs through data/sidewalk-sections.js: S07=382869349, S20=381734286, S22=383447314. The intended patch is inside the S20/S22 wedge south of S07 (near [-262,-7]); do not place it across S07 near [-273,-35]. Verify using road-number labels in an aerial view.
