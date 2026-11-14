@@ -1,3 +1,4 @@
+import {addGrassParking} from './grass-parking.js';
 import {addPerimeterWalls} from './facilities/s24-sidegate/west-wall.js';
 import {addBasketballParking} from './facilities/basketball-parking/renderer.js';
 import {createCourtAccess} from './facilities/sports-courts/access-surface.js';
@@ -68,6 +69,7 @@ export function addSiteDetails(THREE,scene,campus,terrain,network){
   }
   facilityLabels.push({name:court.name,x:cx,z:cz,y:roofY+2});
  }
+ addGrassParking(THREE,group,campus,terrain);
  const parking=addBasketballParking(THREE,group,campus,terrain,network);blockers.push(...parking.blockers);
  const courtAccess=createCourtAccess(campus,terrain,network,sidewalkSurface);const courtAccessRendering=addCourtAccess(THREE,group,campus,terrain,courtAccess);blockers.push(...courtAccessRendering.blockers);
  const sportsGardens=addSportsGardens(THREE,group,campus,terrain);
