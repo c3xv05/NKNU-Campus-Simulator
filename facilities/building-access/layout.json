@@ -25,55 +25,45 @@
       "id": "zhili-lower",
       "line": [
         [
-          -117.71381169471886,
-          -275.1696821350881
+          -111.5,
+          -223.5
         ],
         [
-          -115.92433413315545,
-          -275.80825089149664
+          -98.6,
+          -228.2
         ]
       ],
       "width": 12,
       "topWidth": 12,
-      "steps": 7,
-      "flights": 1,
-      "landingFraction": 0,
+      "steps": 40,
+      "flights": 2,
+      "landingFraction": 0.12,
       "name": "S05至致理一樓大階梯",
       "topLevel": "zhili-ground",
       "bottomLevel": "road",
-      "desc": "每層七階，整組移至致理最北邊緣，朝S05，原人行道不縮減；南側留B1入口。",
-      "roadAnchor": [
-        -107.50329034712323,
-        -278.8997602093418
-      ],
-      "facesRoad": 218881800
+      "desc": "依使用者照片：道路經寬階梯至致理一樓／高斯二樓，兩段梯跑中間設平台。"
     },
     {
       "id": "zhili-upper",
       "line": [
         [
-          -120.40252224801786,
-          -282.7043244995656
+          -125,
+          -222
         ],
         [
-          -118.61304468645446,
-          -283.3428932559741
+          -114.2,
+          -226
         ]
       ],
       "width": 4.5,
       "topWidth": 4.5,
-      "steps": 7,
-      "flights": 1,
-      "landingFraction": 0,
+      "steps": 24,
+      "flights": 2,
+      "landingFraction": 0.14,
       "name": "致理一樓至教學平台小階梯",
       "topLevel": "teaching-courtyard",
       "bottomLevel": "zhili-ground",
-      "desc": "每層七階，整組移至致理最北邊緣，朝S05，原人行道不縮減；南側留B1入口。",
-      "roadAnchor": [
-        -110.26019559239072,
-        -286.4093671351011
-      ],
-      "facesRoad": 218881800
+      "desc": "依使用者敘述：由致理一樓再經小樓梯上共同平台，非道路直達上層。"
     }
   ],
   "courtyardStairs": [

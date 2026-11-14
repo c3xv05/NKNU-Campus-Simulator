@@ -201,7 +201,7 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
     const motor=onMotorRoad(x,z);if(!motor&&roadGrade?.sample(x,z).weight>0){const path=nearest(x,z);if(!path?.segment.route.style.path||path.d>path.width/2)return ground+.035;}
     return (motor?surfaceHeight(x,z):integratedHeight(x,z,ground))+.035;
   }
-  return {loweredTiles:options.loweredTiles,roadGrade,siteLevels:siteLevels.areas,siteLevelAt:siteLevels.levelAt,edgePavement:options.edgePavement||[],junctionFillets:options.junctionFillets||[],pavedAreas:options.pavedAreas||[],apron:options.apron,entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
+  return {roadGrade,siteLevels:siteLevels.areas,siteLevelAt:siteLevels.levelAt,edgePavement:options.edgePavement||[],junctionFillets:options.junctionFillets||[],pavedAreas:options.pavedAreas||[],apron:options.apron,entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
 }
 
 export function prepareRoadCurves(roads){const sources=roads.map(r=>({...r,line:r.sourceLine||r.line})),connections=new Map();for(const r of sources)for(const p of r.line){const k=pointKey(...p);connections.set(k,(connections.get(k)||0)+1);}return sources.map(r=>({...r,sourceLine:r.line,line:r.preservedLine||(r.entrance?r.line:roundedLine(r.line,r.width,connections)),curvesPrepared:true}));}

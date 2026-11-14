@@ -40,7 +40,6 @@ import {createAvatar} from './avatar.js';
 import {addSiteDetails} from './site-details.js';
 import {addBuildings,loadBuildingProfiles} from './buildings/renderer.js';
 import {stairHeightAt} from './connections.js';
-import {gradeLoweredTiles} from './lowered-tiles.js';
 import {parkingSupportAt} from './facilities/basketball-parking/surface.js';
 import {lakeAt,bridgeHeight,platformHeightAt} from './site-physics.js';
 import {sidegateWalls} from './facilities/s24-sidegate/renderer.js';
@@ -89,14 +88,14 @@ const terrainHeight = terrain.height;
 const roadTagsResponse=await fetch('./data/road-tags.json');
 if(!roadTagsResponse.ok)throw new Error('道路資料載入失敗');
 const roadTags=await roadTagsResponse.json();
-const roadNetwork=createRoadNetwork(campus.roads,terrain.rawHeight,roadTags,{apron:campus.entranceApron,pavedAreas:campus.pavedAreas,junctionFillets:campus.junctionFillets,sharedGradeGrid:true,loweredTiles:campus.zhiliLoweredTiles,edgePavement:motorPavementPlan.infillTriangles,gradeObstacles:[...campus.places,...campus.buildings].filter(a=>a.height)});
+const roadNetwork=createRoadNetwork(campus.roads,terrain.rawHeight,roadTags,{apron:campus.entranceApron,pavedAreas:campus.pavedAreas,junctionFillets:campus.junctionFillets,sharedGradeGrid:true,edgePavement:motorPavementPlan.infillTriangles,gradeObstacles:[...campus.places,...campus.buildings].filter(a=>a.height)});
 const protectedPlatforms=[...campus.places.filter(a=>!a.height),...campus.water,...campus.courts].map(area=>{
   const xs=area.ring.map(p=>p[0]),zs=area.ring.map(p=>p[1]);
   return {west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs),contains:(x,z)=>distanceToRing(x,z,area.ring)===0};
 });
-roadNetwork.gradeTerrain(terrain.mesh,protectedPlatforms);gradeLoweredTiles(terrain,roadNetwork,campus);
+roadNetwork.gradeTerrain(terrain.mesh,protectedPlatforms);
 let siteDetails=null;
-const walkHeight=(x,z)=>{const court=campus.courts.find(a=>distanceToRing(x,z,a.ring)===0);return court?terrain.platformHeight(court)+.15:siteDetails?.courtAccess.heightAt(x,z)??siteDetails?.sidewalkAt(x,z)??(campus.zhiliLoweredTiles&&distanceToRing(x,z,campus.zhiliLoweredTiles.ring)<6?terrainHeight(x,z)+.035:roadNetwork.walkHeight(x,z,terrainHeight(x,z)));};
+const walkHeight=(x,z)=>{const court=campus.courts.find(a=>distanceToRing(x,z,a.ring)===0);return court?terrain.platformHeight(court)+.15:siteDetails?.courtAccess.heightAt(x,z)??siteDetails?.sidewalkAt(x,z)??roadNetwork.walkHeight(x,z,terrainHeight(x,z));};
 const terrainGeometry = new THREE.BufferGeometry();
 const terrainPositions = [], terrainIndices = [];
 const tm = terrain.mesh;
@@ -184,7 +183,7 @@ const labelMeshes = [];
 
 siteDetails=addSiteDetails(THREE,scene,campus,terrain,roadNetwork);cameraObstacles.push(...siteDetails.blockers);
 const roadRendering=addRoads(THREE,scene,roadNetwork,terrainHeight,campus);
-const cutGround=cutRoadsFromGround(terrain.mesh,[...(campus.zhiliBasementDrive?.triangles||[]),...(campus.courtParking?.entrance?.groundCuts||[]),...campus.courts.filter(a=>a.playingCourts).map(a=>a.ring),...(campus.sportsAccess?.footprints||[]),...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points),...(campus.courtyard.footprints||[]),...(campus.huanyuAccess?.footprints||[]),campus.bioConnection.stairs.ring,...[...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[])].map(s=>s.ring)],terrainGeometry.getAttribute('normal').array);
+const cutGround=cutRoadsFromGround(terrain.mesh,[...(campus.courtParking?.entrance?.groundCuts||[]),...campus.courts.filter(a=>a.playingCourts).map(a=>a.ring),...(campus.sportsAccess?.footprints||[]),...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points),...(campus.courtyard.footprints||[]),...(campus.huanyuAccess?.footprints||[]),campus.bioConnection.stairs.ring,...[...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[])].map(s=>s.ring)],terrainGeometry.getAttribute('normal').array);
 const cutGeometry=new THREE.BufferGeometry();
 // Clipping preserves the original triangle interpolation. Resampling new cut points
 // independently produces non-conforming T-junctions and visible cracks.
@@ -505,10 +504,10 @@ function movePlayer(dx,dz,radius){
  const steps=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.6));
  for(let i=0;i<steps;i++){
   const x=THREE.MathUtils.clamp(player.position.x+dx/steps,bounds.west,bounds.east),z=THREE.MathUtils.clamp(player.position.z+dz/steps,bounds.north,bounds.south);
-  const linkLevel=siteDetails.bridgeLevel,connection=siteDetails.zhiliDrive?.supportAt(x,z,player.position.y)??parkingSupportAt(x,z,player.position.y,campus,terrain,roadNetwork)??(motion.riding?null:(stairHeightAt(x,z,player.position.y,campus,terrain,roadNetwork)??platformHeightAt(x,z,player.position.y,campus,terrain,roadNetwork)??bridgeHeight(x,z,player.position.y,campus.levelLink,linkLevel)??bridgeHeight(x,z,player.position.y,campus.bioConnection,siteDetails.bioLevel)));
+  const linkLevel=siteDetails.bridgeLevel,connection=parkingSupportAt(x,z,player.position.y,campus,terrain,roadNetwork)??(motion.riding?null:(stairHeightAt(x,z,player.position.y,campus,terrain,roadNetwork)??platformHeightAt(x,z,player.position.y,campus,terrain,roadNetwork)??bridgeHeight(x,z,player.position.y,campus.levelLink,linkLevel)??bridgeHeight(x,z,player.position.y,campus.bioConnection,siteDetails.bioLevel)));
   const lake=lakeAt(x,z,campus);
   if(lake){const road=roadNetwork.nearest(x,z);if(!(road&&road.d<road.width/2&&roadNetwork.surfaceHeight(x,z)>terrain.platformHeight(lake)+.2)){motion.speed=0;showToast('前方是湖泊，請沿岸行走');return false;}}
-  const blockedBuilding=obstacles.some(building=>!(building.osm===444867693&&siteDetails.zhiliDrive?.supportAt(x,z,player.position.y)!=null)&&distanceToRing(x,z,building.ring)<radius&&!(building.passage&&!motion.riding&&passageAt(x,z,player.position.y,building,terrain,radius))&&!(connection!==null&&[campus.levelLink.from,campus.levelLink.to,campus.bioConnection.from,campus.bioConnection.to].includes(building.osm)));
+  const blockedBuilding=obstacles.some(building=>distanceToRing(x,z,building.ring)<radius&&!(building.passage&&!motion.riding&&passageAt(x,z,player.position.y,building,terrain,radius))&&!(connection!==null&&[campus.levelLink.from,campus.levelLink.to,campus.bioConnection.from,campus.bioConnection.to].includes(building.osm)));
   if(welcomeBoard.blocked(x,z,radius)||blockedBuilding||landscapeLayout.blocked(x,z,radius)||siteDetails.blocked(x,z,radius,player.position.y)){motion.speed=0;return false;}
   player.position.set(x,connection??walkHeight(x,z),z);
  }
@@ -557,7 +556,7 @@ function frame(now){
  cameraRay.set(focus,arm.clone().normalize());cameraRay.far=arm.length();
  const obstruction=cameraRay.intersectObjects(cameraObstacles,false)[0];
  if(obstruction)target=focus.clone().addScaledVector(arm.normalize(),Math.max(.8,obstruction.distance-.6));
- cam.position.lerp(target,1-Math.exp(-dt*9));const cameraSupport=siteDetails.zhiliDrive?.supportAt(cam.position.x,cam.position.z,player.position.y)??platformHeightAt(cam.position.x,cam.position.z,player.position.y,campus,terrain,roadNetwork);cam.position.y=Math.max(cam.position.y,(cameraSupport??terrainHeight(cam.position.x,cam.position.z))+2);
+ cam.position.lerp(target,1-Math.exp(-dt*9));const cameraSupport=platformHeightAt(cam.position.x,cam.position.z,player.position.y,campus,terrain,roadNetwork);cam.position.y=Math.max(cam.position.y,(cameraSupport??terrainHeight(cam.position.x,cam.position.z))+2);
  if(aerial.enabled){
   const base=walkHeight(aerial.center.x,aerial.center.z),distance=aerial.height/Math.tan(pitch);
   cam.position.set(aerial.center.x+Math.sin(yaw)*distance,base+aerial.height,aerial.center.z+Math.cos(yaw)*distance);

@@ -1,4 +1,4 @@
-"""Locate the confirmed southeast, south-facing basement entrance at the road edge."""
+"""Locate the confirmed southwest, south-facing basement entrance at the road edge."""
 import json,math
 from pathlib import Path
 from shapely.geometry import Polygon,LineString,Point,box
@@ -8,4 +8,4 @@ root=Path(__file__).resolve().parents[1];c=json.loads((root/'data/campus.json').
 for x in range(math.floor(shape.bounds[0]),math.ceil(shape.bounds[2])):
  for z in range(math.floor(shape.bounds[1]),math.ceil(shape.bounds[3])):
   tris.extend(coords(t.exterior)for t in constrained_delaunay_triangles(shape.intersection(box(x,z,x+1,z+1))).geoms if t.area>1e-8)
-p.update(vehicleEntrance='southeast-facing-south-road',entrance={'line':line,'localLine':local,'portalIndex':cfg['portalIndex'],'width':width,'portalAcross':cfg['portalAcross'],'openingWidth':cfg['openingWidth'],'road':cfg['road'],'triangles':tris,'ring':coords(shape.exterior),'groundCuts':[coords(t.exterior)for t in constrained_delaunay_triangles(outer).geoms]});c['courtParking'].update(p);(root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n');print('Built southeast garage entrance',line)
+p.update(vehicleEntrance='southwest-facing-south-road',entrance={'line':line,'localLine':local,'portalIndex':cfg['portalIndex'],'width':width,'portalAcross':cfg['portalAcross'],'openingWidth':cfg['openingWidth'],'road':cfg['road'],'triangles':tris,'ring':coords(shape.exterior),'groundCuts':[coords(t.exterior)for t in constrained_delaunay_triangles(outer).geoms]});c['courtParking'].update(p);(root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n');print('Built southwest garage entrance',line)
