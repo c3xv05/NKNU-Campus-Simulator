@@ -183,9 +183,7 @@ const labelMeshes = [];
 
 siteDetails=addSiteDetails(THREE,scene,campus,terrain,roadNetwork);cameraObstacles.push(...siteDetails.blockers);
 const roadRendering=addRoads(THREE,scene,roadNetwork,terrainHeight,campus);
-// Use exact sidewalk triangles around S05 so the newly graded ground cannot poke through simplified cut footprints.
-const s05TileCuts=sidewalkPlan.triangles.filter(t=>t.some(([x,z])=>x>=-132&&x<=-10&&z>=-320&&z<=-70));
-const cutGround=cutRoadsFromGround(terrain.mesh,[...(campus.courtParking?.entrance?.groundCuts||[]),...campus.courts.filter(a=>a.playingCourts).map(a=>a.ring),...(campus.sportsAccess?.footprints||[]),...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points),...s05TileCuts,...(campus.courtyard.footprints||[]),...(campus.huanyuAccess?.footprints||[]),campus.bioConnection.stairs.ring,...[...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[])].map(s=>s.ring)],terrainGeometry.getAttribute('normal').array);
+const cutGround=cutRoadsFromGround(terrain.mesh,[...(campus.courtParking?.entrance?.groundCuts||[]),...campus.courts.filter(a=>a.playingCourts).map(a=>a.ring),...(campus.sportsAccess?.footprints||[]),...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points),...(campus.courtyard.footprints||[]),...(campus.huanyuAccess?.footprints||[]),campus.bioConnection.stairs.ring,...[...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[])].map(s=>s.ring)],terrainGeometry.getAttribute('normal').array);
 const cutGeometry=new THREE.BufferGeometry();
 // Clipping preserves the original triangle interpolation. Resampling new cut points
 // independently produces non-conforming T-junctions and visible cracks.
