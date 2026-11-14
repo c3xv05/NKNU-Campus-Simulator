@@ -1,4 +1,3 @@
-import {createS05Grade} from './s05-grade.js';
 import {createRoadGradeProfile} from './road-grade-profile.js';
 import {campusSiteLayout} from './data/site-layout.js';
 import {createSiteLevels} from './site-levels.js';
@@ -184,8 +183,7 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
    if(along<0||along>length+2||across>access.width/2+3)return h;
    const base=siteLevels.levelAt(...a)??roadSurfaceHeight(...a),t=clamp(along/length,0,1),end=siteLevels.levelAt(...b)??base+access.rise,target=base+(end-base)*t*t*(3-2*t),weight=1-ease(access.width/2,access.width/2+3,across);return h+clamp((target-h)*weight,-access.maxAdjustment,access.maxAdjustment);
   }
-  const s05Grade=options.observedGrade===false?null:createS05Grade(routes,baseSurfaceHeight);
-  const ungriddedSurfaceHeight=(x,z)=>{const h=baseSurfaceHeight(x,z);const original=roadGrade?roadGrade.apply(x,z,h):h;return s05Grade?s05Grade.apply(x,z,original):original;};
+  const ungriddedSurfaceHeight=(x,z)=>{const h=baseSurfaceHeight(x,z);return roadGrade?roadGrade.apply(x,z,h):h;};
   const surfaceHeight=options.sharedGradeGrid?gradeGrid(ungriddedSurfaceHeight,undefined,{smooth:true}):ungriddedSurfaceHeight;
   function gradeTerrain(mesh,protectedAreas=[]) {
     for(let r=0;r<mesh.rows;r++)for(let c=0;c<mesh.columns;c++){
@@ -193,14 +191,14 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
       const inner=(road?.width||0)/2+mesh.step*1.5,outer=inner+14;if((road?.d??Infinity)>=outer&&!paved.some(a=>pavedWeight(a,x,z)>0))continue;
       if(siteLevels.levelAt(x,z)!==null)continue;
       if(protectedAreas.some(a=>x>=a.west&&x<=a.east&&z>=a.north&&z<=a.south&&a.contains(x,z)))continue;
-      let weight=Math.max(1-ease(inner,outer,road?.d??Infinity),...paved.map(a=>pavedWeight(a,x,z)));if(roadGrade?.sample(x,z).weight>0||s05Grade?.sample(x,z).weight>0)for(const pad of gradePads)if(x>=pad.west&&x<=pad.east&&z>=pad.north&&z<=pad.south)weight*=ease(0,(roadGrade?.config.buildingBlend||2),ringDistance(x,z,pad.ring));const index=r*mesh.columns+c;
+      let weight=Math.max(1-ease(inner,outer,road?.d??Infinity),...paved.map(a=>pavedWeight(a,x,z)));if(roadGrade?.sample(x,z).weight>0)for(const pad of gradePads)if(x>=pad.west&&x<=pad.east&&z>=pad.north&&z<=pad.south)weight*=ease(0,roadGrade.config.buildingBlend,ringDistance(x,z,pad.ring));const index=r*mesh.columns+c;
       mesh.heights[index]+=(surfaceHeight(x,z)-.015-mesh.heights[index])*weight;
     }
   }
   function integratedHeight(x,z,ground){const road=nearest(x,z);const weight=Math.max(road?1-ease(road.width/2+2,road.width/2+16,road.d):0,...paved.map(a=>pavedWeight(a,x,z)));return ground+(surfaceHeight(x,z)-ground)*weight;}
   function walkHeight(x,z,ground) {
     const level=siteLevels.levelAt(x,z);if(level!==null&&!onMotorRoad(x,z))return level+.185;
-    const motor=onMotorRoad(x,z);if(!motor&&(roadGrade?.sample(x,z).weight>0||s05Grade?.sample(x,z).weight>0)){const path=nearest(x,z);if(!path?.segment.route.style.path||path.d>path.width/2)return ground+.035;}
+    const motor=onMotorRoad(x,z);if(!motor&&roadGrade?.sample(x,z).weight>0){const path=nearest(x,z);if(!path?.segment.route.style.path||path.d>path.width/2)return ground+.035;}
     return (motor?surfaceHeight(x,z):integratedHeight(x,z,ground))+.035;
   }
   return {roadGrade,siteLevels:siteLevels.areas,siteLevelAt:siteLevels.levelAt,edgePavement:options.edgePavement||[],junctionFillets:options.junctionFillets||[],pavedAreas:options.pavedAreas||[],apron:options.apron,entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
