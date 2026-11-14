@@ -18,6 +18,4 @@ upper=upper.union(LineString(stair['line']).buffer(2.6,cap_style=2).intersection
 for s in c['levelLink']['stairs']+court.get('stairs',[]):upper=upper.difference(Polygon(s['ring']))
 ramp=LineString(court['ramp']).buffer(court['width']/2,cap_style=2);court['rampTargetFloor']=1;court['accessRampRing']=[[round(x,7),round(z,7)] for x,z in list(ramp.exterior.coords)[:-1]]
 lower=shape.difference(Polygon(c['levelLink']['stairs'][0]['ring'])).difference(ramp)
-if c.get('zhiliLoweredTiles'):
- mask=Polygon(c['zhiliLoweredTiles']['ring']);lower=lower.difference(mask);upper=upper.difference(mask)
 court.update(name=layout['name'],ring=layout['ring'],floors=2,floorHeight=layout['floorHeight'],floorRegions={'lower':regions(lower),'upper':regions(upper)},floorTriangles={'lower':triangles(lower),'upper':triangles(upper)},footprints=triangles(shape),pillars=[p for p in layout['pillars'] if upper.contains(Point(p))],upperShape='L',huanyuWalkWidth=plan['huanyuWalkWidth'],desc=layout['reference']);(root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n');print('Built two-level tiled courtyard',round(shape.area,1),'m² and central stair opening')
