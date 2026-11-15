@@ -22,3 +22,7 @@ print('Built',len(c['junctionFillets']),'round junction patches; radii are model
 if (root/"facilities/s05-s06-junction/layout.json").exists():
  import subprocess,sys
  subprocess.run([sys.executable,str(root/"scripts/build-s05-s06-junction.py")],check=True)
+
+if (root/"facilities/jiyuan-access/layout.json").exists() and json.loads((root/"facilities/jiyuan-access/layout.json").read_text()).get("northTransition"):
+ import subprocess,sys
+ subprocess.run([sys.executable,str(root/"scripts/build-jiyuan-transition.py")],check=True)

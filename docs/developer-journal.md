@@ -468,3 +468,13 @@ sports-courts來源新增沿向陽路座標框的矩形bounds；籃球區模型4
 來源facilities/s05-s06-junction/layout.json，build-s05-s06-junction.py只替換該內彎；全校build-junction-fillets也會套回此覆寫，防止重建縮回。重建接續campus-plazas→pedestrian-patches→sidewalk-plan→motor-pavement-plan→court-access→road-regions→r04。保留S07/S20/S22正確內角，未重啟任何S05調坡模組。
 
 驗證：雙向步行／騎車轉彎1,408點、人行道雙向554點零阻擋，無JS／Shader錯誤。瀝青補角約45.55m²，白磚沿新路緣共邊>15m，無建築／車道重疊；706白磚採樣、道路與路幅、S07/S20/S22正確內角回歸通過，所有道路中心線逐筆不變。俯瞰確認加大圓弧，並將該路口舊標線中斷範圍擴至24m，避免伸入加大後的轉角。
+
+## 2026-11-15：S20/S22接S07圓弧端、開發者座標與新對話模板
+
+使用者要求白磚碰到S07處圓弧過渡，保留正確S20/S22內角。來源jiyuan-access新增northTransition與beforeNorthTransition；build-jiyuan-transition.py只圓順靠S07北端的兩個白磚角（2m模型半徑），裁下約0.693m²補為瀝青，避免留下草縫，S05/S06加大彎及原坡度保留。通用補角重建會套回此修正。
+
+開發者即時座標模組developer-coordinates.js只在登入後顯示，目前位置X/Y/Z（公尺）與複製座標；空中模式改顯示觀察中心的地面座標與離地高度，避免誤報停在原位的角色。複製含模式及視角，剪貼簿不可用則顯示可選取文字，登出立即隱藏。
+
+新對話可用docs/new-chat-template.md；每對話一項細節，讀最新main、AGENTS／next-chat／journal與Issue9，貼座標及該對話圖片；同時施工使用獨立worktree，不覆蓋其他工作，合併前同步並記錄完成／待辦。
+
+驗證：桌面及390px手機的訪客隱藏／登入顯示、地面位置即時更新、空中中心與高度、複製JSON、剪貼簿失敗文字備援、登出隱藏並清空通過，無JS錯誤；開發者浮動按鈕另測桌面與手機直／橫向不遮座標。白磚兩端局部圓弧與原位置檢查、706白磚高度／支撐、S05/S06加大彎與原坡度保留回歸通過。
