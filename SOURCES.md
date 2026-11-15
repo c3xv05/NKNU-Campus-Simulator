@@ -295,3 +295,11 @@ B1入口4.8m寬、約33m折坡、5.6m門洞與前4.5m順接前坪為既有模型
 來源facilities/s05-s06-junction/layout.json，build-s05-s06-junction.py只替換該內彎；全校build-junction-fillets也會套回此覆寫，防止重建縮回。重建接續campus-plazas→pedestrian-patches→sidewalk-plan→motor-pavement-plan→court-access→road-regions→r04。保留S07/S20/S22正確內角，未重啟任何S05調坡模組。
 
 對照實景：https://www.google.com/maps/@22.7892594,120.4057973,3a,90y,210h,85t/data=!3m7!1e1!3m5!1sCIHM0ogKEICAgIDEp86mYA!2e10!7i5660!8i2830 （2017-10使用者全景）；校方定位圖：https://c.nknu.edu.tw/aca/UploadFile/News/2025112483249/%E9%99%84%E4%BB%B63-%E7%87%95%E5%B7%A2%E6%A0%A1%E5%8D%80%E5%9C%B0%E5%9C%96.pdf 。
+
+## 2026-11-15：S20/S22接S07圓弧端、開發者座標與新對話模板
+
+使用者要求白磚碰到S07處圓弧過渡，保留正確S20/S22內角。來源jiyuan-access新增northTransition與beforeNorthTransition；build-jiyuan-transition.py只圓順靠S07北端的兩個白磚角（2m模型半徑），裁下約0.693m²補為瀝青，避免留下草縫，S05/S06加大彎及原坡度保留。通用補角重建會套回此修正。
+
+開發者即時座標模組developer-coordinates.js只在登入後顯示，目前位置X/Y/Z（公尺）與複製座標；空中模式改顯示觀察中心的地面座標與離地高度，避免誤報停在原位的角色。複製含模式及視角，剪貼簿不可用則顯示可選取文字，登出立即隱藏。
+
+新對話可用docs/new-chat-template.md；每對話一項細節，讀最新main、AGENTS／next-chat／journal與Issue9，貼座標及該對話圖片；同時施工使用獨立worktree，不覆蓋其他工作，合併前同步並記錄完成／待辦。

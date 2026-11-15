@@ -35,6 +35,7 @@ import {cutRoadsFromGround} from './road-ground.js';
 import {findDestinations,findBuildingDestinations,stepScooter} from './travel.js';
 import {passageAt} from './building-passages.js';
 import {isDeveloper} from './developer-auth.js';
+import {mountDeveloperCoordinates} from './developer-coordinates.js';
 import {createScooter} from './scooter.js';
 import {createAvatar} from './avatar.js';
 import {addSiteDetails} from './site-details.js';
@@ -498,8 +499,9 @@ function minimap() {
 
 
 window.addEventListener('campus-developer-dialog',clearInput);
-window.campusDeveloperContext=()=>({position:{x:+player.position.x.toFixed(2),y:+player.position.y.toFixed(2),z:+player.position.z.toFixed(2)},mode:aerial.enabled?'空中觀察':motion.riding?'騎車':'步行',speedKmh:+(motion.speed*3.6).toFixed(1),aerial:aerial.enabled?{height:+aerial.height.toFixed(1),center:{x:+aerial.center.x.toFixed(2),z:+aerial.center.z.toFixed(2)}}:null,view:{yaw:+yaw.toFixed(3),pitch:+pitch.toFixed(3),camera:{x:+cam.position.x.toFixed(2),y:+cam.position.y.toFixed(2),z:+cam.position.z.toFixed(2)}}});
+window.campusDeveloperContext=()=>({position:{x:+player.position.x.toFixed(2),y:+player.position.y.toFixed(2),z:+player.position.z.toFixed(2)},mode:aerial.enabled?'空中觀察':motion.riding?'騎車':'步行',speedKmh:+(motion.speed*3.6).toFixed(1),aerial:aerial.enabled?{height:+aerial.height.toFixed(1),center:{x:+aerial.center.x.toFixed(2),z:+aerial.center.z.toFixed(2),y:+walkHeight(aerial.center.x,aerial.center.z).toFixed(2)}}:null,view:{yaw:+yaw.toFixed(3),pitch:+pitch.toFixed(3),camera:{x:+cam.position.x.toFixed(2),y:+cam.position.y.toFixed(2),z:+cam.position.z.toFixed(2)}}});
 const campusMap=setupCampusMap({campus,places,player,visited,bounds,terrainHeight:walkHeight,datum:terrain.datum,clearInput,getYaw:()=>yaw,isActive:()=>active});
+const coordinateDisplay=mountDeveloperCoordinates({container:document.getElementById('tools'),isDeveloper,getContext:()=>window.campusDeveloperContext()});
 function movePlayer(dx,dz,radius){
  const steps=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.6));
  for(let i=0;i<steps;i++){
@@ -563,7 +565,7 @@ function frame(now){
   cam.lookAt(aerial.center.x,base,aerial.center.z);
  }else if(pitch<0)cam.lookAt(player.position.x,player.position.y+1.1-pitch*20,player.position.z);
  else cam.lookAt(player.position.x,player.position.y+1.1,player.position.z);
- siteDetails.update(now,cam.position);buildingRendering.update(viewCenter.x,viewCenter.z,now);landscapeGroup.userData.updateView?.(cam.position,focus);minimap();campusMap.update();renderer.render(scene,cam);
+ coordinateDisplay.update(now);siteDetails.update(now,cam.position);buildingRendering.update(viewCenter.x,viewCenter.z,now);landscapeGroup.userData.updateView?.(cam.position,focus);minimap();campusMap.update();renderer.render(scene,cam);
 }
 requestAnimationFrame(frame);
 document.getElementById('play').disabled=false;document.getElementById('play').textContent='開始探索';
