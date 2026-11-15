@@ -17,3 +17,8 @@ polygons=list(patch.geoms) if hasattr(patch,'geoms') else [patch]
 c['junctionFillets']=[{'id':f'junction-fillet-{i}', 'ring':[[round(x,6),round(z,6)] for x,z in list(p.exterior.coords)[:-1]], 'triangles':[[[round(x,6),round(z,6)] for x,z in list(t.exterior.coords)[:-1]] for t in constrained_delaunay_triangles(p).geoms if t.area>0.00001]} for i,p in enumerate(polygons) if p.geom_type=='Polygon' and p.area>.04 and not p.interiors]
 (root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n')
 print('Built',len(c['junctionFillets']),'round junction patches; radii are model estimates')
+
+# Preserve the user-confirmed larger S05/S06 turn when rebuilding all corners.
+if (root/"facilities/s05-s06-junction/layout.json").exists():
+ import subprocess,sys
+ subprocess.run([sys.executable,str(root/"scripts/build-s05-s06-junction.py")],check=True)
