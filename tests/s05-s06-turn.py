@@ -1,0 +1,6 @@
+import json,subprocess
+from pathlib import Path
+from shapely.geometry import Polygon,Point
+from shapely.ops import unary_union
+root=Path(__file__).resolve().parents[1];c=json.loads((root/'data/campus.json').read_text());before=json.loads(subprocess.check_output(['git','show','2a9be11:data/campus.json'],cwd=root));assert c['roads']==before['roads'];old=next(a for a in before['junctionFillets']if a['id']=='junction-fillet-34');new=unary_union([Polygon(a['ring'])for a in c['junctionFillets']if a['id'].startswith('s05-s06-wide-')]);assert new.area>Polygon(old['ring']).area*4;assert new.within(Point(-121.2,-311).buffer(40));assert all(new.intersection(Polygon(a['ring'])).area<1e-5 for a in c['places']if a.get('height'))
+load=lambda name:json.loads((root/('data/'+name+'-plan.js')).read_text().split('=',1)[1].rstrip(';\n'));walk=unary_union([Polygon(r[0],r[1:])for r in load('sidewalk')['regions']]);motor=unary_union([Polygon(r[0],r[1:])for r in load('motor-pavement')['regions']]);assert walk.intersection(motor).area<.02;assert new.boundary.intersection(walk.buffer(.01)).length>15;assert any(a['id']=='s07-s20-s22-inner-corner'for a in c['pedestrianAreas']);assert not(root/'s05-grade.js').exists();print('PASS: wider local turn, sidewalk follows >15m of new curb, no building/road overlap, original road lines and S05 grade preserved')

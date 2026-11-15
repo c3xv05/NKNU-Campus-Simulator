@@ -287,3 +287,11 @@ B1入口4.8m寬、約33m折坡、5.6m門洞與前4.5m順接前坪為既有模型
 ## 2026-11-14：依使用者要求恢復S05原坡度
 
 撤回PR61首次S05調坡及PR62平均坡度／高斯北轉緩的全部坡度修改，roads.js與index.html精確恢復調坡前1a63175版本；移除s05-grade.js及專屬裁切。道路、人行道與鄰側地形恢復原共用高度場，原始高程檔未改。PR63正確S07/S20/S22內角圓弧、霽遠樓及草皮停車格保留，不撤回其他配置。此筆取代前述S05平均坡度要求。
+
+## 2026-11-15：S05接S06擴大圓弧及同步人行道
+
+使用者確認該接點圓弧應更大，實際比對Google Maps接點附近2017-10使用者全景（22.7892594,120.4057973，CIHM0ogKEICAgIDEp86mYA），並核對校方燕巢校區圖。指定S05=218881800、S06=293423729，接點[-121.2,-311]南側兩路之間的內彎；僅該角落內緣圓弧由通用5m改模型14m，原中心線、寬度及S05恢復後坡度不變。新增約46m²瀝青補角、人行道維持3.6m白磚並依新瀝青邊緣順接，鄰地共用原高度場、避免懸空斷層。半徑是依影像與使用者描述的模型近似，非實測；照片為2017年，未當作目前精確測量。
+
+來源facilities/s05-s06-junction/layout.json，build-s05-s06-junction.py只替換該內彎；全校build-junction-fillets也會套回此覆寫，防止重建縮回。重建接續campus-plazas→pedestrian-patches→sidewalk-plan→motor-pavement-plan→court-access→road-regions→r04。保留S07/S20/S22正確內角，未重啟任何S05調坡模組。
+
+對照實景：https://www.google.com/maps/@22.7892594,120.4057973,3a,90y,210h,85t/data=!3m7!1e1!3m5!1sCIHM0ogKEICAgIDEp86mYA!2e10!7i5660!8i2830 （2017-10使用者全景）；校方定位圖：https://c.nknu.edu.tw/aca/UploadFile/News/2025112483249/%E9%99%84%E4%BB%B63-%E7%87%95%E5%B7%A2%E6%A0%A1%E5%8D%80%E5%9C%B0%E5%9C%96.pdf 。

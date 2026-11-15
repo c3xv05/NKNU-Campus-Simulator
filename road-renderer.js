@@ -60,7 +60,7 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
     }
   }
   const crossings=new Map([[218881805,18],[293423732,27],[293423728,12]]);
-  function nearJunction(x,z){return network.junctions.some(j=>j.motor&&Math.hypot(j.x-x,j.z-z)<j.width*.85+1);}
+  function nearJunction(x,z){const turn=campus?.s05S06Turn;if(turn&&Math.hypot(x-turn.junction[0],z-turn.junction[1])<turn.radius+10)return true;return network.junctions.some(j=>j.motor&&Math.hypot(j.x-x,j.z-z)<j.width*.85+1);}
   for(const route of network.routes){if(route.entrance&&campus?.entranceApron?.ring)continue;currentRoute=route;
     const type=route.style.path?'concrete':'asphalt',half=route.width/2,points=route.points,sections=[];
     sections.push(...routeSections(route).map(p=>({...p,half:p.width/2})));

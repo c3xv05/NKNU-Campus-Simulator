@@ -1,0 +1,10 @@
+{
+  "id": "s05-s06-wide-turn",
+  "roads": [218881800, 293423729],
+  "junction": [-121.2, -311],
+  "radius": 14,
+  "extent": 40,
+  "sidewalkWidth": 3.6,
+  "reference": "使用者要求S05接S06圓弧更大；對照Google Maps接點附近2017-10使用者全景，路口較開闊。14m內緣圓弧為模型近似，非實測；保持原路線與坡度，只擴大指定轉角並連動白磚。",
+  "streetView": "https://www.google.com/maps/@22.7892594,120.4057973,3a,90y,210h,85t/data=!3m7!1e1!3m5!1sCIHM0ogKEICAgIDEp86mYA!2e10!7i5660!8i2830"
+}
