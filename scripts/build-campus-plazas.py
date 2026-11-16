@@ -23,6 +23,8 @@ road=next(r for r in c['roads'] if r['osm']==c['yongxuAccess']['road']);road.set
 photo=json.loads((root/'facilities/yongxu-access/satellite-sketch.json').read_text());c['pavedAreas']=[a for a in c['pavedAreas']if a['id']not in ['yongxu-forecourt','yongxu-entry-apron']]+[dict(id='yongxu-forecourt',name='詠絮樓內側道路',ring=photo['roadRing'],anchor=[-187.1,-59.7],reference=photo['reference'])];c['yongxuLandscape']={'lawn':{'ring':photo['lawnRing'],'name':'詠絮樓內側草皮'},'reference':photo['reference']}
 entry=next(a for a in c['pavedAreas']if a['id']=='yongxu-forecourt');entry['triangles']=[[[round(x,7),round(z,7)]for x,z in list(t.exterior.coords)[:-1]]for t in constrained_delaunay_triangles(Polygon(entry['ring'])).geoms]
 south=json.loads((root/'facilities/sports-courts/south-sidewalk.json').read_text());c['roads']=[r for r in c['roads']if r['osm']!=south['removeFootpath']['osm']]
+if c.get('teachingAccess'):
+ access=c['teachingAccess'];layout['pedestrianAreas']=[a for a in layout['pedestrianAreas']if a['id']not in [access['infillId'],access['infillId']+'-reclaimed']]+[dict(id=access['infillId'],name='縮減階梯後補齊白磚人行道',ring=access['frontApron'],reference=access['reference']),dict(id=access['infillId']+'-reclaimed',name='原大階梯騰出區白磚修補',ring=access['reclaimedFootprint'],reference=access['reference'])]
 for key in ['levelAreas','pedestrianAreas','pedestrianLinks']:c[key]=layout[key]
 (root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n')
 (root/'data/site-layout.js').write_text('// Shared flat campus quarters and pedestrian additions; source: facilities/campus-plazas/layout.json.\nexport const campusSiteLayout='+json.dumps(layout,ensure_ascii=False,separators=(',',':'))+';\n')

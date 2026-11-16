@@ -22,6 +22,9 @@ parts=list(shape.geoms) if hasattr(shape,'geoms') else [shape]
 shape=unary_union([Polygon(p.exterior,[h for h in p.interiors if Polygon(h).area>=.01]) for p in parts])
 # Remove micrometre clipping slivers; retain curb outlines to within a millimetre.
 shape=shape.simplify(.0005,preserve_topology=True)
+# Compact teaching stairs retain exact shared edges after outline simplification.
+if c.get('teachingAccess'):
+ for s in c['levelLink']['stairs']:shape=shape.difference(Polygon(s['ring']))
 regions=[p for p in (list(shape.geoms) if hasattr(shape,'geoms') else [shape]) if p.area>=.002]
 shape=unary_union(regions)
 step=1.25;triangles=[];rings=[]

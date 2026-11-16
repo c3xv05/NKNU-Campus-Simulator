@@ -29,6 +29,7 @@ mountCampusSwitcher("yanchao",[document.getElementById("tools"),document.getElem
 <script type="module" src="./developer.js"></script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
+import {gradeTeachingAccess} from './teaching-access-ground.js';
 import {createTerrain, sampleElevation} from './terrain.js';
 import {motorPavementPlan} from './data/motor-pavement-plan.js';
 import {sidewalkPlan} from './data/sidewalk-plan.js';
@@ -101,6 +102,7 @@ const protectedPlatforms=[...campus.places.filter(a=>!a.height),...campus.water,
   return {west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs),contains:(x,z)=>distanceToRing(x,z,area.ring)===0};
 });
 roadNetwork.gradeTerrain(terrain.mesh,protectedPlatforms);
+gradeTeachingAccess(terrain,campus,roadNetwork);
 let siteDetails=null;
 const walkHeight=(x,z)=>{const court=campus.courts.find(a=>distanceToRing(x,z,a.ring)===0);return court?terrain.platformHeight(court)+.15:siteDetails?.courtAccess.heightAt(x,z)??siteDetails?.sidewalkAt(x,z)??roadNetwork.walkHeight(x,z,terrainHeight(x,z));};
 const terrainGeometry = new THREE.BufferGeometry();

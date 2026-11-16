@@ -13,6 +13,7 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
  const link=campus.levelLink,from=campus.places.find(a=>a.osm===link.from),to=campus.places.find(a=>a.osm===link.to),bridgeLevel=terrain.platformHeight(from),courtyardLevel=bridgeLevel+3.6,linkRing=connectionRing(link),foundation=terrain.platformHeight(to)-4;
  const teaching=(link.stairs||[]),cutPieces=(ring,cuts)=>cuts.reduce((pieces,cut)=>pieces.flatMap(p=>subtract(p.map(([x,z])=>[x,0,z]),cut).map(q=>q.map(([x,,z])=>[x,z]))),[ring]);
  for(const [i,piece] of cutPieces(linkRing,teaching.map(s=>stairRing(s))).entries())prism(piece,bridgeLevel-.25,foundation,brick,i?'zhili-gauss-solid-foundation-'+i:'zhili-gauss-solid-foundation');
+ if(campus.teachingAccess){const landing=campus.teachingAccess.lowerLanding,base=Math.min(...landing.map(([x,z])=>terrain.height(x,z)-1));for(const [i,piece]of cutPieces(landing,[linkRing,...teaching.map(s=>stairRing(s))]).entries())blockers.push(prism(piece,bridgeLevel-.25,base,brick,'compact-teaching-landing-foundation-'+i));}
  const plaza=addTeachingCourtyard(THREE,group,campus,terrain,tileMaterial);blockers.push(...plaza.blockers);
  if(campus.courtyard)ramp(campus.courtyard.ramp,campus.courtyard.width,network.walkHeight(...campus.courtyard.ramp[0],terrain.height(...campus.courtyard.ramp[0])),campus.courtyard.rampTargetFloor===1?bridgeLevel:courtyardLevel,'courtyard-access-ramp');
  const bio=campus.bioConnection,bioLevel=terrain.platformHeight(campus.places.find(a=>a.osm===bio.from))+3.6,bioRing=connectionRing(bio),stairs=bio.stairs,bioStairRing=stairRing(stairs),bottom=network.walkHeight(...stairs.line[1],terrain.height(...stairs.line[1]));
@@ -24,10 +25,10 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
  // Batch the solid treads and flat intermediate landings into one mesh per staircase.
  for(const def of stairDefinitions){const positions=[],colors=[],base=Math.min(def.bottom-1,...stairRing(def).map(([x,z])=>terrain.height(x,z)-1));
   const triangle=(a,b,c,color)=>{for(const p of [a,b,c]){positions.push(...p);colors.push(...color.toArray());}},quad=(a,b,c,d,color)=>{triangle(a,b,c,color);triangle(a,c,d,color);};
-  for(const band of stairBands(def)){const ring=stairRing(def,band.start,band.end),top=stairSurface(def,band.start),lip=top-.04,at=(p,y)=>[p[0],y,p[1]];
+  for(const band of stairBands(def)){const full=stairRing(def,band.start,band.end),lerp=(a,b,u)=>a.map((v,i)=>v+(b[i]-v)*u),slices=def.bottomStations?def.bottomStations.slice(1).map((p,i)=>{const lo=(def.bottomStations[i].across+def.width/2)/def.width,hi=(p.across+def.width/2)/def.width;return[lerp(full[3],full[0],hi),lerp(full[2],full[1],hi),lerp(full[2],full[1],lo),lerp(full[3],full[0],lo)];}):[full];for(const ring of slices){const at=(p,y)=>[p[0],y,p[1]],top=p=>stairSurface(def,band.start,p[0],p[1]);
    // The pale riser lip is part of the solid mesh, never a coplanar overlay.
-   quad(...ring.map(p=>at(p,top)),treadColor);quad(...[...ring].reverse().map(p=>at(p,base)),riserColor);
-   for(let i=0;i<ring.length;i++){const a=ring[i],b=ring[(i+1)%ring.length];quad(at(a,base),at(b,base),at(b,lip),at(a,lip),riserColor);quad(at(a,lip),at(b,lip),at(b,top),at(a,top),treadColor);}}
+   quad(...ring.map(p=>at(p,top(p))),treadColor);quad(...[...ring].reverse().map(p=>at(p,base)),riserColor);
+   for(let i=0;i<ring.length;i++){const a=ring[i],b=ring[(i+1)%ring.length];quad(at(a,base),at(b,base),at(b,top(b)-.04),at(a,top(a)-.04),riserColor);quad(at(a,top(a)-.04),at(b,top(b)-.04),at(b,top(b)),at(a,top(a)),treadColor);}}}
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geometry.computeVertexNormals();const mesh=new THREE.Mesh(geometry,stairMaterial);mesh.name=def.id==='biology'?'biology-east-staircase':def.id+'-staircase';mesh.receiveShadow=true;mesh.userData={steps:def.steps,flights:def.flights,landings:(def.flights||1)-1};group.add(mesh);
   const [a,b]=def.line,dx=b[0]-a[0],dz=b[1]-a[1],run=Math.hypot(dx,dz),yaw=Math.atan2(dx,dz),normal=[-dz/run,dx/run];
   // Low stepped cheek walls border each flight; the central walking line stays open.
@@ -45,6 +46,7 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
   if(planters.some(p=>Math.hypot(x-p.x,z-p.z)<p.radius+r&&Math.abs(currentY-p.y)<2))return true;
   if(stairDefinitions.some(s=>ringDistance(x,z,stairRing(s))===0)&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(ringDistance(x,z,bioRing)===0&&currentY<bioLevel-.6&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
+  if(campus.teachingAccess&&ringDistance(x,z,campus.teachingAccess.lowerLanding)===0&&currentY<bridgeLevel-.5&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(ringDistance(x,z,linkRing)===0&&currentY<bridgeLevel-.5&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   return false;
  }};
