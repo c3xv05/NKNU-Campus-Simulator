@@ -1,0 +1,19 @@
+{
+  "id": "gauss-s05-waiting-shelter",
+  "building": 444867692,
+  "road": 218881800,
+  "side": 1,
+  "width": 3.2,
+  "clearance": 3.05,
+  "roofThickness": 0.12,
+  "postSpacing": 4,
+  "postSize": 0.14,
+  "entranceClearance": 1,
+  "benchCount": 3,
+  "benchLength": 2.4,
+  "benchDepth": 0.55,
+  "benchOffset": 1.15,
+  "readerOffset": -1,
+  "reference": "2026-11-16使用者現場描述：高斯門口面S05，過門口向南的人行道有遮陽／雨棚，約至高斯最南牆；設候車長椅，棚南端有上車刷卡機。位置關係依使用者觀察；棚寬、淨高、柱距、3張長椅與設備尺寸為模型近似，非測量。；棚尾以面S05立面與南側牆相接的牆角對齊，保留既有南側支路開口，不跨車道。",
+  "endAlignment": "S05-frontage-south-wall-corner"
+}
