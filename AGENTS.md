@@ -15,6 +15,10 @@ For the Jiyuan S07/S20/S22 tiled corner, resolve section IDs through data/sidewa
 
 For separate detail-focused conversations, use docs/new-chat-template.md. Read the latest main/Issue #9 before work and again before merging. Keep each conversation scoped; use a separate git worktree when conversations run concurrently, and never overwrite another conversation's uncommitted changes. Record completed and pending work in next-chat and Issue #9.
 
+## Current teaching stairs (2026-11-16)
+
+The convenience-store communication alias now has two staircases of eight steps each, aligned with Zhili and behind its S05 facade line. This supersedes the old 40/24 and withdrawn seven-step layouts. Read facilities/building-access/README.md and compactAccess in layout.json; rebuild the teaching courtyard and paving after stair changes. Preserve the restored white paving, full-width sidewalk-grade bottom profile and local terrain blend. Do not restore the withdrawn B1/downset sidewalk or alternate garage entrance.
+
 ## Multiple campuses
 
 Yanchao remains index.html and the existing root data/buildings/facilities. Heping uses heping.html, heping.js, heping-world.js and campuses/heping/. Never reuse Yanchao terrain or road numbers as Heping facts. Read campuses/heping/README.md and the relevant independent building JSON before changes; regenerate with scripts/build-heping.py (Shapely 2.1.2). Heping is an OSM footprint prototype with a shared flat height baseline; facades, unknown levels, road widths and terrain need verification. Exclude the attached high school (OSM 179137001). Keep both campus switch controls working; coordinates/reports must identify campus. Run Heping geometry/browser checks and relevant Yanchao regressions when editing shared modules.

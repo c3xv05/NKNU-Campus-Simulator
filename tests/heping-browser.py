@@ -13,7 +13,7 @@ with sync_playwright() as p:
   page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.on('console',lambda m:errors.append(m.text) if m.type=='error' and 'Shader Error' in m.text else None)
   page.goto(base+'heping.html')
   page.get_by_role('button',name='開始探索',exact=True).click(timeout=90000);page.wait_for_function('window.__heping')
-  assert page.locator('#top [aria-current=page]').inner_text()=='和平校區'
+  assert page.locator('#top [aria-current=page]').inner_text()=='和平校區 測試版'
   assert not page.locator('#developerCoordinates').is_visible()
   page.evaluate("async()=>{const auth=await import('./developer-auth.js');auth.loginDeveloper('0315');}")
   page.locator('#developerCoordinates').wait_for(state='visible');assert page.evaluate('campusDeveloperContext().campus')=='heping'
@@ -35,7 +35,7 @@ with sync_playwright() as p:
   # Return to Yanchao through the in-game campus control; existing scene still loads.
   page.locator('#top').get_by_role('link',name='燕巢校區',exact=True).click();page.get_by_role('button',name='開始探索',exact=True).click(timeout=180000);page.screenshot(path=f'/tmp/yanchao-switch-{mobile}.png')
   switch=page.locator('#tools .campus-switcher').bounding_box();assert switch and switch['width']>100
-  page.locator('#tools').get_by_role('link',name='和平校區',exact=True).click();page.get_by_role('button',name='開始探索',exact=True).click(timeout=90000)
+  page.locator('#tools').get_by_role('link',name='和平校區 測試版',exact=True).click();page.get_by_role('button',name='開始探索',exact=True).click(timeout=90000)
   assert not errors,errors
   print('PASS:', 'mobile' if mobile else 'desktop','campus round-trip, walking, riding, aerial, map travel, safe arrivals, no JS/Shader errors',flush=True);c.close()
  b.close()

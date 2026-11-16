@@ -35,13 +35,14 @@
       ],
       "width": 12,
       "topWidth": 12,
-      "steps": 40,
-      "flights": 2,
-      "landingFraction": 0.12,
+      "steps": 8,
+      "flights": 1,
+      "landingFraction": 0,
       "name": "S05至致理一樓大階梯",
       "topLevel": "zhili-ground",
       "bottomLevel": "road",
-      "desc": "依使用者照片：道路經寬階梯至致理一樓／高斯二樓，兩段梯跑中間設平台。"
+      "desc": "2026-11-16使用者要求：兩層各八階，縮短梯跑並對齊致理，退開並補齊人行道；尺寸與立面定位為模型近似。",
+      "bottomProfile": "sidewalk"
     },
     {
       "id": "zhili-upper",
@@ -57,13 +58,13 @@
       ],
       "width": 4.5,
       "topWidth": 4.5,
-      "steps": 24,
-      "flights": 2,
-      "landingFraction": 0.14,
+      "steps": 8,
+      "flights": 1,
+      "landingFraction": 0,
       "name": "致理一樓至教學平台小階梯",
       "topLevel": "teaching-courtyard",
       "bottomLevel": "zhili-ground",
-      "desc": "依使用者敘述：由致理一樓再經小樓梯上共同平台，非道路直達上層。"
+      "desc": "2026-11-16使用者要求：兩層各八階，縮短梯跑並對齊致理，退開並補齊人行道；尺寸與立面定位為模型近似。"
     }
   ],
   "courtyardStairs": [
@@ -95,5 +96,65 @@
     "location": "致理／高斯連接處",
     "mapVisible": false,
     "purpose": "僅為使用者與開發者溝通位置的代稱，不建立店家、招牌或地圖標記。"
+  },
+  "beforeEightStepLayout": [
+    {
+      "id": "zhili-lower",
+      "line": [
+        [
+          -111.5,
+          -223.5
+        ],
+        [
+          -98.6,
+          -228.2
+        ]
+      ],
+      "width": 12,
+      "topWidth": 12,
+      "steps": 40,
+      "flights": 2,
+      "landingFraction": 0.12,
+      "name": "S05至致理一樓大階梯",
+      "topLevel": "zhili-ground",
+      "bottomLevel": "road",
+      "desc": "依使用者照片：道路經寬階梯至致理一樓／高斯二樓，兩段梯跑中間設平台。"
+    },
+    {
+      "id": "zhili-upper",
+      "line": [
+        [
+          -125,
+          -222
+        ],
+        [
+          -114.2,
+          -226
+        ]
+      ],
+      "width": 4.5,
+      "topWidth": 4.5,
+      "steps": 24,
+      "flights": 2,
+      "landingFraction": 0.14,
+      "name": "致理一樓至教學平台小階梯",
+      "topLevel": "teaching-courtyard",
+      "bottomLevel": "zhili-ground",
+      "desc": "依使用者敘述：由致理一樓再經小樓梯上共同平台，非道路直達上層。"
+    }
+  ],
+  "compactAccess": {
+    "reference": "2026-11-16使用者本輪要求，取代原40/24階；不恢復PR58/59的七階、B1車道或下沉人行道。",
+    "building": "zhili",
+    "frontEdge": 1,
+    "northClearance": 0.15,
+    "frontInset": 0.12,
+    "lowerRun": 3.2,
+    "upperRun": 3.2,
+    "upperTopInset": 24.7,
+    "lowerLandingBack": 6.5,
+    "frontApronReach": 3.5,
+    "infillId": "teaching-stair-front-infill",
+    "note": "八階為使用者確認；3.2m梯跑、15cm北留縫及12cm立面內縮等為模型定位參數，非測量。"
   }
 }

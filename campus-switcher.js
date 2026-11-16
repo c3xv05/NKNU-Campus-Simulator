@@ -4,6 +4,7 @@ export function mountCampusSwitcher(current, containers) {
     const nav=document.createElement('nav');nav.className='campus-switcher';nav.setAttribute('aria-label','切換校區');
     for(const [id,label,href] of [['yanchao','燕巢校區','./index.html'],['heping','和平校區','./heping.html']]){
       const link=document.createElement('a');link.href=href;link.textContent=label;
+      if(id==='heping'){const badge=document.createElement('span');badge.className='campus-beta';badge.textContent='測試版';link.append(document.createTextNode(' '),badge);}
       if(id===current)link.setAttribute('aria-current','page');
       nav.append(link);
     }
