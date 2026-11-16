@@ -17,7 +17,7 @@ For separate detail-focused conversations, use docs/new-chat-template.md. Read t
 
 ## Current teaching stairs (2026-11-16)
 
-The convenience-store communication alias now has two staircases of eight steps each, aligned with Zhili and behind its S05 facade line. This supersedes the old 40/24 and withdrawn seven-step layouts. Read facilities/building-access/README.md and compactAccess in layout.json; rebuild the teaching courtyard and paving after stair changes. Preserve the restored white paving, full-width sidewalk-grade bottom profile and local terrain blend. Do not restore the withdrawn B1/downset sidewalk or alternate garage entrance.
+The convenience-store communication alias now has a lower staircase of eight steps, a level rest landing, then eight more steps (16 total); the upper small staircase remains eight steps. It stays aligned with Zhili and behind the S05 facade. This supersedes PR71's single lower eight-step flight as well as the old 40/24 and withdrawn seven-step layouts. Read facilities/building-access/README.md and compactAccess in layout.json; rebuild the teaching courtyard and paving after stair changes. Fill the whole gap to the Gauss wall (gapFootprint), not only the former stair footprint. Preserve the restored white paving, full-width sidewalk-grade bottom profile and local terrain blend. Do not restore the withdrawn B1/downset sidewalk or alternate garage entrance.
 
 ## Multiple campuses
 
