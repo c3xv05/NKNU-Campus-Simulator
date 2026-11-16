@@ -311,3 +311,8 @@ B1入口4.8m寬、約33m折坡、5.6m門洞與前4.5m順接前坪為既有模型
 來源facilities/gauss-stop/layout.json，build-gauss-stop.mjs依高斯立面與S05實際路線生成campus.gaussStop；build-building-catalog完成後會自動同步。屋頂寬3.2m、淨高3.05m，3張2.4m長椅、柱距與刷卡機尺寸皆模型近似；使用者只確認相對位置，非實測尺寸／數量。長椅與立柱靠建築側，南端刷卡機靠路側且面向人行通道。設備僅場景模型，沒有付款／驗票功能或虛構班次。
 
 棚頂、柱腳、長椅腳及機器依實際白磚高度貼地；保留人行中心通道，物件有高度相依碰撞，棚頂為相機障礙、空中俯瞰時淡化。植栽避讓棚區。渲染／通行共用facilities/gauss-stop/renderer.js；修改來源後跑build-building-catalog（含棚生成）及gauss-stop純／瀏覽器檢查。S05原坡度、加大S05/S06彎、S07/S20/S22圓弧及開發者座標保留。
+
+
+## 和平校區（2026-11-16）
+
+獨立OSM來源、校界／附中排除、建築逐棟來源與所有模型近似列於 [campuses/heping/README.md](campuses/heping/README.md)。原始OSM回應保存在source/osm.json，ODbL 1.0；本次未取得可驗證的官方和平校區圖或實測高程，初版共同水平基準不代表實際平坦度。道路、步道、鄰地共高裁切，未更動燕巢任何幾何資料。

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>NKNU 和平校園探索</title><link rel="stylesheet" href="./campus-switcher.css"><link rel="stylesheet" href="./developer.css"><link rel="stylesheet" href="./heping.css"></head>
+<body>
+<div id="scene"></div>
+<header id="top"><h1>🏫 NKNU 和平校園探索</h1><small>城市校園・圖資量體初版</small><div id="progress" role="status"></div></header>
+<aside id="tools"><details><summary>快速傳送</summary><div id="destinations"></div></details><button id="ride" aria-pressed="false">🛵 騎機車</button><button id="aerial" aria-pressed="false">空中觀察</button><span id="speed"></span></aside>
+<button id="mapOpen" aria-label="開啟和平校園地圖" aria-haspopup="dialog"><canvas id="map" width="220" height="270"></canvas><span>校園地圖 · M</span></button>
+<div id="info" role="status">靠近建築查看名稱</div>
+<div id="touch"><div id="joystick" aria-label="移動搖桿"><span id="knob"></span></div><div id="touchright"><button id="turnL" aria-label="向左轉">↶</button><button id="turnR" aria-label="向右轉">↷</button></div></div>
+<dialog id="mapDialog" aria-labelledby="mapTitle"><header><div><h2 id="mapTitle">和平校園地圖</h2><p>北方朝上 · 點選地標可定位與傳送</p></div><button id="mapClose" aria-label="關閉地圖">✕</button></header><div class="map-layout"><canvas id="largeMap" width="720" height="900" aria-label="和平校區校界、建築、道路及目前位置"></canvas><div><div id="selection" role="status">選擇地標</div><button id="mapTravel" disabled>傳送至此處</button><div id="buildingList"></div></div></div><p class="source">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> · ODbL。2026-11-16圖資；已排除附中區域。建物名稱與輪廓依OSM，外觀、路寬與未記載層數為模型近似。初版採共同水平地面，細部高程、出入口、階梯及人行道側別待校正。<a href="./campuses/heping/README.md">來源與待辦</a></p></dialog>
+<div id="start"><section id="panel"><div class="icon">🏫</div><h2>和平校園模擬器</h2><p>從和平一路側走進校園，探索教學、宿舍與運動區。<br>WASD 移動 · 拖曳環看 · Shift 奔跑<br>R 騎車 · M 地圖 · 空中觀察可俯瞰全校<br>手機：左手搖桿移動，右手拖曳調整視角。</p><button id="play" disabled>載入校園…</button><p id="notice">圖資量體初版：建築外觀、路寬與地形仍待實地校正。和平探索進度獨立保存；切換校區會重設位置。</p></section></div>
+<script type="module" src="./developer.js"></script>
+<script type="module" src="./heping.js"></script>
+</body></html>

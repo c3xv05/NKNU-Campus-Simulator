@@ -50,3 +50,8 @@
 來源facilities/gauss-stop/layout.json，build-gauss-stop.mjs依高斯立面與S05實際路線生成campus.gaussStop；build-building-catalog完成後會自動同步。屋頂寬3.2m、淨高3.05m，3張2.4m長椅、柱距與刷卡機尺寸皆模型近似；使用者只確認相對位置，非實測尺寸／數量。長椅與立柱靠建築側，南端刷卡機靠路側且面向人行通道。設備僅場景模型，沒有付款／驗票功能或虛構班次。
 
 棚頂、柱腳、長椅腳及機器依實際白磚高度貼地；保留人行中心通道，物件有高度相依碰撞，棚頂為相機障礙、空中俯瞰時淡化。植栽避讓棚區。渲染／通行共用facilities/gauss-stop/renderer.js；修改來源後跑build-building-catalog（含棚生成）及gauss-stop純／瀏覽器檢查。S05原坡度、加大S05/S06彎、S07/S20/S22圓弧及開發者座標保留。
+
+
+## 2026-11-16：和平校區圖資量體初版
+
+和平獨立研究／逐棟來源見 [campuses/heping/README.md](../../campuses/heping/README.md) 與其 buildings/<OSM id>/building.json。本次依OSM校界、建物輪廓與名稱建立19棟量體，附中區域扣除。尚未查證和平各立面與門位，未知層數暫3層／3.6m層高及簡單樓層線為模型近似；不可引用燕巢外觀作為和平事實。後續以官方圖／可辨識現場照片校正。

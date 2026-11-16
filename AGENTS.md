@@ -14,3 +14,7 @@ When changing roads, courts, sidewalks or elevations, adjust the neighboring ter
 For the Jiyuan S07/S20/S22 tiled corner, resolve section IDs through data/sidewalk-sections.js: S07=382869349, S20=381734286, S22=383447314. The intended patch is inside the S20/S22 wedge south of S07 (near [-262,-7]); do not place it across S07 near [-273,-35]. Verify using road-number labels in an aerial view.
 
 For separate detail-focused conversations, use docs/new-chat-template.md. Read the latest main/Issue #9 before work and again before merging. Keep each conversation scoped; use a separate git worktree when conversations run concurrently, and never overwrite another conversation's uncommitted changes. Record completed and pending work in next-chat and Issue #9.
+
+## Multiple campuses
+
+Yanchao remains index.html and the existing root data/buildings/facilities. Heping uses heping.html, heping.js, heping-world.js and campuses/heping/. Never reuse Yanchao terrain or road numbers as Heping facts. Read campuses/heping/README.md and the relevant independent building JSON before changes; regenerate with scripts/build-heping.py (Shapely 2.1.2). Heping is an OSM footprint prototype with a shared flat height baseline; facades, unknown levels, road widths and terrain need verification. Exclude the attached high school (OSM 179137001). Keep both campus switch controls working; coordinates/reports must identify campus. Run Heping geometry/browser checks and relevant Yanchao regressions when editing shared modules.
