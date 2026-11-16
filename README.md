@@ -199,3 +199,17 @@ python scripts/build-motor-pavement-plan.py
 中央廣場的兩層白磚、樓板及邊界由 `facilities/teaching-courtyard` 維護，內側牆面從建築頂點引用，避免退縮後留空隙。依序執行 `build-building-access.py`（含中央樓梯）、`build-teaching-courtyard.py`、`build-huanyu-platform.py`，再重建一般鋪面。兩層共用原白磚材質但分開實際支撐面；相機按所在樓層避障。寰宇平台來源現為三樓T形，橫段沿詠霽路人行道、直段接門口。高斯兩段支路的新曲線保存在原道路資料及buildingBypass備註；保留路寬與其餘道路。驗證：`node tests/two-level-plaza.mjs`、`python tests/two-level-plaza-browser.py`。
 
 開發者登入後，快速傳送新增其餘建築，涵蓋全部20棟（含原公開四棟，另保留大門）；登出即回五個公開點，實際傳送亦檢查登入。新對話可先讀 [接續摘要](docs/next-chat.md) 及Issue #9，不必重貼整段聊天。歸燕入口補面在campus-plazas的swallow-entrance-infill，修改後走既有人行道生成流程。驗證：`node tests/developer-travel.mjs`、`python tests/developer-travel-browser.py`。
+
+
+## 燕巢載入效能
+
+燕巢使用預先建立的區域邊界索引判斷地表、植栽及道路補角，避免每個點都重算到所有邊的距離。四份校園JSON並行讀取；載入按鈕顯示目前真正執行的地形／設施／路面／建築／植栽階段，階段間讓畫面更新。所有場景仍在「開始探索」前準備完成，沒有減少樹木、花海、鋪面或地形精度。
+
+同機Chromium冷載入：原版約80秒、優化版約23秒，桌面縮短約72%；手機viewport約22秒。這是同一測試機的比較，實際時間依裝置／網路而異，非實體手機效能保證。可用以下指令重現（基準983c05d）：
+
+```sh
+node tests/planar-containment.mjs
+CAMPUS_TEST_URL=http://127.0.0.1:8000/ python tests/loading-browser.py --baseline-ref 983c05d
+```
+
+沿用瀏覽器測試的本地Three.js檔案（預設 `/tmp/three.module.js`，可設 `THREE_MODULE_PATH`）。測試核對地形位置／法線／顏色、白磚頂點及全部植栽資料的雜湊，並驗證桌面／手機操作、真正載入階段與同機效能差異。`performance.getEntriesByName('campus-load-ready')`可查詢目前頁面開始導覽至資料與場景準備完成的時間。

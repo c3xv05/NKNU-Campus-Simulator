@@ -55,9 +55,17 @@ import {setupCampusMap} from './map.js';
 import {attachMapGestures} from './map-gestures.js';
 import {roadLabels} from './road-names.js';
 let active=false;
-const elevationResponse = await fetch('./data/elevation.json');
-if (!elevationResponse.ok) {document.getElementById('notice').textContent='地形資料載入失敗，請重新整理後再試。';throw new Error('Terrain data unavailable');}
-const elevationGrid = await elevationResponse.json();
+async function loadingStage(text){
+ document.getElementById('play').textContent=text;
+ // Paint the current stage before the next synchronous geometry batch.
+ await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+}
+await loadingStage('讀取校園資料…');
+async function readCampusJSON(path,label){const response=await fetch(path);if(!response.ok)throw new Error(label+'資料載入失敗');return response.json();}
+const [elevationGrid,campus,roadTags,buildingProfiles]=await Promise.all([
+ readCampusJSON('./data/elevation.json','地形'),readCampusJSON('./data/campus.json','校園'),
+ readCampusJSON('./data/road-tags.json','道路'),loadBuildingProfiles()
+]).catch(error=>{document.getElementById('notice').textContent='校園資料載入失敗，請重新整理後再試。';document.getElementById('play').textContent='載入失敗';throw error;});
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bd4ed);scene.fog=new THREE.Fog(0x9bd4ed,220,650);
 const cam=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,900);const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,matchMedia('(pointer:coarse)').matches?1.5:2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.getElementById('scene').append(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xffffff,0x65845a,2.1));let sun=new THREE.DirectionalLight(0xfff5d5,2.6);sun.position.set(-60,110,70);sun.castShadow=true;sun.shadow.mapSize.setScalar(matchMedia('(pointer:coarse)').matches?1024:2048);sun.shadow.camera.left=-180;sun.shadow.camera.right=180;sun.shadow.camera.top=180;sun.shadow.camera.bottom=-180;scene.add(sun, sun.target);
@@ -67,11 +75,6 @@ const mat=(c)=>new THREE.MeshStandardMaterial({color:c,roughness:.9});const grou
 // ODbL 1.0 campus geometry derived from OpenStreetMap contributors.
 // Local metres, with X east and Z south. Heights and widths are estimates.
 // https://api.openstreetmap.org/api/0.6/map.json?bbox=120.4025,22.7814,120.4116,22.7918
-const campusResponse = await fetch('./data/campus.json');
-if(!campusResponse.ok) throw new Error('校園資料載入失敗');
-const campus = await campusResponse.json();
-const buildingProfiles=await loadBuildingProfiles();
-
 function textSprite(t){let canvas=document.createElement('canvas');canvas.width=512;canvas.height=112;let c=canvas.getContext('2d');c.fillStyle='#142f42e8';c.beginPath();c.roundRect(3,3,506,105,18);c.fill();c.strokeStyle='#9addcf';c.lineWidth=3;c.stroke();c.fillStyle='white';c.font='bold 33px sans-serif';c.textAlign='center';c.fillText(t,256,70);let tex=new THREE.CanvasTexture(canvas);let spr=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false}));spr.scale.set(23,5,1);return spr}
 
 const padding = 30;
@@ -88,11 +91,10 @@ const depth = bounds.south - bounds.north;
 const centerX = (bounds.west + bounds.east) / 2;
 const centerZ = (bounds.north + bounds.south) / 2;
 // Flatten footprints and sports/water platforms, blending back to measured hillsides.
+await loadingStage('整理校園地形…');
 const terrain = createTerrain(elevationGrid, [...campus.places, ...campus.buildings, ...campus.courts, ...campus.water],{levelLink:campus.levelLink,courtyard:campus.courtyard,bioConnection:campus.bioConnection});
 const terrainHeight = terrain.height;
-const roadTagsResponse=await fetch('./data/road-tags.json');
-if(!roadTagsResponse.ok)throw new Error('道路資料載入失敗');
-const roadTags=await roadTagsResponse.json();
+await loadingStage('準備道路…');
 const roadNetwork=createRoadNetwork(campus.roads,terrain.rawHeight,roadTags,{apron:campus.entranceApron,pavedAreas:campus.pavedAreas,junctionFillets:campus.junctionFillets,sharedGradeGrid:true,edgePavement:motorPavementPlan.infillTriangles,gradeObstacles:[...campus.places,...campus.buildings].filter(a=>a.height)});
 const protectedPlatforms=[...campus.places.filter(a=>!a.height),...campus.water,...campus.courts].map(area=>{
   const xs=area.ring.map(p=>p[0]),zs=area.ring.map(p=>p[1]);
@@ -186,8 +188,11 @@ const courtMaterial = mat(0x517d69);
 const waterMaterial = mat(0x56a8c4);
 const labelMeshes = [];
 
+await loadingStage('準備校園設施…');
 siteDetails=addSiteDetails(THREE,scene,campus,terrain,roadNetwork);cameraObstacles.push(...siteDetails.blockers);
+await loadingStage('準備路面…');
 const roadRendering=addRoads(THREE,scene,roadNetwork,terrainHeight,campus);
+await loadingStage('整理地表…');
 const cutGround=cutRoadsFromGround(terrain.mesh,[...(campus.courtParking?.entrance?.groundCuts||[]),...campus.courts.filter(a=>a.playingCourts).map(a=>a.ring),...(campus.sportsAccess?.footprints||[]),...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points),...(campus.courtyard.footprints||[]),...(campus.huanyuAccess?.footprints||[]),campus.bioConnection.stairs.ring,...[...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[])].map(s=>s.ring)],terrainGeometry.getAttribute('normal').array);
 const cutGeometry=new THREE.BufferGeometry();
 // Clipping preserves the original triangle interpolation. Resampling new cut points
@@ -203,6 +208,7 @@ for(let i=0;i<cutGround.positions.length;i+=3){
 cutGeometry.setAttribute('color',new THREE.Float32BufferAttribute(landColors,3));groundMat.color.set(0xffffff);groundMat.vertexColors=true;
 ground.geometry.dispose();ground.geometry=cutGeometry;
 campus.courts.forEach(area => {const mesh=surface(area,.07,courtMaterial);mesh.name='flat-court-slab-'+area.osm;});
+await loadingStage('準備建築…');
 const buildingRendering=addBuildings(THREE,scene,campus,terrain,buildingProfiles,roadNetwork);cameraObstacles.push(...buildingRendering.blockers);
 places.forEach((place, index) => {
   if (place.height) {
@@ -226,6 +232,7 @@ labelMeshes.push(gateLabel);
 scene.add(gateLabel);
 
 const welcomeBoard=await addWelcomeBoard(THREE,scene,walkHeight,campus);cameraObstacles.push(...welcomeBoard.blockers);campus.welcomeBoard={ring:welcomeBoard.ring,name:'校門迎賓看板'};
+await loadingStage('準備植栽…');
 const landscapeLayout=createLandscapeLayout(campus,roadNetwork,walkHeight);
 const landscapeGroup=addLandscape(THREE,scene,landscapeLayout,walkHeight);
 const retainingWall=landscapeGroup.getObjectByName('A1-retaining-wall');if(retainingWall)cameraObstacles.push(retainingWall);
@@ -572,6 +579,7 @@ function frame(now){
  coordinateDisplay.update(now);siteDetails.update(now,cam.position);buildingRendering.update(viewCenter.x,viewCenter.z,now);landscapeGroup.userData.updateView?.(cam.position,focus);minimap();campusMap.update();renderer.render(scene,cam);
 }
 requestAnimationFrame(frame);
+performance.measure('campus-load-ready');
 document.getElementById('play').disabled=false;document.getElementById('play').textContent='開始探索';
 document.getElementById('play').onclick=()=>{document.getElementById('start').style.display='none';clearInput();active=true;};
 addEventListener('resize',()=>{clearInput();cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
