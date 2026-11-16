@@ -215,4 +215,4 @@ CAMPUS_TEST_URL=http://127.0.0.1:8000/ python tests/loading-browser.py --baselin
 沿用瀏覽器測試的本地Three.js檔案（預設 `/tmp/three.module.js`，可設 `THREE_MODULE_PATH`）。測試核對地形位置／法線／顏色、白磚頂點及全部植栽資料的雜湊，並驗證桌面／手機操作、真正載入階段與同機效能差異。`performance.getEntriesByName('campus-load-ready')`可查詢目前頁面開始導覽至資料與場景準備完成的時間。
 
 
-便利商店代稱處的兩層階梯現為各八階，對齊致理且退開人行道，騰出區白磚與鄰地已同步處理；詳[階梯來源與重建](facilities/building-access/README.md)。和平校區切換按鍵旁標「測試版」。此次是使用者指定的局部幾何修改，舊PR70效能基準的場景雜湊不再預期一致；一般載入回歸可使用不加--baseline-ref的tests/loading-browser.py。
+便利商店代稱處的第一組階梯現為「八階→水平歇腳平台→八階」，上方小梯維持八階；對齊致理且退開人行道，高斯側凹缺口已補成連續白磚，鄰地同步處理；詳[階梯來源與重建](facilities/building-access/README.md)。和平校區切換按鍵旁標「測試版」。此次是使用者指定的局部幾何修改，舊PR70效能基準的場景雜湊不再預期一致；一般載入回歸可使用不加--baseline-ref的tests/loading-browser.py。

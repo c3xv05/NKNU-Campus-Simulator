@@ -11,7 +11,8 @@ if a.get('compactAccess'):
  def rect(u0,u1,v0,v1):return [at(u0,v0),at(u1,v0),at(u1,v1),at(u0,v1)]
  low,high=a['teachingStairs'];front=-cfg['frontInset'];north=cfg['northClearance'];lowV=north+low['width']/2;highV=north+high['width']/2
  low['line']=[at(front-cfg['lowerRun'],lowV),at(front,lowV)];high['line']=[at(-cfg['upperTopInset'],highV),at(-cfg['upperTopInset']+cfg['upperRun'],highV)]
- c['teachingAccess']={'reference':cfg['reference'],'anchor':anchor,'outward':n,'along':t,'frontInset':cfg['frontInset'],'northClearance':north,'lowerLanding':rect(-cfg['lowerLandingBack'],front-cfg['lowerRun'],north,north+low['width']),'frontApron':rect(front,cfg['frontApronReach'],north,north+low['width']),'reclaimedFootprint':ring(a['beforeEightStepLayout'][0]),'infillId':cfg['infillId']}
+ gapBuilding=json.loads((root/('buildings/'+cfg.get('gapBuilding','gauss')+'/building.json')).read_text())['geometry'];gapCorner=gapBuilding['ring'][cfg.get('gapCorner',0)];gapEnd=sum((gapCorner[i]-anchor[i])*t[i]for i in [0,1])
+ c['teachingAccess']={'reference':cfg['reference'],'anchor':anchor,'outward':n,'along':t,'frontInset':cfg['frontInset'],'northClearance':north,'lowerLanding':rect(-cfg['lowerLandingBack'],front-cfg['lowerRun'],north,north+low['width']),'frontApron':rect(front,cfg['frontApronReach'],north,north+low['width']),'reclaimedFootprint':ring(a['beforeEightStepLayout'][0]),'gapFootprint':rect(-cfg.get('gapBackInset',6.5),cfg['frontApronReach'],north,gapEnd),'infillId':cfg['infillId']}
 c['bioConnection']['stairs']=a['bioStairs'];c['bioConnection']['stairs']['ring']=ring(a['bioStairs']);c['levelLink']['stairs']=a['teachingStairs'];c['levelLink']['communicationAlias']=a.get('communicationAlias')
 c['courtyard']['stairs']=a.get('courtyardStairs',[])
 for s in c['levelLink']['stairs']+c['courtyard']['stairs']:s['ring']=ring(s)

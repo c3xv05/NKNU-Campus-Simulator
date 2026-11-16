@@ -35,14 +35,16 @@
       ],
       "width": 12,
       "topWidth": 12,
-      "steps": 8,
-      "flights": 1,
-      "landingFraction": 0,
+      "steps": 16,
+      "flights": 2,
+      "landingFraction": 0.2380952380952381,
       "name": "S05至致理一樓大階梯",
       "topLevel": "zhili-ground",
       "bottomLevel": "road",
-      "desc": "2026-11-16使用者要求：兩層各八階，縮短梯跑並對齊致理，退開並補齊人行道；尺寸與立面定位為模型近似。",
-      "bottomProfile": "sidewalk"
+      "desc": "使用者最新要求：第一組大階梯八階、歇腳平台、再八階；正面朝S05且梯腳對齊致理，補齊高斯側凹缺口。平台／梯深為模型近似。",
+      "bottomProfile": "sidewalk",
+      "landingSidewalls": false,
+      "levelRestLanding": true
     },
     {
       "id": "zhili-upper",
@@ -144,17 +146,83 @@
     }
   ],
   "compactAccess": {
-    "reference": "2026-11-16使用者本輪要求，取代原40/24階；不恢復PR58/59的七階、B1車道或下沉人行道。",
+    "reference": "2026-11-16最新要求：第一組大階梯8階＋歇腳平台＋8階，補平人行道凹口；上方小梯維持8階，不恢復撤回B1或下沉人行道。",
     "building": "zhili",
     "frontEdge": 1,
     "northClearance": 0.15,
     "frontInset": 0.12,
-    "lowerRun": 3.2,
+    "lowerRun": 6.72,
     "upperRun": 3.2,
     "upperTopInset": 24.7,
-    "lowerLandingBack": 6.5,
+    "lowerLandingBack": 8.5,
     "frontApronReach": 3.5,
     "infillId": "teaching-stair-front-infill",
-    "note": "八階為使用者確認；3.2m梯跑、15cm北留縫及12cm立面內縮等為模型定位參數，非測量。"
+    "note": "兩段各八階及歇腳平台為使用者要求；每段2.56m、歇腳平台1.6m（總6.72m）與補磚定位為模型近似。",
+    "gapBackInset": 6.5,
+    "gapBuilding": "gauss",
+    "gapCorner": 0
+  },
+  "beforeRestLanding": {
+    "stairs": [
+      {
+        "id": "zhili-lower",
+        "line": [
+          [
+            -111.5,
+            -223.5
+          ],
+          [
+            -98.6,
+            -228.2
+          ]
+        ],
+        "width": 12,
+        "topWidth": 12,
+        "steps": 8,
+        "flights": 1,
+        "landingFraction": 0,
+        "name": "S05至致理一樓大階梯",
+        "topLevel": "zhili-ground",
+        "bottomLevel": "road",
+        "desc": "2026-11-16使用者要求：兩層各八階，縮短梯跑並對齊致理，退開並補齊人行道；尺寸與立面定位為模型近似。",
+        "bottomProfile": "sidewalk"
+      },
+      {
+        "id": "zhili-upper",
+        "line": [
+          [
+            -125,
+            -222
+          ],
+          [
+            -114.2,
+            -226
+          ]
+        ],
+        "width": 4.5,
+        "topWidth": 4.5,
+        "steps": 8,
+        "flights": 1,
+        "landingFraction": 0,
+        "name": "致理一樓至教學平台小階梯",
+        "topLevel": "teaching-courtyard",
+        "bottomLevel": "zhili-ground",
+        "desc": "2026-11-16使用者要求：兩層各八階，縮短梯跑並對齊致理，退開並補齊人行道；尺寸與立面定位為模型近似。"
+      }
+    ],
+    "compactAccess": {
+      "reference": "2026-11-16使用者本輪要求，取代原40/24階；不恢復PR58/59的七階、B1車道或下沉人行道。",
+      "building": "zhili",
+      "frontEdge": 1,
+      "northClearance": 0.15,
+      "frontInset": 0.12,
+      "lowerRun": 3.2,
+      "upperRun": 3.2,
+      "upperTopInset": 24.7,
+      "lowerLandingBack": 6.5,
+      "frontApronReach": 3.5,
+      "infillId": "teaching-stair-front-infill",
+      "note": "八階為使用者確認；3.2m梯跑、15cm北留縫及12cm立面內縮等為模型定位參數，非測量。"
+    }
   }
 }
