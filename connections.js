@@ -35,14 +35,15 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
   const [a,b]=def.line,dx=b[0]-a[0],dz=b[1]-a[1],run=Math.hypot(dx,dz),yaw=Math.atan2(dx,dz),normal=[-dz/run,dx/run];
   // Low stepped cheek walls border each flight; the central walking line stays open.
   for(const band of stairBands(def).filter(b=>b.landing)){const t=(band.start+band.end)/2,h=stairSurface(def,t),w=stairWidth(def,t);if(def.landingSidewalls!==false)for(const side of [-1,1])box(.45,.85,run*(band.end-band.start),a[0]+dx*t+normal[0]*side*(w/2+.25),h+.425,a[1]+dz*t+normal[1]*side*(w/2+.25),concrete,yaw,def.id+'-landing-sidewall');
-   if(def.photoPlanters){const side=planters.length%2?1:-1,x=a[0]+dx*t+normal[0]*side*w*.32,z=a[1]+dz*t+normal[1]*side*w*.32;box(1.5,1,1.5,x,h+.5,z,concrete,0,'biology-stair-planter');box(1.2,.12,1.2,x,h+1.04,z,new THREE.MeshStandardMaterial({color:0x617b46,roughness:1}));planters.push({x,z,y:h,radius:1.05});}}
+   if(def.photoPlanters){const side=planters.length%2?1:-1,x=a[0]+dx*t+normal[0]*side*w*.32,z=a[1]+dz*t+normal[1]*side*w*.32,planterHeight=stairSurface(def,t,x,z);box(1.5,1,1.5,x,planterHeight+.5,z,concrete,0,'biology-stair-planter');box(1.2,.12,1.2,x,planterHeight+1.04,z,new THREE.MeshStandardMaterial({color:0x617b46,roughness:1}));planters.push({x,z,y:planterHeight,radius:1.05});}}
  }
  // Wide entrance lintel and recessed lobby between the two biology wings, facing S01.
  const [sa,sb]=stairs.line,run=Math.hypot(sb[0]-sa[0],sb[1]-sa[1]),normal=[-(sb[1]-sa[1])/run,(sb[0]-sa[0])/run],yaw=Math.atan2(sb[0]-sa[0],sb[1]-sa[1]);
- box(stairs.topWidth+1,.8,2,sa[0]-1.2,bioLevel+3.4,sa[1],concrete,yaw,'biology-central-entrance');
- for(const side of [-1,1])box(.65,3.1,.65,sa[0]+normal[0]*side*(stairs.topWidth/2+.2)-1.2,bioLevel+1.55,sa[1]+normal[1]*side*(stairs.topWidth/2+.2),concrete);
- const canvas=document.createElement('canvas');canvas.width=768;canvas.height=128;const ctx=canvas.getContext('2d');ctx.fillStyle='#b9b7a9';ctx.fillRect(0,0,768,128);ctx.fillStyle='#c9ad62';ctx.font='bold 70px serif';ctx.textAlign='center';ctx.fillText('生 科 大 樓',384,90);const sign=new THREE.Mesh(new THREE.PlaneGeometry(8,.85),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(canvas),side:THREE.DoubleSide}));sign.position.set(sa[0]-.15,bioLevel+3.4,sa[1]);sign.rotation.y=Math.PI/2;sign.name='biology-central-lintel-sign';group.add(sign);
- return{blockers,bridgeLevel,courtyardLevel,bioLevel,stairsBottom:bottom,solidBlocked(x,z,r,currentY=Infinity){
+ const entranceLevel=stairs.topLevel==='biology-lower'?bioLevel-3.6:bioLevel;
+ box(stairs.topWidth+1,.25,1,sa[0]-.2,entranceLevel+3.475,sa[1],concrete,yaw,'biology-central-entrance');
+ for(const side of [-1,1])box(.65,3.1,.65,sa[0]+normal[0]*side*(stairs.topWidth/2+.2)-1.2,entranceLevel+1.55,sa[1]+normal[1]*side*(stairs.topWidth/2+.2),concrete);
+ const canvas=document.createElement('canvas');canvas.width=768;canvas.height=128;const ctx=canvas.getContext('2d');ctx.fillStyle='#b9b7a9';ctx.fillRect(0,0,768,128);ctx.fillStyle='#c9ad62';ctx.font='bold 70px serif';ctx.textAlign='center';ctx.fillText('生 科 大 樓',384,90);const sign=new THREE.Mesh(new THREE.PlaneGeometry(8,.85),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(canvas),side:THREE.DoubleSide}));sign.position.set(sa[0]+.05,entranceLevel+2.8,sa[1]);sign.rotation.y=yaw;sign.name='biology-central-lintel-sign';group.add(sign);
+ return{blockers,bridgeLevel,courtyardLevel,bioLevel,corridorGroundAt:corridors.groundHeightAt,stairsBottom:bottom,solidBlocked(x,z,r,currentY=Infinity){
   if(plaza.blocked(x,z,r,currentY)||corridors.blocked(x,z,r,currentY))return true;
   if(!campus.courtyard.exteriorAccess&&campus.courtyard.accessRampRing&&ringDistance(x,z,campus.courtyard.accessRampRing)===0&&platformHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(planters.some(p=>Math.hypot(x-p.x,z-p.z)<p.radius+r&&Math.abs(currentY-p.y)<2))return true;

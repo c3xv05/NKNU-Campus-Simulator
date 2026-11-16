@@ -12,13 +12,16 @@
       ]
     ],
     "width": 28,
-    "topWidth": 14,
+    "topWidth": 28,
     "steps": 96,
     "flights": 4,
     "landingFraction": 0.07,
     "name": "生科東側寬階梯",
-    "desc": "依使用者自S01面向生科照片：寬階梯、四段梯跑與三個休息平台、交錯花台及兩側矮牆；踏階與尺寸為模型近似。",
-    "photoPlanters": true
+    "desc": "最新使用者更正：朝向陽路樓梯接連接處下層，整體矩形；實際線位及等寬由生科B北端與兩翼間隙生成。",
+    "photoPlanters": true,
+    "topLevel": "biology-lower",
+    "bottomProfile": "road",
+    "alignmentReference": "facilities/campus-corridors/layout.json / biology / northEndVertices"
   },
   "teachingStairs": [
     {
@@ -224,5 +227,25 @@
       "infillId": "teaching-stair-front-infill",
       "note": "八階為使用者確認；3.2m梯跑、15cm北留縫及12cm立面內縮等為模型定位參數，非測量。"
     }
+  },
+  "beforeBiologyLowerRectangle": {
+    "line": [
+      [
+        -72,
+        -251
+      ],
+      [
+        -31,
+        -252
+      ]
+    ],
+    "width": 28,
+    "topWidth": 14,
+    "steps": 96,
+    "flights": 4,
+    "landingFraction": 0.07,
+    "name": "生科東側寬階梯",
+    "desc": "依使用者自S01面向生科照片：寬階梯、四段梯跑與三個休息平台、交錯花台及兩側矮牆；踏階與尺寸為模型近似。",
+    "photoPlanters": true
   }
 }

@@ -13,7 +13,10 @@ if a.get('compactAccess'):
  low['line']=[at(front-cfg['lowerRun'],lowV),at(front,lowV)];high['line']=[at(-cfg['upperTopInset'],highV),at(-cfg['upperTopInset']+cfg['upperRun'],highV)]
  gapBuilding=json.loads((root/('buildings/'+cfg.get('gapBuilding','gauss')+'/building.json')).read_text())['geometry'];gapCorner=gapBuilding['ring'][cfg.get('gapCorner',0)];gapEnd=sum((gapCorner[i]-anchor[i])*t[i]for i in [0,1])
  c['teachingAccess']={'reference':cfg['reference'],'anchor':anchor,'outward':n,'along':t,'frontInset':cfg['frontInset'],'northClearance':north,'lowerLanding':rect(-cfg['lowerLandingBack'],front-cfg['lowerRun'],north,north+low['width']),'frontApron':rect(front,cfg['frontApronReach'],north,north+low['width']),'reclaimedFootprint':ring(a['beforeEightStepLayout'][0]),'gapFootprint':rect(-cfg.get('gapBackInset',6.5),cfg['frontApronReach'],north,gapEnd),'infillId':cfg['infillId']}
-c['bioConnection']['stairs']=a['bioStairs'];c['bioConnection']['stairs']['ring']=ring(a['bioStairs']);c['levelLink']['stairs']=a['teachingStairs'];c['levelLink']['communicationAlias']=a.get('communicationAlias')
+c['bioConnection']['stairs']=a['bioStairs'];c['bioConnection']['stairs']['ring']=ring(a['bioStairs']);
+from biology_layout import derive_biology
+derive_biology(c,json.loads((root/'facilities/campus-corridors/layout.json').read_text()))
+c['levelLink']['stairs']=a['teachingStairs'];c['levelLink']['communicationAlias']=a.get('communicationAlias')
 c['courtyard']['stairs']=a.get('courtyardStairs',[])
 for s in c['levelLink']['stairs']+c['courtyard']['stairs']:s['ring']=ring(s)
 (root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n');print('Built wide biology flights and two-stage teaching access')
