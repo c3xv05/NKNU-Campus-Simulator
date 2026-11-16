@@ -1,7 +1,7 @@
 """Offline OSM import. Shapely 2.1; buildings remain independently editable."""
 import json, math
 from pathlib import Path
-from shapely.geometry import Polygon, LineString, Point
+from shapely.geometry import Polygon, LineString, Point, box
 from shapely.ops import unary_union
 from shapely import constrained_delaunay_triangles
 root=Path(__file__).resolve().parents[1]; base=root/'campuses/heping'
@@ -49,6 +49,6 @@ for b in profiles:
  p=Polygon(b['ring']);spot=nearest_points(road.union(path),p.representative_point())[0]
  if p.distance(spot)<1: spot=nearest_points(road.union(path).difference(p.buffer(1.2)),p.representative_point())[0]
  places.append(dict(id=b['id'],name=b['name'],position=[round(spot.x,3),round(spot.y,3)]))
-data=dict(id='heping',name='和平校區',origin=origin,boundary=ring(ways[113740778]),campusTriangles=triangles(area),ground=triangles(ground),track=triangles(track),road=triangles(road),paths=triangles(path),buildings=profiles,courts=courts,greens=greens,spawn=list(spawn),places=places,sourceDate='2026-11-16',heightNote='初版採共同水平基準，尚未取得可核對的細部高程；非實測平坦度。',excludedSchool=179137001)
+data=dict(id='heping',name='和平校區',origin=origin,boundary=ring(ways[113740778]),campusTriangles=triangles(area),surrounding=triangles(box(-900,-900,900,900).difference(area)),ground=triangles(ground),track=triangles(track),road=triangles(road),paths=triangles(path),buildings=profiles,courts=courts,greens=greens,spawn=list(spawn),places=places,sourceDate='2026-11-16',heightNote='初版採共同水平基準，尚未取得可核對的細部高程；非實測平坦度。',excludedSchool=179137001)
 (base/'campus.json').write_text(json.dumps(data,ensure_ascii=False,separators=(',',':'))+'\n')
 print(f"Heping: {len(profiles)} buildings, {len(courts)} sports areas; road {road.area:.1f}m², path {path.area:.1f}m²; spawn {spawn}")
