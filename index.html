@@ -579,7 +579,7 @@ function frame(now){
  coordinateDisplay.update(now);siteDetails.update(now,cam.position);buildingRendering.update(viewCenter.x,viewCenter.z,now);landscapeGroup.userData.updateView?.(cam.position,focus);minimap();campusMap.update();renderer.render(scene,cam);
 }
 requestAnimationFrame(frame);
-performance.measure('campus-load-ready',{start:0,end:performance.now()});
+performance.measure('campus-load-ready');
 document.getElementById('play').disabled=false;document.getElementById('play').textContent='開始探索';
 document.getElementById('play').onclick=()=>{document.getElementById('start').style.display='none';clearInput();active=true;};
 addEventListener('resize',()=>{clearInput();cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
