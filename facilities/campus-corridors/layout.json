@@ -1,5 +1,5 @@
 {
-  "reference": "2026-11-16 使用者現場補充：廣場內平面、補缺口，S32東端以緩坡接廣場；生科A/B一二樓為走廊，S05接成T字並緩坡過渡。以下寬度、線位及坡長為模型近似，非現場測量。",
+  "reference": "2026-11-16使用者更正：S32接廣場下層，撤回內部補平與二樓斜連廊；生科依B北端細長翼等寬延伸A，上層露天，S05支線加倍12m並置中，向陽路樓梯接下層且矩形。寬度／線位／坡長為模型近似。",
   "courtyardAccess": {
     "id": "courtyard-s32",
     "road": 495017564,
@@ -9,47 +9,38 @@
         -147.5
       ],
       [
-        -124.5,
-        -163
+        -124,
+        -159
       ],
       [
-        -126,
-        -180
+        -123,
+        -171
+      ],
+      [
+        -132,
+        -190
       ]
     ],
-    "width": 3.6,
-    "flatEnd": 6,
-    "roadInset": 2.25
-  },
-  "courtyardGallery": {
-    "line": [
-      [
-        -126,
-        -179.5
-      ],
-      [
-        -129.5,
-        -188.5
-      ],
-      [
-        -153,
-        -194
-      ]
+    "width": 4,
+    "flatEnd": 1.5,
+    "roadInset": 2.25,
+    "targetFloor": 1,
+    "linearGrade": true,
+    "cornerRadius": 3,
+    "followRoad": 742398750,
+    "targetPoint": [
+      -132,
+      -190
     ],
-    "width": 3.6
+    "groundBlend": 3,
+    "clearanceBuilding": 444867694,
+    "buildingClearance": 0.8
   },
   "biology": {
-    "line": [
-      [
-        -78.9,
-        -262.3
-      ],
-      [
-        -70.7,
-        -241
-      ]
+    "northEndVertices": [
+      5,
+      7
     ],
-    "width": 11,
     "floors": [
       1,
       2
@@ -58,14 +49,86 @@
     "slab": 0.25,
     "clearance": 3.35,
     "accessRoad": 218881800,
-    "accessJoint": [
-      -74.5,
-      -251
-    ],
-    "accessWidth": 6,
+    "accessWidth": 12,
     "flatEnd": 0.75,
     "entryFlare": 2,
     "entryRun": 3.6,
-    "lowerRetainingWalls": true
+    "lowerRetainingWalls": true,
+    "roof": false,
+    "stairs": {
+      "road": 218881795,
+      "width": 28,
+      "buildingClearance": 0.25
+    }
+  },
+  "beforeAlignmentCorrection": {
+    "courtyardAccess": {
+      "id": "courtyard-s32",
+      "road": 495017564,
+      "line": [
+        [
+          -124,
+          -147.5
+        ],
+        [
+          -124.5,
+          -163
+        ],
+        [
+          -126,
+          -180
+        ]
+      ],
+      "width": 3.6,
+      "flatEnd": 6,
+      "roadInset": 2.25
+    },
+    "courtyardGallery": {
+      "line": [
+        [
+          -126,
+          -179.5
+        ],
+        [
+          -129.5,
+          -188.5
+        ],
+        [
+          -153,
+          -194
+        ]
+      ],
+      "width": 3.6
+    },
+    "biology": {
+      "line": [
+        [
+          -78.9,
+          -262.3
+        ],
+        [
+          -70.7,
+          -241
+        ]
+      ],
+      "width": 11,
+      "floors": [
+        1,
+        2
+      ],
+      "floorHeight": 3.6,
+      "slab": 0.25,
+      "clearance": 3.35,
+      "accessRoad": 218881800,
+      "accessJoint": [
+        -74.5,
+        -251
+      ],
+      "accessWidth": 6,
+      "flatEnd": 0.75,
+      "entryFlare": 2,
+      "entryRun": 3.6,
+      "lowerRetainingWalls": true
+    }
   }
 }

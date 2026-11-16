@@ -9,18 +9,39 @@ function triangleSurface(points,height){const vertices=[],cells=new Map(),cell=4
 export function createCampusCorridors(campus,terrain,network){
  const saved=cache.get(network);if(saved?.campus===campus&&saved.terrain===terrain)return saved.value;
  const lower=terrain.platformHeight(campus.places.find(a=>a.osm===campus.levelLink.from)),bioLower=terrain.platformHeight(campus.places.find(a=>a.osm===campus.bioConnection.from));
- const approaches=(campus.campusTransitions||[]).map(a=>{const level=a.id==='courtyard-s32'?lower+campus.courtyard.floorHeight:bioLower+3.6;
-  const profile=(x,z)=>{const p=project(x,z,a.line),initialDistance=a.roadInset? a.roadInset+1:0,u=clamp((p.along-initialDistance)/(p.total-a.flatEnd-initialDistance),0,1),mix=a.sidewalkEntry?(()=>{const length=p.total-a.flatEnd,e=Math.min(.75,length/3),d=u*length;return (d<e?d*d/(2*e):d>length-e?length-e-(length-d)**2/(2*e):d-e/2)/(length-e);})():u*u*(3-2*u),q=a.roadInset&&p.along<=initialDistance?[x,z]:at(a.line,initialDistance,p.across),initial=network.surfaceHeight(...q)+(a.sidewalk?.185:.035);const h=initial+(level-initial)*mix;if(a.sidewalkEntry&&p.along<=a.entryRun+.0001){const edge=clamp((Math.abs(p.across)-a.width/2)/a.entryFlare,0,1),side=network.surfaceHeight(x,z)+.035+.15*clamp(p.along/.3,0,1);return h+(side-h)*edge;}return h;};
-  return{...a,...triangleSurface(a.triangles,profile),profile,level};});
+ const approaches=(campus.campusTransitions||[]).map(a=>{
+  const level=a.id==='courtyard-s32'?lower+((a.targetFloor||1)-1)*campus.courtyard.floorHeight:bioLower+3.6;
+  function entry(across){const stations=a.entryStations;if(!stations)return null;let i=1;while(i<stations.length-1&&across>stations[i].across)i++;const p=stations[i-1],q=stations[i],t=clamp((across-p.across)/(q.across-p.across),0,1);return{along:p.along+(q.along-p.along)*t,point:p.point.map((v,k)=>v+(q.point[k]-v)*t)};}
+  function centerX(z){for(let i=1;i<a.line.length;i++){const p=a.line[i-1],q=a.line[i];if(z>=q[1]){const t=clamp((z-p[1])/(q[1]-p[1]),0,1);return p[0]+(q[0]-p[0])*t;}}return a.line.at(-1)[0];}
+  const profile=(x,z)=>{
+   if(a.id==='courtyard-s32'){const start=a.line[0][1]-(a.roadInset+1),end=a.line.at(-1)[1]+a.flatEnd;if(z>=start)return network.surfaceHeight(x,z)+.035;const length=start-end,d=clamp(start-z,0,length),e=Math.min(1.5,length/3),mix=(d<e?d*d/(2*e):d>length-e?length-e-(length-d)**2/(2*e):d-e/2)/(length-e),initial=network.surfaceHeight(centerX(start)+x-centerX(z),start)+.035;return initial+(level-initial)*mix;}
+   if(a.kind==='road-apron')return network.surfaceHeight(x,z)+.035;
+   const p=project(x,z,a.line),station=entry(p.across),initialDistance=station?.along??(a.roadInset?a.roadInset+1:0),length=p.total-a.flatEnd-initialDistance,d=clamp(p.along-initialDistance,0,length),u=d/length,e=Math.min(a.sidewalkEntry?.75:1.5,length/3),mix=a.linearGrade?(d<e?d*d/(2*e):d>length-e?length-e-(length-d)**2/(2*e):d-e/2)/(length-e):u*u*(3-2*u),q=station?.point??(a.roadInset&&p.along<=initialDistance?[x,z]:at(a.line,initialDistance,p.across)),initial=network.surfaceHeight(...q)+.035,h=initial+(level-initial)*mix;
+   if(a.sidewalkEntry){const distance=p.along-initialDistance,fade=clamp((distance-a.entryRun)/1.5,0,1),edge=clamp((Math.abs(p.across)-a.width/2)/a.entryFlare,0,1)*(1-fade*fade*(3-2*fade)),side=network.surfaceHeight(x,z)+.035+.15*clamp(distance/.3,0,1);return h+(side-h)*edge;}
+   return h;
+  };
+  return{...a,...triangleSurface(a.triangles,profile),profile,level};
+ });
  const corridor=campus.bioConnection.corridor,bioFloors= corridor?corridor.floors.map(floor=>({floor,level:bioLower+(floor-1)*corridor.floorHeight,...triangleSurface(corridor.triangles,()=>bioLower+(floor-1)*corridor.floorHeight)})):[];
  const value={approaches,bioFloors,lower,bioLower,heightAt(x,z,currentY){for(const s of [...approaches,...bioFloors]){const h=s.heightAt(x,z);if(h!==null&&Math.abs(currentY-h-.08)<.85)return h+.08;}return null;}};cache.set(network,{campus,terrain,value});return value;
 }
 export function corridorSupportAt(x,z,currentY,campus,terrain,network){return createCampusCorridors(campus,terrain,network).heightAt(x,z,currentY)??courtyardSupportAt(x,z,currentY,campus,terrain);}
 // Keep the neighboring soil below the same surface; do not raise soil under elevated galleries.
 export function gradeCampusCorridors(terrain,campus,network){
- const surface=createCampusCorridors(campus,terrain,network),court=campus.courtyard,groups=[{regions:court.floorRegions.lower,profile:()=>surface.lower},{regions:campus.bioConnection.corridor.regions,profile:()=>surface.bioLower},...surface.approaches],buildings=[...campus.places,...campus.buildings].filter(b=>b.height),mesh=terrain.mesh,blend=3;let changed=0;
+ const surface=createCampusCorridors(campus,terrain,network),court=campus.courtyard,groups=[{regions:court.edgeRepairs?.regions||[],profile:()=>surface.lower},{regions:campus.bioConnection.corridor.regions,profile:()=>surface.bioLower},...surface.approaches].filter(s=>s.regions?.length),buildings=[...campus.places,...campus.buildings].filter(b=>b.height),mesh=terrain.mesh,blend=3;let changed=0;
  for(const s of groups){const rings=s.regions.map(r=>r[0]),points=rings.flat(),west=Math.min(...points.map(p=>p[0]))-blend,east=Math.max(...points.map(p=>p[0]))+blend,north=Math.min(...points.map(p=>p[1]))-blend,south=Math.max(...points.map(p=>p[1]))+blend;
   for(let row=Math.max(0,Math.floor((north-mesh.north)/mesh.step));row<mesh.rows&&mesh.north+row*mesh.step<=south;row++)for(let col=Math.max(0,Math.floor((west-mesh.west)/mesh.step));col<mesh.columns&&mesh.west+col*mesh.step<=east;col++){const x=mesh.west+col*mesh.step,z=mesh.north+row*mesh.step,d=Math.min(...rings.map(r=>ringDistance(x,z,r)));if((s.id&&[...court.floorRegions.lower,...campus.bioConnection.corridor.regions].some(([r])=>ringDistance(x,z,r)===0))||d>=blend||network.onMotorRoad(x,z)||buildings.some(b=>ringDistance(x,z,b.ring)===0)||[...campus.levelLink.stairs,...court.stairs,campus.bioConnection.stairs].some(b=>ringDistance(x,z,b.ring)===0))continue;const u=d/blend,w=1-u*u*(3-2*u),i=row*mesh.columns+col,target=s.profile(x,z)-.035;mesh.heights[i]+=(target-mesh.heights[i])*w;changed++;}
  }
  return changed;
+}
+
+const groundCache=new WeakMap();
+// Build only after the terrain grading pass; this joins the exact terrain triangles at the outer edge.
+export function createCorridorGround(campus,terrain,network){
+ const saved=groundCache.get(network);if(saved?.campus===campus&&saved.terrain===terrain)return saved.surface;
+ const ramps=createCampusCorridors(campus,terrain,network),surfaces=ramps.approaches.filter(a=>a.groundBlendPlan).map(a=>{
+  const rings=a.regions.map(r=>r[0]),profile=(x,z)=>{const d=Math.min(...rings.map(r=>ringDistance(x,z,r))),u=clamp(d/a.groundBlendPlan.width,0,1),mix=u*u*(3-2*u);return(a.profile(x,z)-.035)*(1-mix)+terrain.height(x,z)*mix;};
+  return{id:a.id+'-soil-blend',profile,...triangleSurface(a.groundBlendPlan.triangles,profile)};
+ });
+ const surface={surfaces,heightAt(x,z){for(const s of surfaces){const h=s.heightAt(x,z);if(h!==null)return h;}return null;}};groundCache.set(network,{campus,terrain,surface});return surface;
 }
