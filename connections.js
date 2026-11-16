@@ -1,3 +1,4 @@
+import {addCampusCorridors} from './facilities/campus-corridors/renderer.js';
 import {addTeachingCourtyard} from './facilities/teaching-courtyard/renderer.js';
 import {accessStairs,stairBands,stairRing,supportOnStair,stairSurface,stairWidth} from './stair-layout.js';
 import {connectionRing} from './building-layout.js';
@@ -15,12 +16,13 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
  for(const [i,piece] of cutPieces(linkRing,teaching.map(s=>stairRing(s))).entries())prism(piece,bridgeLevel-.25,foundation,brick,i?'zhili-gauss-solid-foundation-'+i:'zhili-gauss-solid-foundation');
  if(campus.teachingAccess){const landing=campus.teachingAccess.lowerLanding,base=Math.min(...landing.map(([x,z])=>terrain.height(x,z)-1));for(const [i,piece]of cutPieces(landing,[linkRing,...teaching.map(s=>stairRing(s))]).entries())blockers.push(prism(piece,bridgeLevel-.25,base,brick,'compact-teaching-landing-foundation-'+i));}
  const plaza=addTeachingCourtyard(THREE,group,campus,terrain,tileMaterial);blockers.push(...plaza.blockers);
- if(campus.courtyard)ramp(campus.courtyard.ramp,campus.courtyard.width,network.walkHeight(...campus.courtyard.ramp[0],terrain.height(...campus.courtyard.ramp[0])),campus.courtyard.rampTargetFloor===1?bridgeLevel:courtyardLevel,'courtyard-access-ramp');
+ const corridors=addCampusCorridors(THREE,group,campus,terrain,network,tileMaterial);blockers.push(...corridors.blockers);
+ if(campus.courtyard&&!campus.courtyard.exteriorAccess)ramp(campus.courtyard.ramp,campus.courtyard.width,network.walkHeight(...campus.courtyard.ramp[0],terrain.height(...campus.courtyard.ramp[0])),campus.courtyard.rampTargetFloor===1?bridgeLevel:courtyardLevel,'courtyard-access-ramp');
  const bio=campus.bioConnection,bioLevel=terrain.platformHeight(campus.places.find(a=>a.osm===bio.from))+3.6,bioRing=connectionRing(bio),stairs=bio.stairs,bioStairRing=stairRing(stairs),bottom=network.walkHeight(...stairs.line[1],terrain.height(...stairs.line[1]));
  const pieces=subtract(bioRing.map(([x,z])=>[x,0,z]),bioStairRing).map(p=>p.map(([x,,z])=>[x,z]));
  const bottomFoundation=Math.min(bottom-1,...bioRing.map(([x,z])=>terrain.height(x,z)-2));
- for(const [i,piece] of pieces.entries())prism(piece,bioLevel,bottomFoundation,concrete,'biology-solid-basement-'+i);
- if(bio.ramp)ramp(bio.ramp,bio.accessWidth,terrain.height(...bio.ramp[0]),bioLevel,'biology-access-ramp');
+ if(!bio.corridor)for(const [i,piece] of pieces.entries())prism(piece,bioLevel,bottomFoundation,concrete,'biology-solid-basement-'+i);
+ if(bio.ramp&&!bio.corridor)ramp(bio.ramp,bio.accessWidth,terrain.height(...bio.ramp[0]),bioLevel,'biology-access-ramp');
  const stairDefinitions=accessStairs(campus,terrain,network),planters=[],stairMaterial=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide}),treadColor=new THREE.Color(0xc5c2b6),riserColor=new THREE.Color(0x888b80);
  // Batch the solid treads and flat intermediate landings into one mesh per staircase.
  for(const def of stairDefinitions){const positions=[],colors=[],base=Math.min(def.bottom-1,...stairRing(def).map(([x,z])=>terrain.height(x,z)-1));
@@ -41,11 +43,11 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
  for(const side of [-1,1])box(.65,3.1,.65,sa[0]+normal[0]*side*(stairs.topWidth/2+.2)-1.2,bioLevel+1.55,sa[1]+normal[1]*side*(stairs.topWidth/2+.2),concrete);
  const canvas=document.createElement('canvas');canvas.width=768;canvas.height=128;const ctx=canvas.getContext('2d');ctx.fillStyle='#b9b7a9';ctx.fillRect(0,0,768,128);ctx.fillStyle='#c9ad62';ctx.font='bold 70px serif';ctx.textAlign='center';ctx.fillText('生 科 大 樓',384,90);const sign=new THREE.Mesh(new THREE.PlaneGeometry(8,.85),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(canvas),side:THREE.DoubleSide}));sign.position.set(sa[0]-.15,bioLevel+3.4,sa[1]);sign.rotation.y=Math.PI/2;sign.name='biology-central-lintel-sign';group.add(sign);
  return{blockers,bridgeLevel,courtyardLevel,bioLevel,stairsBottom:bottom,solidBlocked(x,z,r,currentY=Infinity){
-  if(plaza.blocked(x,z,r,currentY))return true;
-  if(campus.courtyard.accessRampRing&&ringDistance(x,z,campus.courtyard.accessRampRing)===0&&platformHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
+  if(plaza.blocked(x,z,r,currentY)||corridors.blocked(x,z,r,currentY))return true;
+  if(!campus.courtyard.exteriorAccess&&campus.courtyard.accessRampRing&&ringDistance(x,z,campus.courtyard.accessRampRing)===0&&platformHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(planters.some(p=>Math.hypot(x-p.x,z-p.z)<p.radius+r&&Math.abs(currentY-p.y)<2))return true;
   if(stairDefinitions.some(s=>ringDistance(x,z,stairRing(s))===0)&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
-  if(ringDistance(x,z,bioRing)===0&&currentY<bioLevel-.6&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
+  if(!bio.corridor&&ringDistance(x,z,bioRing)===0&&currentY<bioLevel-.6&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(campus.teachingAccess&&ringDistance(x,z,campus.teachingAccess.lowerLanding)===0&&currentY<bridgeLevel-.5&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(ringDistance(x,z,linkRing)===0&&currentY<bridgeLevel-.5&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   return false;

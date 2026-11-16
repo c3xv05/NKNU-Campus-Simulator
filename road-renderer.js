@@ -21,7 +21,7 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
   const yellow=new THREE.MeshBasicMaterial({color:0xffcc00,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   const earth=new THREE.MeshStandardMaterial({color:0x7f9167,roughness:1,side:THREE.DoubleSide});
   const batches={asphalt:[],concrete:[],white:[],yellow:[],earth:[]};
-  const elevatedCuts=[...(campus?.courtyard?.footprints||[]),...(campus?.huanyuAccess?.footprints||[])].map(points=>({points,w:Math.min(...points.map(p=>p[0])),e:Math.max(...points.map(p=>p[0])),n:Math.min(...points.map(p=>p[1])),s:Math.max(...points.map(p=>p[1]))}));
+  const elevatedCuts=[...(campus?.campusTransitions||[]).flatMap(a=>a.footprints),...(campus?.bioConnection?.corridor?.triangles||[]),...(campus?.courtyard?.footprints||[]),...(campus?.huanyuAccess?.footprints||[])].map(points=>({points,w:Math.min(...points.map(p=>p[0])),e:Math.max(...points.map(p=>p[0])),n:Math.min(...points.map(p=>p[1])),s:Math.max(...points.map(p=>p[1]))}));
   const footprints=[],pathFootprints=[],pavement=pavementIndex(network);let currentRoute=null,pavementLift=0;
   const levels={asphalt:.035,concrete:.035,white:.045,yellow:.045};
   function vertex(x,z,type){return [x,network.surfaceHeight(x,z)+levels[type]+pavementLift,z];}

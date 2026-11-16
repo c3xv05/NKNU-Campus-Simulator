@@ -15,6 +15,7 @@ for s in [c['bioConnection']['stairs']]+c['levelLink'].get('stairs',[])+c['court
 shape=finish_sidewalks(shape,c)
 if c.get('huanyuAccess'):
  for a in [c['huanyuAccess'],c['huanyuAccess']['ramp']]:shape=shape.difference(Polygon(a['ring']))
+for region in [r for a in c.get('campusTransitions',[]) for r in a['regions']]+c['bioConnection'].get('corridor',{}).get('regions',[]):shape=shape.difference(Polygon(region[0],region[1:]))
 if c['courtyard'].get('floorRegions'):
  for region in c['courtyard']['floorRegions']['lower']+c['courtyard']['floorRegions']['upper']:shape=shape.difference(Polygon(region[0],region[1:]))
 if c.get('courtParking',{}).get('entrance'):shape=shape.difference(Polygon(c['courtParking']['entrance']['ring']))

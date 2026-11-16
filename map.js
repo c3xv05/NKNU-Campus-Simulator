@@ -46,9 +46,9 @@ export function setupCampusMap({campus,places,player,visited,bounds,terrainHeigh
   if(campus.sideGate){for(const ring of sidegateWalls(campus.sideGate))element('polygon',{points:polygon(ring),fill:'#9ba6a4'},svg);element('text',{x:campus.sideGate.center[0],y:campus.sideGate.center[1]-10,'text-anchor':'middle','font-size':14,fill:'#173c43',stroke:'#fff','stroke-width':2,'paint-order':'stroke'},svg).textContent='側門';}
   svgApron(svg,campus);
   if(campus.huanyuAccess)for(const a of [campus.huanyuAccess,campus.huanyuAccess.ramp])element('polygon',{points:polygon(a.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);
+  for(const a of [...(campus.campusTransitions||[]),campus.bioConnection.corridor].filter(Boolean))for(const rings of a.regions)element('path',{d:rings.map(r=>'M '+r.map(p=>p.join(' ')).join(' L ')+' Z').join(' '),fill:'#ecebe0','fill-rule':'evenodd','aria-label':a.id||'生科雙層走廊'},svg);
   if(campus.courtyard)element('polygon',{points:polygon(campus.courtyard.ring),fill:'#d5cebc',stroke:'#b69a65','stroke-width':1},svg);
   for(const [outer,...holes] of campus.courtyard?.floorRegions?.upper||[])element('path',{d:[outer,...holes].map(r=>'M '+r.map(p=>p.join(' ')).join(' L ')+' Z').join(' '),fill:'#ecebe0','fill-rule':'evenodd',stroke:'#a59c87','stroke-width':.7,'aria-label':'中央廣場二層 L 型'},svg);
-  if(campus.courtyard?.floors===2)element('text',{x:-140,y:-206,'font-size':12,fill:'#594f3e',stroke:'#fff','stroke-width':2,'paint-order':'stroke'},svg,'中央廣場 1F／2F');
   if(campus.welcomeBoard)element('polygon',{points:polygon(campus.welcomeBoard.ring),fill:'#eebd65','aria-label':'校門迎賓看板'},svg);
   if(campus.gatehouse)element('polygon',{points:polygon(campus.gatehouse.ring),fill:'#8d8073'},svg);
   for(const area of campus.buildings){element('polygon',{points:polygon(area.ring),fill:'#778b86'});if(area.mapLabel){const x=area.ring.reduce((s,p)=>s+p[0],0)/area.ring.length,z=area.ring.reduce((s,p)=>s+p[1],0)/area.ring.length;element('text',{x,y:z,'font-size':17,'text-anchor':'middle',fill:'#173c4d',stroke:'#fff','stroke-width':3,'paint-order':'stroke'},svg,area.name);}}
