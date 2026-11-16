@@ -5,6 +5,7 @@ import {widthAtDistance} from './road-width.js';
 import {gradeGrid} from './grade-grid.js';
 import {SIDEWALK_WIDTH} from './sidewalk-layout.js';
 import {ringDistance} from './terrain.js';
+import {prepareRingContains} from './planar.js';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const ease=(a,b,v)=>{const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t);};
 const pointKey=(x,z)=>`${x.toFixed(3)},${z.toFixed(3)}`;
@@ -122,11 +123,15 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
     return motor&&motor.d<=motor.width/2+1e-6?motor:closest;
   }
   const edgePavement=(options.edgePavement||[]).map(ring=>({ring,west:Math.min(...ring.map(p=>p[0])),east:Math.max(...ring.map(p=>p[0])),north:Math.min(...ring.map(p=>p[1])),south:Math.max(...ring.map(p=>p[1]))}));
+  const filletContains=(options.junctionFillets||[]).map(a=>prepareRingContains(a.ring));
+  const pavedContains=(options.pavedAreas||[]).map(a=>prepareRingContains(a.ring));
+  const apronContains=options.apron?.ring?prepareRingContains(options.apron.ring):null;
+  const apronHoles=(options.apron?.holes||[]).map(prepareRingContains);
   function onMotorRoad(x,z){
     if(edgePavement.some(a=>x>=a.west&&x<=a.east&&z>=a.north&&z<=a.south&&ringDistance(x,z,a.ring)===0))return true;
-    if((options.junctionFillets||[]).some(a=>ringDistance(x,z,a.ring)===0))return true;
-    if((options.pavedAreas||[]).some(a=>ringDistance(x,z,a.ring)===0))return true;
-    const apron=options.apron;if(apron?.ring&&ringDistance(x,z,apron.ring)===0&&!(apron.holes||[]).some(h=>ringDistance(x,z,h)===0))return true;
+    if(filletContains.some(contains=>contains(x,z)))return true;
+    if(pavedContains.some(contains=>contains(x,z)))return true;
+    if(apronContains?.(x,z)&&!apronHoles.some(contains=>contains(x,z)))return true;
     return (buckets.get(key(x,z))||[]).some(segment=>{
       if(segment.route.style.path)return false;
       const t=clamp(((x-segment.a.x)*segment.dx+(z-segment.a.z)*segment.dz)/(segment.length*segment.length),0,1);
