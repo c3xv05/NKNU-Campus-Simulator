@@ -16,3 +16,8 @@ if c.get('sideGate'):c['sideGate']['tanks']=profiles['397467191']['tanks']
 (root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':')))
 (root/'buildings/catalog.json').write_text(json.dumps(profiles,ensure_ascii=False,separators=(',',':')))
 print(f'Built {len(profiles)} independent building definitions')
+
+# Keep the observed Gauss S05 shelter aligned when building definitions change.
+if (root/"facilities/gauss-stop/layout.json").exists():
+ import subprocess
+ subprocess.run(["node",str(root/"scripts/build-gauss-stop.mjs")],check=True)

@@ -1,3 +1,4 @@
+import {addGaussStop} from './facilities/gauss-stop/renderer.js';
 import {addGrassParking} from './grass-parking.js';
 import {addPerimeterWalls} from './facilities/s24-sidegate/west-wall.js';
 import {addBasketballParking} from './facilities/basketball-parking/renderer.js';
@@ -70,6 +71,7 @@ export function addSiteDetails(THREE,scene,campus,terrain,network){
   facilityLabels.push({name:court.name,x:cx,z:cz,y:roofY+2});
  }
  addGrassParking(THREE,group,campus,terrain);
+ const gaussStop=addGaussStop(THREE,group,campus,terrain,sidewalkSurface);blockers.push(...gaussStop.blockers);
  const parking=addBasketballParking(THREE,group,campus,terrain,network);blockers.push(...parking.blockers);
  const courtAccess=createCourtAccess(campus,terrain,network,sidewalkSurface);const courtAccessRendering=addCourtAccess(THREE,group,campus,terrain,courtAccess);blockers.push(...courtAccessRendering.blockers);
  const sportsGardens=addSportsGardens(THREE,group,campus,terrain);
@@ -81,5 +83,5 @@ export function addSiteDetails(THREE,scene,campus,terrain,network){
  const {bridgeLevel,courtyardLevel,bioLevel}=connections;blockers.push(...connections.blockers);
  // Guardhouse touches the flowerbed tip; the two barrier arms sit in separate lanes.
  const guard=campus.gatehouse;if(guard){const [x,z]=guard.center,y=network.surfaceHeight(x,z);box(guard.width,guard.height,guard.depth,x,y+guard.height/2,z,cream).name='entrance-guardhouse';box(guard.width+.8,.25,guard.depth+.8,x,y+guard.height,z,steel);for(const side of [-1,1])box(.04,1.35,guard.depth-2,x+side*(guard.width/2+.025),y+2,z,glass);for(const [gx,gz] of guard.gates){const gy=network.surfaceHeight(gx,gz);box(.35,1.1,.35,gx-2.8,gy+.55,gz,steel);for(let i=0;i<6;i++)box(.9,.12,.13,gx-2.25+i*.9,gy+1.1,gz,i%2?cream:material(0xb74732));}}
- return{group,perimeterWalls,parking,courtAccess,sidewalks,blockers,columns,bridgeLevel,courtyardLevel,bioLevel,facilityLabels,waterMeshes,sidewalkSurface,sidewalkAt(x,z){return sidewalkSurface.heightAt(x,z);},update(now,camera){for(const {mesh,roofY}of courtRoofs){const above=camera&&camera.y>roofY+1;mesh.material.transparent=!!above;mesh.material.opacity=above ? .16 : 1;mesh.material.depthWrite=!above;mesh.castShadow=!above;}bump.offset.set(now*.000006,Math.sin(now*.0001)*.05);},blocked(x,z,r,y){return perimeterWalls.blocked(x,z,r,y)||parking.blocked(x,z,r,y)||courtAccess.blocked(x,z,r,y)||sportsGardens.blocked(x,z,r)||huanyu.blocked(x,z,r,y)||sidegate.blocked(x,z,r)||connections.solidBlocked(x,z,r,y)||(campus.gatehouse&&Math.abs(x-campus.gatehouse.center[0])<campus.gatehouse.width/2+r&&Math.abs(z-campus.gatehouse.center[1])<campus.gatehouse.depth/2+r)||columns.some(p=>Math.hypot(p.x-x,p.z-z)<r+p.radius);}};
+ return{group,gaussStop,perimeterWalls,parking,courtAccess,sidewalks,blockers,columns,bridgeLevel,courtyardLevel,bioLevel,facilityLabels,waterMeshes,sidewalkSurface,sidewalkAt(x,z){return sidewalkSurface.heightAt(x,z);},update(now,camera){gaussStop.update(camera);for(const {mesh,roofY}of courtRoofs){const above=camera&&camera.y>roofY+1;mesh.material.transparent=!!above;mesh.material.opacity=above ? .16 : 1;mesh.material.depthWrite=!above;mesh.castShadow=!above;}bump.offset.set(now*.000006,Math.sin(now*.0001)*.05);},blocked(x,z,r,y){return gaussStop.blocked(x,z,r,y)||perimeterWalls.blocked(x,z,r,y)||parking.blocked(x,z,r,y)||courtAccess.blocked(x,z,r,y)||sportsGardens.blocked(x,z,r)||huanyu.blocked(x,z,r,y)||sidegate.blocked(x,z,r)||connections.solidBlocked(x,z,r,y)||(campus.gatehouse&&Math.abs(x-campus.gatehouse.center[0])<campus.gatehouse.width/2+r&&Math.abs(z-campus.gatehouse.center[1])<campus.gatehouse.depth/2+r)||columns.some(p=>Math.hypot(p.x-x,p.z-z)<r+p.radius);}};
 }

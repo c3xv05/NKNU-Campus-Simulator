@@ -28,7 +28,7 @@
       ]
     ],
     "name": "高斯大樓",
-    "desc": "教學大樓；二樓與致理大樓一樓以連通廊銜接。",
+    "desc": "教學大樓；二樓與致理大樓一樓以連通廊銜接。入口朝S05，門南側人行道設候車棚。",
     "height": 25.2,
     "floors": 7,
     "floorHeight": 3.6,
@@ -53,13 +53,14 @@
     "frame": "#b9b9ae",
     "glass": "#36545b",
     "detailDistance": 145,
-    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。；最新使用者街景照片所示共用入口階梯，獨立定義於building-access，模型尺寸近似。；使用者確認三棟共同降低半層（模型1.8m），靠路外牆及轉角局部退縮。；最新指示取消支路角削角，恢復原外牆轉角並改道路繞行。",
+    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。；最新使用者街景照片所示共用入口階梯，獨立定義於building-access，模型尺寸近似。；使用者確認三棟共同降低半層（模型1.8m），靠路外牆及轉角局部退縮。；最新指示取消支路角削角，恢復原外牆轉角並改道路繞行。；2026-11-16使用者確認門口在S05，門南側有候車遮陽雨棚、長椅及南端上車刷卡機。",
     "frontMode": "main-road",
     "frontEdge": 0,
     "frontRoadIds": [
       218881800
     ],
-    "accessReference": "facilities/building-access/layout.json"
+    "accessReference": "facilities/building-access/layout.json",
+    "entranceAtSidewalk": true
   },
   "frontageAlignment": {
     "sourceRing": [
