@@ -1,3 +1,4 @@
+import {corridorSupportAt} from './facilities/campus-corridors/surface.js';
 import {parkingSupportAt} from './facilities/basketball-parking/surface.js';
 import {passageSupportAt} from './building-passages.js';
 import {courtyardSupportAt} from './facilities/teaching-courtyard/surface.js';
@@ -30,11 +31,12 @@ export function platformHeightAt(x,z,currentY,campus,terrain,network){
  const parking=parkingSupportAt(x,z,currentY,campus,terrain,network);if(parking!==null)return parking;
  const passage=passageSupportAt(x,z,currentY,campus,terrain);if(passage!==null)return passage;
  const huanyu=huanyuSupportAt(x,z,currentY,campus,terrain,network);if(huanyu!==null)return huanyu;
- const bio=campus.bioConnection;if(bio?.ramp){const q=projectOnLine(x,z,...bio.ramp);if(q.t>=0&&q.t<=1&&q.distance<(bio.accessWidth||4)/2){const base=terrain.platformHeight(campus.places.find(a=>a.osm===bio.from))+3.6,start=terrain.height(...bio.ramp[0]);return start+(base-start)*q.t;}}
+ const corridor=corridorSupportAt(x,z,currentY,campus,terrain,network);if(corridor!==null)return corridor;
+ const bio=campus.bioConnection;if(bio?.ramp&&!bio.corridor){const q=projectOnLine(x,z,...bio.ramp);if(q.t>=0&&q.t<=1&&q.distance<(bio.accessWidth||4)/2){const base=terrain.platformHeight(campus.places.find(a=>a.osm===bio.from))+3.6,start=terrain.height(...bio.ramp[0]);return start+(base-start)*q.t;}}
 
  const upper=terrain.platformHeight(campus.places.find(a=>a.osm===campus.levelLink.from))+3.6;if(!campus.courtyard?.floorRegions&&campus.levelLink.ring?.length&&ringDistance(x,z,campus.levelLink.ring)===0&&currentY>=upper-.8)return upper+.08;
  const p=campus.courtyard;if(!p)return null;const gauss=campus.places.find(a=>a.osm===444867692),level=terrain.platformHeight(gauss)+7.2;
- const projection=projectOnLine(x,z,...p.ramp);if(projection.t>=0&&projection.t<=1&&projection.distance<p.width/2){const start=network?network.walkHeight(...p.ramp[0],terrain.height(...p.ramp[0])):terrain.height(...p.ramp[0]),t=projection.t;const rampLevel=level-(p.rampTargetFloor===1?p.floorHeight:0),h=start+(rampLevel-start)*t;if(Math.abs(currentY-h)<.85)return h;}
+ const projection=projectOnLine(x,z,...p.ramp);if(!p.exteriorAccess&&projection.t>=0&&projection.t<=1&&projection.distance<p.width/2){const start=network?network.walkHeight(...p.ramp[0],terrain.height(...p.ramp[0])):terrain.height(...p.ramp[0]),t=projection.t;const rampLevel=level-(p.rampTargetFloor===1?p.floorHeight:0),h=start+(rampLevel-start)*t;if(Math.abs(currentY-h)<.85)return h;}
  const courtyard=courtyardSupportAt(x,z,currentY,campus,terrain);if(courtyard!==null)return courtyard;
  if(p.floorRegions)return null;
  return ringDistance(x,z,p.ring)===0&&currentY>=level-.8?level+.08:null;
