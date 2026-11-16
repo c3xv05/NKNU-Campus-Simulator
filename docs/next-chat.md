@@ -50,6 +50,10 @@
 - 開發紀錄及回報索引：https://github.com/c3xv05/NKNU-Campus-Simulator/issues/9
 - 新對話先讀 `AGENTS.md`、本摘要與 `docs/developer-journal.md`，再讀索引Issue及相關建築資料。使用者最新指示優先。
 
+## 2026-11-16：和平俯瞰底面閃紋修正
+
+PR68正式站手機俯瞰畫面發現校外大底面位於y=-0.04，遠距離與y=0鋪面深度太接近，產生斜三角閃紋。改由build-heping生成校外地面，按大學有效校界完整扣孔，校界內外均y=0且幾何不重疊；不靠抬高鋪面掩蓋，保留原校園高程、道路、建築及通行。新增校外／校內面積交集回歸。幾何與步行／騎車安全落點測試通過；桌面與390px手機俯瞰截圖閃紋消失，地圖傳送正常且無page errors。發布版本及PR連結補於Issue #9。
+
 ## 2026-11-16：和平校區初版與校區切換（PR #68）
 
 交付：[PR #68](https://github.com/c3xv05/NKNU-Campus-Simulator/pull/68)；正式發布核對結果記錄於Issue #9。

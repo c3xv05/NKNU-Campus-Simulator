@@ -19,7 +19,8 @@ async function start(){
  function meshTriangles(tris,color,y){const vertices=tris.flatMap(t=>t.flatMap(([x,z])=>[x,y,z]));const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));geometry.computeVertexNormals();const mat=material(color);mat.side=THREE.DoubleSide;const mesh=new THREE.Mesh(geometry,mat);scene.add(mesh);return mesh;}
  function shape(ring){const s=new THREE.Shape();ring.forEach(([x,z],i)=>i?s.lineTo(x,-z):s.moveTo(x,-z));s.closePath();return s;}
  function polygon(ring,color,y=0){const geometry=new THREE.ShapeGeometry(shape(ring));geometry.rotateX(-Math.PI/2);const mesh=new THREE.Mesh(geometry,material(color));mesh.position.y=y;scene.add(mesh);return mesh;}
- const surrounding=new THREE.Mesh(new THREE.PlaneGeometry(1800,1800),material('#93a884'));surrounding.rotation.x=-Math.PI/2;surrounding.position.y=-.04;scene.add(surrounding);
+ // Cut the surrounding ground at the campus boundary; no hidden near-coplanar plane.
+ meshTriangles(data.surrounding,'#93a884',0);
  // Ground is cut to exactly the pavement/building boundaries at their shared y=0.
  meshTriangles(data.ground,'#97b887',0);meshTriangles(data.track,'#b36a56',0);meshTriangles(data.road,'#62696a',0);meshTriangles(data.paths,'#ded8c7',0);
  for(const court of data.courts){polygon(court.ring,court.sport==='swimming'?'#4cabc4':court.sport==='soccer'?'#649d6d':'#b58169');
