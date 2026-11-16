@@ -50,7 +50,9 @@
 - 開發紀錄及回報索引：https://github.com/c3xv05/NKNU-Campus-Simulator/issues/9
 - 新對話先讀 `AGENTS.md`、本摘要與 `docs/developer-journal.md`，再讀索引Issue及相關建築資料。使用者最新指示優先。
 
-## 2026-11-16：和平校區初版與校區切換
+## 2026-11-16：和平校區初版與校區切換（PR #68）
+
+交付：[PR #68](https://github.com/c3xv05/NKNU-Campus-Simulator/pull/68)；正式發布核對結果記錄於Issue #9。
 
 依使用者要求新增和平校區，獨立分支／worktree從main 13811dad開發。封面及遊戲內提供燕巢／和平切換，以獨立頁面切換並卸載原場景；燕巢保留index.html及所有已確認幾何。和平heping.html重用人物、機車、開發者登入／紀錄／座標，提供步行、騎車、快速傳送、大小地圖、空中觀察。和平探索紀錄使用獨立localStorage鍵；切換回到各校區初始位置，燕巢原有探索狀態仍依原實作只存在當頁記憶體，未宣稱跨頁持久保存。
 
