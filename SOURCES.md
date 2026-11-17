@@ -378,3 +378,7 @@ B1入口4.8m寬、約33m折坡、5.6m門洞與前4.5m順接前坪為既有模型
 來源facilities/southwest-junction/layout.json，build-local-junction-grade.py生成data/local-junction-grade.js。local-junction-grade.js提供共用修正，roads.js在既有高度網格後疊加同1.25m三角網上的修正；瀝青、白磚／15cm路緣、行走騎車與4m鄰側地形整平共用，建築與球場基準受保護。只對含三條指定道路的燕巢路網啟用，和平及合成路網不套用。修改來源跑python scripts/build-local-junction-grade.py；未改平面輪廓，不需重建整校鋪面或DEM。
 
 與路口連動的籃球場南側人行道、球場接地帶及S11停車場出口接路高度會取新道路高度，地下停車層／球場水平面與出口位置不變。保留生科正交輪廓／T／小平台／32階、霽遠室內、候車棚、S05原坡度及其他撤回決定。
+
+## 2026-11-17 霽遠樓衛浴與走廊更正
+
+使用者明確更正所有浴室只能從房內進入，並指出獨立衛浴及走廊分界誤讀。重新核對原PDF門弧：標準層201/206/207/212/213/214/219/224獨立，其餘八對共用；內側浴室斜邊依原圖修正，不再侵入走廊。原圖與本次配置見 [新核對PDF](buildings/foresight/source/private-bathroom-review.pdf)；先前草稿的誤判已取代。整棟1.1倍依本輪指示，含高度3.3m／總高16.5m；套合平移、細部尺寸與設備位置仍是模型近似，不是新增地形或道路實測。

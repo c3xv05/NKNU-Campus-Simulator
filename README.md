@@ -219,4 +219,4 @@ CAMPUS_TEST_URL=http://127.0.0.1:8000/ python tests/loading-browser.py --baselin
 
 ### 霽遠樓室內
 
-霽遠樓現為五層可通行室內，每層約3m；一樓與標準層分別配置房間、浴室、公共空間與四處樓梯，保持既有道路及地形。來源、模型近似與重建／驗證見 [霽遠樓README](buildings/foresight/README.md)。
+霽遠樓現為五層可通行室內，整棟XYZ等比例1.1倍，每層約3.3m；一樓與標準層分別配置房間、僅房內進入的獨立／共用浴室、公共空間與四處樓梯，保留走廊淨寬及既有道路／地形高度。來源、模型近似與重建／驗證見 [霽遠樓README](buildings/foresight/README.md)。

@@ -1,8 +1,18 @@
 import {createJiyuanSurface,JIYUAN_OSM} from './surface.js';
+// Author detail dimensions in the original metres, then scale the whole model in XYZ.
+// Inverse-transform compiled world vertices so the parent transform does not scale them twice.
+export function unscaledRenderSurface(world,scale,pivot,ground){
+ const point=([x,z])=>[pivot[0]+(x-pivot[0])/scale,pivot[1]+(z-pivot[1])/scale];
+ const ring=r=>r.map(point),regions=r=>r.map(region=>region.map(ring));
+ return{base:ground+(world.base-ground)/scale,floors:world.floors.map(f=>({...f,height:f.height/scale,level:ground+(f.level-ground)/scale,
+  regions:regions(f.regions),floorTriangles:f.floorTriangles.map(ring),roofTriangles:f.roofTriangles.map(ring),walls:f.walls.map(ring),windows:f.windows.map(ring),entrances:f.entrances.map(ring),
+  doors:f.doors.map(d=>({...d,line:ring(d.line)})),spaces:f.spaces.map(s=>({...s,center:point(s.center),ring:ring(s.ring),triangles:s.triangles.map(ring),...(s.door?{door:ring(s.door)}:{}),...(s.fixtures?{fixtures:s.fixtures.map(v=>({...v,center:point(v.center)}))}:{})})),
+  stairs:f.stairs.map(s=>({...s,route:ring(s.route),bounds:ring(s.bounds),treads:s.treads.map(t=>({...t,height:t.height/scale,ring:ring(t.ring)}))}))}))};
+}
 // The compiled plan drives both meshes and walking. No terrain/road source is changed here.
 export function addJiyuanInterior(THREE,parent,campus,terrain,data){
- campus.jiyuanInterior=data;const surface=createJiyuanSurface(campus,terrain),base=surface.base;
- const group=new THREE.Group();group.name='jiyuan-interior';parent.add(group);const blockers=[],props=new THREE.Group();props.name='jiyuan-interior-details';group.add(props);
+ campus.jiyuanInterior=data;const worldSurface=createJiyuanSurface(campus,terrain),scale=data.modelScale||1,pivot=data.scalePivot||[0,0],ground=terrain.platformHeight(campus.places.find(b=>b.osm===JIYUAN_OSM)),surface=unscaledRenderSurface(worldSurface,scale,pivot,ground),base=surface.base;
+ const group=new THREE.Group();group.name='jiyuan-interior';group.scale.setScalar(scale);group.position.set((1-scale)*pivot[0],(1-scale)*ground,(1-scale)*pivot[1]);parent.add(group);const blockers=[],props=new THREE.Group();props.name='jiyuan-interior-details';group.add(props);
  const cube=new THREE.BoxGeometry(1,1,1),dummy=new THREE.Object3D(),batches=new Map(),materials={};
  for(const[k,color]of Object.entries({wall:0xb87d62,inner:0xebe5d5,frame:0xb7b8ae,floor:0xd6d1c5,bath:0xc4d9d4,wood:0x8b6446,white:0xf5f2e8,steel:0x858f91,dark:0x29484e,water:0x78b0b1,glass:0x719eaa,landing:0xd5d2c6}))materials[k]=new THREE.MeshStandardMaterial({color,roughness:.85,side:THREE.DoubleSide});
  function box(w,h,d,x,y,z,key='inner',angle=0,level=0){const k=key+':'+level;if(!batches.has(k))batches.set(k,[]);batches.get(k).push({w,h,d,x,y,z,angle});}
@@ -10,9 +20,9 @@ export function addJiyuanInterior(THREE,parent,campus,terrain,data){
  function meshTriangles(triangles,y,bottom,key,name,owner=group){const positions=[];for(const tri of triangles){for(const[x,z]of tri)positions.push(x,y,z);if(bottom!==null)for(const[x,z]of [...tri].reverse())positions.push(x,bottom,z);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();const m=new THREE.Mesh(g,materials[key]);m.name=name;m.receiveShadow=true;owner.add(m);blockers.push(m);return m;}
  function rail(a,b,y1,y2,level){const dx=b[0]-a[0],dz=b[1]-a[1],dy=y2-y1,length=Math.hypot(dx,dz,dy),key='steel:'+level;if(!batches.has(key))batches.set(key,[]);const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1,0,0),new THREE.Vector3(dx,dy,dz).normalize());batches.get(key).push({w:length,h:.06,d:.06,x:(a[0]+b[0])/2,y:(y1+y2)/2,z:(a[1]+b[1])/2,quaternion:q});}
  function label(text,x,y,z,angle=0,width=1.05){const canvas=document.createElement('canvas');canvas.width=256;canvas.height=96;const c=canvas.getContext('2d');c.fillStyle='#23434b';c.fillRect(0,0,256,96);c.fillStyle='#fff1cc';c.font='bold 46px sans-serif';c.textAlign='center';c.fillText(text,128,64);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;const m=new THREE.Mesh(new THREE.PlaneGeometry(width,width*.375),new THREE.MeshBasicMaterial({map:texture,side:THREE.DoubleSide}));m.position.set(x,y,z);m.rotation.y=angle;props.add(m);return m;}
- // Fill the old shell's ground opening with a low building plinth, not altered terrain.
- const building=campus.places.find(b=>b.osm===JIYUAN_OSM),shape=new THREE.Shape();building.ring.forEach(([x,z],i)=>i?shape.lineTo(x,-z):shape.moveTo(x,-z));shape.closePath();const foundation=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.8,bevelEnabled:false}),materials.frame);foundation.geometry.rotateX(-Math.PI/2);foundation.position.y=base-.84;foundation.name='jiyuan-existing-foundation';group.add(foundation);blockers.push(foundation);
- for(const region of surface.floors[0].regions){const s=new THREE.Shape();region[0].forEach(([x,z],i)=>i?s.lineTo(x,-z):s.moveTo(x,-z));s.closePath();const g=new THREE.ExtrudeGeometry(s,{depth:1,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,materials.wall);m.name='jiyuan-plan-foundation';m.position.y=base-1.16;group.add(m);blockers.push(m);}
+ // The foundation follows the actual shell; no concrete plinth is added outside it.
+ let foundation=null;
+ for(const region of surface.floors[0].regions){const s=new THREE.Shape();region[0].forEach(([x,z],i)=>i?s.lineTo(x,-z):s.moveTo(x,-z));s.closePath();const g=new THREE.ExtrudeGeometry(s,{depth:1,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,materials.wall);m.name='jiyuan-plan-foundation';m.position.y=base-1.16;group.add(m);blockers.push(m);foundation??=m;}
  for(const f of surface.floors){
   meshTriangles(f.floorTriangles,f.level,f.level-.16,'floor','jiyuan-floor-'+f.floor);
   for(const [i,[a,b]]of f.walls.entries())segment(a,b,f.level,f.lowWallIndices.includes(i)?1.05:2.84,f.exteriorWallIndices.includes(i)?'wall':'inner',.15,f.floor);
@@ -49,5 +59,5 @@ export function addJiyuanInterior(THREE,parent,campus,terrain,data){
  meshTriangles(surface.floors[4].roofTriangles,base+15,base+14.82,'frame','jiyuan-roof');
  for(const[key,items]of batches){const [mat,level]=key.split(':'),m=new THREE.InstancedMesh(cube,materials[mat],items.length);m.name='jiyuan-'+mat+'-'+level;for(let i=0;i<items.length;i++){const b=items[i];dummy.position.set(b.x,b.y,b.z);if(b.quaternion)dummy.quaternion.copy(b.quaternion);else dummy.rotation.set(0,b.angle||0,0);dummy.scale.set(b.w,b.h,b.d);dummy.updateMatrix();m.setMatrixAt(i,dummy.matrix);}m.computeBoundingSphere();m.receiveShadow=true;group.add(m);if(['inner','frame','landing'].includes(mat))blockers.push(m);}
  const[a,b]=surface.floors[0].entrances[0];label('霽遠樓',(a[0]+b[0])/2,base+2.6,(a[1]+b[1])/2,Math.atan2(a[1]-b[1],b[0]-a[0]),2.5);
- return{group,detail:props,shell:foundation,blockers,surface};
+ return{group,detail:props,shell:foundation,blockers,surface:worldSurface};
 }
