@@ -47,3 +47,11 @@ CAMPUS_TEST_URL=http://127.0.0.1:8132/ THREE_MODULE_PATH=/tmp/three.module.js py
 ```
 
 檢查實際邊線平行／直角、下層入口、B端同寬、支線12m／置中／垂直、露天上層、矩形下層樓梯及鋪面不重疊。瀏覽器在桌面及390px觸控 viewport 測坡道三走線雙向步行／騎車、上下兩層、完整 L、樓梯全寬／轉入下層、渲染射線、相機與地圖；測試 hook 只由測試攔截 HTML 注入。
+
+## 2026-11-17：生科雙棟南移，T支線垂直S05
+
+依使用者最新更正，生科A／B整體沿世界南向（+Z）移14.723923m，兩棟各頂點X、輪廓、相對位置與樓層不變。中央通廊中點與致理／高斯levelLink中點沿S05法線對齊；T支線保持12m與置中，改垂直S05共同軸，而非沿生科原通廊法線。這筆取代前輪「生科建築不動、支線垂直通廊」；其餘撤回決定維持。距離為現有模型推導，非實測。
+
+來源buildings/bio-a、bio-b/building.json保留beforeSouthAlignment及原platformAnchor，避免平移導致樓層高程漂移。campus-corridors/layout.json的southAlignment記錄偏移、對齊目標及道路軸；build-campus-corridors依該軸推導坡口方向，向陽路東梯／梯腳鋪面跟隨新接點重建，保留矩形下層樓梯、露天上層與B端等寬通廊。原共用地形融合依新建物基座、通廊及坡口重新計算；白磚、車道裁切、植栽避讓同步重建，原始高程與道路坡度不動。
+
+重建時白磚差集出現零面積LineString，build-sidewalk-plan僅接收Polygon以消除無面積邊線，不刪除有效鋪面。依campus-corridors/README既有生成鏈重建。
