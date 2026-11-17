@@ -6,7 +6,7 @@ def ring(s):
  (x,z),(xx,zz)=s['line'];dx,dz=xx-x,zz-z;l=math.hypot(dx,dz);nx,nz=-dz/l,dx/l;top=s.get('topWidth',s['width'])/2;bottom=s['width']/2
  return [[x+nx*top,z+nz*top],[xx+nx*bottom,zz+nz*bottom],[xx-nx*bottom,zz-nz*bottom],[x-nx*top,z-nz*top]]
 if a.get('compactAccess'):
- cfg=a['compactAccess'];building=json.loads((root/('buildings/'+cfg['building']+'/building.json')).read_text())['geometry'];fa,anchor=[building['ring'][i]for i in [cfg['frontEdge'],(cfg['frontEdge']+1)%len(building['ring'])]];length=math.dist(fa,anchor);t=[(anchor[i]-fa[i])/length for i in [0,1]];n=[t[1],-t[0]]
+ cfg=a['compactAccess'];building=json.loads((root/('buildings/'+cfg['building']+'/building.json')).read_text())['geometry'];fa,anchor=cfg['frontLine'] if cfg.get('frontLine') else [building['ring'][i]for i in [cfg['frontEdge'],(cfg['frontEdge']+1)%len(building['ring'])]];length=math.dist(fa,anchor);t=[(anchor[i]-fa[i])/length for i in [0,1]];n=[t[1],-t[0]]
  def at(u,v):return [round(anchor[i]+n[i]*u+t[i]*v,7)for i in [0,1]]
  def rect(u0,u1,v0,v1):return [at(u0,v0),at(u1,v0),at(u1,v1),at(u0,v1)]
  low,high=a['teachingStairs'];front=-cfg['frontInset'];north=cfg['northClearance'];lowV=north+low['width']/2;highV=north+high['width']/2

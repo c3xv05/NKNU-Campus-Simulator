@@ -29,9 +29,10 @@ export function createTerrain(grid, areas,options={}) {
   const unlevelledHeight=(x,z)=>baseRaw(x,z)+correction(x,z),siteLevels=createSiteLevels(unlevelledHeight);
   const rawHeight=(x,z)=>siteLevels.heightAt(x,z,unlevelledHeight(x,z));
   const pads = areas.map(area => {
-    const xs = area.ring.map(p=>p[0]), zs = area.ring.map(p=>p[1]);
+    // terrainRing keeps an established ground pad when a shell is redrawn smaller (e.g. Zhili).
+    const ring=area.terrainRing||area.ring, xs = ring.map(p=>p[0]), zs = ring.map(p=>p[1]);
     const [x,z] = area.platformAnchor||[(Math.min(...xs)+Math.max(...xs))/2,(Math.min(...zs)+Math.max(...zs))/2];
-    return { osm:area.osm,kind:area.kind,holes:area.holes||[],depth:area.depth||2.5,ring: area.ring, west: Math.min(...xs)-15, east: Math.max(...xs)+15,
+    return { osm:area.osm,kind:area.kind,holes:area.holes||[],depth:area.depth||2.5,ring, west: Math.min(...xs)-15, east: Math.max(...xs)+15,
       north: Math.min(...zs)-15, south: Math.max(...zs)+15, height: siteLevels.levelAt(x,z)!==null?siteLevels.levelAt(x,z)+.185:rawHeight(x,z) };
   });
   if(options.levelLink){const link=options.levelLink,from=pads.find(p=>p.osm===link.from),to=pads.find(p=>p.osm===link.to);if(from&&to)from.height=to.height+(link.toFloor-link.fromFloor)*link.floorHeight;}
