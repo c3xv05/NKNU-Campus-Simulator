@@ -1,11 +1,12 @@
-// Low-poly tree species (style A): faceted clumps, several silhouettes, all instanced.
+// Tree species (style A, softened): rounded puffs with smooth shading, several silhouettes, all instanced.
 // Geometry is unit-sized; landscape.js scales each instance by tree.size.
 // Species are generic hillside/campus shapes chosen for variety, not botanical survey data.
 
 function mergeParts(THREE,parts){
  const positions=[],normals=[];
  for(const {geometry,matrix} of parts){
-  const g=(geometry.index?geometry.toNonIndexed():geometry.clone()).applyMatrix4(matrix);g.computeVertexNormals();
+  // Transform first so smooth normals survive, then un-index for a simple merged buffer.
+  const t=geometry.clone().applyMatrix4(matrix),g=t.index?t.toNonIndexed():t;if(g!==t)t.dispose();
   positions.push(...g.attributes.position.array);normals.push(...g.attributes.normal.array);g.dispose();geometry.dispose();
  }
  const merged=new THREE.BufferGeometry();
@@ -19,15 +20,16 @@ function part(THREE,geometry,{x=0,y=0,z=0,sx=1,sy=1,sz=1,rx=0,ry=0,rz=0}={}){
  return{geometry,matrix:m};
 }
 
-// Deterministically jitter icosahedron vertices so clumps don't look like perfect gems.
+// Soft rounded puff: a low-segment sphere with gentle deterministic wobble and smooth normals,
+// so silhouettes stay slightly faceted but shading reads round and cute.
 function clump(THREE,seed){
- const g=new THREE.IcosahedronGeometry(1,0),p=g.attributes.position;
- for(let i=0;i<p.count;i++){const k=Math.sin((i+1)*12.9898+seed*78.233)*43758.5453,j=.82+(k-Math.floor(k))*.3;p.setXYZ(i,p.getX(i)*j,p.getY(i)*j,p.getZ(i)*j);}
- return g;
+ const g=new THREE.SphereGeometry(1,8,6),p=g.attributes.position,cache=new Map();
+ for(let i=0;i<p.count;i++){const key=[p.getX(i),p.getY(i),p.getZ(i)].map(v=>v.toFixed(4)).join();if(!cache.has(key)){const k=Math.sin((cache.size+1)*12.9898+seed*78.233)*43758.5453;cache.set(key,.93+(k-Math.floor(k))*.12);}const j=cache.get(key);p.setXYZ(i,p.getX(i)*j,p.getY(i)*j,p.getZ(i)*j);}
+ g.computeVertexNormals();return g;
 }
 
 export function createTreeSpecies(THREE){
- const trunk=(h,r0,r1,lean=0)=>part(THREE,new THREE.CylinderGeometry(r0,r1,h,6),{y:h/2,rz:lean});
+ const trunk=(h,r0,r1,lean=0)=>part(THREE,new THREE.CylinderGeometry(r0,r1,h,8),{y:h/2,rz:lean});
  const branch=(len,r,x,y,rz)=>part(THREE,new THREE.CylinderGeometry(r*.6,r,len,5),{x,y,rz});
  const species=[
   {// Broad round crown (camphor-like), the forest default.
@@ -62,9 +64,10 @@ export function createTreeSpecies(THREE){
    name:'conifer',weight:.1,fadeHeight:4.6,fadeRadius:3.1,
    trunk:mergeParts(THREE,[trunk(2.2,.14,.24)]),
    crown:mergeParts(THREE,[
-    part(THREE,new THREE.ConeGeometry(1.8,3,7),{y:3.2}),
-    part(THREE,new THREE.ConeGeometry(1.4,2.6,7),{y:4.8,ry:.4}),
-    part(THREE,new THREE.ConeGeometry(.9,2.2,6),{y:6.3,ry:.9})])
+    part(THREE,clump(THREE,21),{y:3.3,sx:1.7,sy:1.15,sz:1.7}),
+    part(THREE,clump(THREE,22),{y:4.7,sx:1.3,sy:1,sz:1.3}),
+    part(THREE,clump(THREE,23),{y:5.9,sx:.9,sy:.85,sz:.9}),
+    part(THREE,clump(THREE,24),{y:6.8,sx:.5,sy:.55,sz:.5})])
   }
  ];
  return species;
@@ -77,4 +80,4 @@ export function treeSpeciesIndex(tree,species){
 }
 
 // [hue, saturation, lightness] per species; each tree adds a small tint offset.
-export const treeCrownPalette=[[.3,.38,.19],[.27,.36,.21],[.32,.42,.18],[.37,.32,.16]];
+export const treeCrownPalette=[[.29,.45,.24],[.25,.42,.27],[.32,.46,.23],[.37,.36,.2]];
