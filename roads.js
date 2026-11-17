@@ -206,9 +206,18 @@ export function createRoadNetwork(roads,height,tags={},options={}) {
   }
   function integratedHeight(x,z,ground){const road=nearest(x,z);const weight=Math.max(road?1-ease(road.width/2+2,road.width/2+16,road.d):0,...paved.map(a=>pavedWeight(a,x,z)));return ground+(surfaceHeight(x,z)-ground)*weight;}
   function walkHeight(x,z,ground) {
-    const level=siteLevels.levelAt(x,z);if(level!==null&&!onMotorRoad(x,z))return level+.185;
-    const motor=onMotorRoad(x,z);if(!motor&&roadGrade?.sample(x,z).weight>0){const path=nearest(x,z);if(!path?.segment.route.style.path||path.d>path.width/2)return ground+.035;}
-    return (motor?surfaceHeight(x,z):integratedHeight(x,z,ground))+.035;
+    const motor=onMotorRoad(x,z),level=motor?null:siteLevels.levelAt(x,z);
+    // Lawn level areas: the terrain mesh is already shaped to the level (+0.185) inside the ring and ramps
+    // at its edge, so walking follows the rendered ground like everywhere else instead of a flat level that
+    // floated up to ~2.7m above the lawn near the edges. Footpaths inside the area keep the level.
+    if(level!==null){const path=nearest(x,z);if(path?.segment.route.style.path&&path.d<=path.width/2)return level+.185;}
+    let normal;
+    if(!motor&&roadGrade?.sample(x,z).weight>0){const path=nearest(x,z);if(!path?.segment.route.style.path||path.d>path.width/2)normal=ground+.035;}
+    if(normal===undefined)normal=(motor?surfaceHeight(x,z):integratedHeight(x,z,ground))+.035;
+    // The 4m terrain mesh only ramps within one cell of the ring, so deeper inside the lawn stays exactly
+    // flat at level+0.185; blend from the rendered edge to that flat level between 4m and 6m inside.
+    if(level===null)return normal;
+    const depth=siteLevels.insideDepth(x,z),w=ease(4,6,depth??0);return normal+(level+.185-normal)*w;
   }
   return {roadGrade,siteLevels:siteLevels.areas,siteLevelAt:siteLevels.levelAt,edgePavement:options.edgePavement||[],junctionFillets:options.junctionFillets||[],pavedAreas:options.pavedAreas||[],apron:options.apron,entranceLevel,integratedHeight,routes,segments,junctions,nearest,surfaceHeight,gradeTerrain,walkHeight,onMotorRoad,groundHeight:height};
 }
