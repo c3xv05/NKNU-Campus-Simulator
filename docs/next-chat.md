@@ -1,5 +1,15 @@
 # 新對話接續摘要
 
+## 2026-11-17：致理外殼改依平面圖、北移貼近北側道路、廣場延伸、移除中央樓梯
+
+使用者提供理學大樓（致理）B1～8F平面圖並確認判讀草稿；要求致理與北側道路距離貼近現實，中央廣場與連接處跟著延伸、日後再處理，去掉中央廣場階梯、保留便利商店階梯。
+
+致理ring改為平面圖四樓外牆（約49×63m），東立面沿原S05臨路線，北側依1F圖面路緣與遊戲瀝青套合（較原南端再北13.75m，殘差±1m）；舊輪廓存beforeDrawingFootprint並作terrainRing，地形墊底、樓層高程、S05／S06道路與瀝青完全不變。新外殼佔去北側人行廣場約424m²白磚。舊輪廓空出部分（約1,147m²）併入廣場下層；臨S05為實心磚基座＋矮牆，西側高出2.6～4.7m處為擋土牆，皆有碰撞、無縫隙／懸空。便利商店8＋平台＋8／上8階固定在原frontEdge線（compactAccess.frontLine），位置逐位相同。中央小樓梯移除（removedCourtyardStairs）。
+
+未做：室內（buildings/zhili/plan.json為草稿）、廣場上層L型與裙樓、B1停車場與東南車道入口、S05高差（圖面主入口人行道比1F低1.3m，遊戲約2.1m，使用者未要求改路）。
+
+驗證：frontage-alignment、campus-corridors（含廣場延伸雙向步行）、eight-step-access瀏覽器、jiyuan-interior（致理／廣場範圍外地形逐點相同）、sidewalk-level、campus-plazas、roads等通過；photo-access、photo-buildings、campus-realism、sports-and-gentle-access、eight-step-access.py、campus-corridors-geometry.py、spatial-corrections-geometry.py在原main即失敗，未因本次新增失敗點。
+
 ## 2026-11-17：霽遠樓一至二樓轉角梯、兩端外側封牆（取代PR86）
 
 使用者最新確認：兩端二樓到一樓也需和上層相同有轉角，落到一樓朝內側，左右外側沒有出口、只有牆。撤回PR86的一樓16階直跑／安全門通道與門洞；原PDF的安全門符號僅留來源歷史，現況以使用者本次觀察為準。兩端所有樓層統一兩跑各8階、南側半層平台、北側整層平台朝內側走廊；二樓開孔恢復完整兩梯道。左右外端完整牆面具有渲染與碰撞，僅中央大廳大門通室外。階數及尺寸仍為模型近似。
