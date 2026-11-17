@@ -36,8 +36,8 @@
       ]
     ],
     "name": "霽遠樓",
-    "desc": "五層對稱雙翼宿舍；依使用者二至五樓平面圖重建外部量體，未開放室內。",
-    "height": 18,
+    "desc": "五層雙翼宿舍；依使用者平面草稿及原始圖實作可通行室內，每層約3公尺。",
+    "height": 15,
     "sourceRing": [
       [
         -315.2,
@@ -76,7 +76,8 @@
         14
       ]
     ],
-    "floors": 5
+    "floors": 5,
+    "floorHeight": 3
   },
   "appearance": {
     "id": "foresight",
@@ -93,7 +94,7 @@
     "frame": "#b9b9ae",
     "glass": "#36545b",
     "detailDistance": 145,
-    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。；入口置於完整臨路立面中央，基座對齊門前平台。；2026-11-14使用者疏散平面圖確認五層與左右對稱雙翼，比例為圖面近似。",
+    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。；入口置於完整臨路立面中央，基座對齊門前平台。；2026-11-14使用者疏散平面圖確認五層與左右對稱雙翼，比例為圖面近似。；2026-11-17依使用者提供宿舍PDF第1、2頁及確認清稿建立五層室內，約3m層高；細部尺寸及設備位置為模型近似。",
     "frontMode": "main-road",
     "frontEdges": [
       1,
@@ -103,6 +104,7 @@
     "frontRoadIds": [
       381734286
     ],
-    "entranceAtSidewalk": true
+    "entranceAtSidewalk": true,
+    "interiorFile": "./buildings/foresight/interior.json"
   }
 }

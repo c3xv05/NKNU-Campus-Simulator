@@ -21,3 +21,8 @@ print(f'Built {len(profiles)} independent building definitions')
 if (root/"facilities/gauss-stop/layout.json").exists():
  import subprocess
  subprocess.run(["node",str(root/"scripts/build-gauss-stop.mjs")],check=True)
+
+# The reviewed interior plan is independent of the terrain/road footprint.
+if (root/"buildings/foresight/plan.json").exists():
+ import subprocess,sys
+ subprocess.run([sys.executable,str(root/"scripts/build-jiyuan-interior.py")],check=True)
