@@ -7,10 +7,10 @@ export function createCourtAccess(campus,terrain,network,sidewalk){
  const ease=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);},base=a=>terrain.platformHeight(campus.courts.find(c=>c.osm===a.court))+.07;
  const outside=(x,z)=>{const s=sidewalk.heightAt(x,z);if(s!==null)return{floor:s,foot:s};return{floor:network.onMotorRoad(x,z)?network.surfaceHeight(x,z)+.015:terrain.height(x,z),foot:network.walkHeight(x,z,terrain.height(x,z))};};
  const surfaces=source.surfaces.map(a=>{
-  const level=base(a),end=a.line?outside(...a.line.at(-1)):null,vertices=[],feet=[],cells=new Map(),triangles=[];
+  const level=base(a),end=a.line?outside(...a.line.at(-1)):null,rise=a.endAtGround?level+(a.startOffset||0)-end.floor:a.rise,vertices=[],feet=[],cells=new Map(),triangles=[];
   if(a.kind!=='stairs')for(const triangle of a.triangles){const points=[],walk=[];
    for(const [xx,zz]of triangle){const x=Math.fround(xx),z=Math.fround(zz),out=outside(x,z);let weight,start=level+(a.startOffset||0);
-    if(a.kind==='shoulder'){const inner=ringDistance(x,z,a.inner),outer=edgeDistance(x,z,a.outer);weight=inner<.0001?0:ease(inner/(inner+outer));}
+    if(a.kind==='shoulder'||a.kind==='garage-ground'){const inner=ringDistance(x,z,a.inner),outer=edgeDistance(x,z,a.outer);let exposure=0;if(a.kind==='garage-ground'){const p=campus.courtParking,[lo,hi,left,right]=p.bounds,u=x*p.axis[0]+z*p.axis[1],v=-x*p.axis[1]+z*p.axis[0];exposure=1;if(u<lo)exposure=ease((left-v)/(lo-u+left-v||1));else if(v>right)exposure=ease((u-hi)/(u-hi+v-right||1));start-=(p.depth+.06)*exposure;}const d=a.kind==='garage-ground'?Math.max(0,inner-a.apron*exposure):inner;weight=inner<.0001?0:ease(d/(d+outer||1));}
     else weight=ease(progressOnLine(x,z,a.line));
     let floor=start+((a.kind==='ramp'?end.floor:out.floor)-start)*weight,foot=start+.08+((a.kind==='ramp'?end.foot:out.foot)-start-.08)*weight;
     if(a.kind==='ramp'&&a.contactEdges?.length){const d=edgeDistance(x,z,a.contactEdges.map(line=>[line])),blend=1-ease(d/.5);floor+=(out.floor-floor)*blend;foot+=(out.foot-foot)*blend;}points.push([x,Math.fround(floor),z]);walk.push(Math.fround(foot));
@@ -19,12 +19,12 @@ export function createCourtAccess(campus,terrain,network,sidewalk){
    const den=(points[1][2]-points[2][2])*(points[0][0]-points[2][0])+(points[2][0]-points[1][0])*(points[0][2]-points[2][2]);if(Math.abs(den)<1e-8)continue;const item={p:points,walk,den};triangles.push(item);vertices.push(...points.flat());feet.push(...walk);
    for(let iz=Math.floor(Math.min(...points.map(p=>p[2]))/4);iz<=Math.floor(Math.max(...points.map(p=>p[2]))/4);iz++)for(let ix=Math.floor(Math.min(...points.map(p=>p[0]))/4);ix<=Math.floor(Math.max(...points.map(p=>p[0]))/4);ix++){const k=ix+','+iz;if(!cells.has(k))cells.set(k,[]);cells.get(k).push(item);}
   }
-  function heightAt(x,z,floor=false){if(a.kind==='stairs'){if(!inRegions(x,z,a.regions))return null;const t=progressOnLine(x,z,a.line),step=Math.max(0,Math.min(a.steps,Math.ceil(t*a.steps-1e-5)));return level-step*a.rise/a.steps+(floor?0:.08);}
+  function heightAt(x,z,floor=false){if(a.kind==='stairs'){if(!inRegions(x,z,a.regions))return null;const t=progressOnLine(x,z,a.line),step=Math.max(0,Math.min(a.steps,Math.ceil(t*a.steps-1e-5)));return level+(a.startOffset||0)-step*rise/a.steps+(floor?0:.08);}
    for(const {p,walk,den}of cells.get(Math.floor(x/4)+','+Math.floor(z/4))||[]){const u=((p[1][2]-p[2][2])*(x-p[2][0])+(p[2][0]-p[1][0])*(z-p[2][2]))/den,v=((p[2][2]-p[0][2])*(x-p[2][0])+(p[0][0]-p[2][0])*(z-p[2][2]))/den,w=1-u-v;if(Math.min(u,v,w)>=-.0002)return floor?u*p[0][1]+v*p[1][1]+w*p[2][1]:u*walk[0]+v*walk[1]+w*walk[2];}return null;
   }
-  return{...a,level,vertices,feet,triangles,heightAt,floorAt:(x,z)=>heightAt(x,z,true)};
+  return{...a,rise,level,vertices,feet,triangles,heightAt,floorAt:(x,z)=>heightAt(x,z,true)};
  });
- function heightAt(x,z){for(const a of [...surfaces.filter(a=>a.kind==='stairs'),...surfaces.filter(a=>a.kind==='ramp'),...surfaces.filter(a=>a.kind==='shoulder')]){const h=a.heightAt(x,z);if(h!==null)return h;}return null;}
+ function heightAt(x,z){for(const a of [...surfaces.filter(a=>a.kind==='stairs'),...surfaces.filter(a=>a.kind==='ramp'),...surfaces.filter(a=>a.kind==='shoulder'||a.kind==='garage-ground')]){const h=a.heightAt(x,z);if(h!==null)return h;}return null;}
  const court=campus.courts.find(c=>c.sport==='basketball'),fenceBase=terrain.platformHeight(court)+.07;
  function blocked(x,z,r,y){return y>=fenceBase-.5&&y<fenceBase+3&&source.fences.some(f=>{const [a,b]=f.line,dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/(dx*dx+dz*dz)));return Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t)<r+.06;});}
  return{surfaces,heightAt,blocked,fenceBase,outsideFloorAt:(x,z)=>outside(x,z).floor};

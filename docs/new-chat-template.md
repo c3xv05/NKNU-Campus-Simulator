@@ -4,14 +4,14 @@
 
 ```text
 繼續修改 c3xv05/NKNU-Campus-Simulator。
-先檢查工作區，讀 AGENTS.md、docs/next-chat.md、docs/developer-journal.md、GitHub Issue #9 及本次相關來源；以最新遠端 main 和最新需求為準，不要恢復已撤回的改動。
+先檢查工作區，讀 AGENTS.md、docs/next-chat.md、docs/developer-journal.md、GitHub最新開發紀錄Issue（含 nknu-dev-record 標記，依Issue編號由新到舊，勿把PR當Issue；目前#78） 及本次相關來源；以最新遠端 main 和最新需求為準，不要恢復已撤回的改動。
 本對話只處理：【一個細節／區域】。
 位置：【S／R編號、建築名稱；貼上開發者複製的座標JSON】。
 需求：【目前問題與期望結果】。
 參考：【本對話附圖／專案內圖片路徑／無】。
 其他已確認現況保留；調整鋪面時同步微調鄰側地形，不得有斷層、懸空或重疊。
 使用獨立分支；若其他對話同時施工，使用獨立 git worktree，不覆蓋其他對話未提交的修改，合併前同步遠端 main。
-完成必要驗證後直接合併發布，核對正式站；更新來源、開發日誌、docs/next-chat.md 與 Issue #9，寫清楚完成及待辦項目，讓其他對話能接續。
+完成必要驗證後直接合併發布，核對正式站；更新來源、開發日誌、docs/next-chat.md 與 最新開發紀錄Issue，寫清楚完成及待辦項目，讓其他對話能接續。
 ```
 
-目前應保留：S05已恢復原坡度；S05接S06加大圓弧及同步人行道已發布；S07/S20/S22白磚位在正確內角，靠S07端圓弧過渡。最新狀態仍以 next-chat 與 Issue #9 為準，這裡不是固定版本快照。
+目前應保留：S05已恢復原坡度；S05接S06加大圓弧及同步人行道已發布；S07/S20/S22白磚位在正確內角，靠S07端圓弧過渡。最新狀態仍以 next-chat 與 最新開發紀錄Issue 為準，這裡不是固定版本快照。

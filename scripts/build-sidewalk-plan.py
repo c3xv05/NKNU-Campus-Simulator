@@ -28,6 +28,7 @@ if c.get('teachingAccess'):
  for s in c['levelLink']['stairs']:shape=shape.difference(Polygon(s['ring']))
 # Preserve the exact access boundary after hole cleanup / outline simplification.
 for region in [r for a in c.get('campusTransitions',[])for r in a['regions']]+c['bioConnection'].get('corridor',{}).get('regions',[]):shape=shape.difference(Polygon(region[0],region[1:]))
+if c.get('courtParking',{}).get('entrance'):shape=shape.difference(Polygon(c['courtParking']['entrance']['ring']))
 regions=[p for p in (list(shape.geoms) if hasattr(shape,'geoms') else [shape]) if p.area>=.002]
 shape=unary_union(regions)
 step=1.25;triangles=[];rings=[]
