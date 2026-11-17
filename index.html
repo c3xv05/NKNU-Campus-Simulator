@@ -39,6 +39,7 @@ import {addRoads} from './road-renderer.js';
 import {cutRoadsFromGround} from './road-ground.js';
 import {findDestinations,findBuildingDestinations,stepScooter} from './travel.js';
 import {createJiyuanSurface,JIYUAN_OSM} from './buildings/foresight/surface.js';
+import {createZhiliSurface,ZHILI_OSM} from './buildings/zhili/interior.js';
 import {passageAt} from './building-passages.js';
 import {isDeveloper} from './developer-auth.js';
 import {mountDeveloperCoordinates} from './developer-coordinates.js';
@@ -200,7 +201,7 @@ await loadingStage('準備路面…');
 const roadRendering=addRoads(THREE,scene,roadNetwork,terrainHeight,campus);
 await loadingStage('整理地表…');
 // Hide existing ground only inside the enlarged interior; the height field and exterior terrain stay unchanged.
-const jiyuanGroundCuts=buildingProfiles[JIYUAN_OSM]?.interiorData?.floors[0].floorTriangles||[];
+const jiyuanGroundCuts=[...(buildingProfiles[JIYUAN_OSM]?.interiorData?.floors[0].floorTriangles||[]),...(buildingProfiles[ZHILI_OSM]?.interiorData?.floors[0].slabTriangles||[])];
 const cutGround=cutRoadsFromGround(terrain.mesh,[...jiyuanGroundCuts,...(siteDetails.planterFootprints||[]),...(campus.courtParking?.entrance?.groundCuts||[]),...campus.courts.filter(a=>a.playingCourts).map(a=>a.ring),...(campus.sportsAccess?.footprints||[]),...(campus.campusTransitions||[]).flatMap(a=>[...a.footprints,...(a.groundBlendPlan?.footprints||[])]),...(campus.bioConnection.corridor?.triangles||[]),...roadRendering.footprints,...siteDetails.sidewalks.map(s=>s.points),...(campus.courtyard.footprints||[]),...(campus.huanyuAccess?.footprints||[]),campus.bioConnection.stairs.ring,...[...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[])].map(s=>s.ring)],terrainGeometry.getAttribute('normal').array);
 const cutGeometry=new THREE.BufferGeometry();
 // Clipping preserves the original triangle interpolation. Resampling new cut points
@@ -529,9 +530,9 @@ function movePlayer(dx,dz,radius){
   const linkLevel=siteDetails.bridgeLevel,connection=parkingSupportAt(x,z,player.position.y,campus,terrain,roadNetwork)??(motion.riding?null:stairHeightAt(x,z,player.position.y,campus,terrain,roadNetwork))??corridorSupportAt(x,z,player.position.y,campus,terrain,roadNetwork)??(motion.riding?null:(platformHeightAt(x,z,player.position.y,campus,terrain,roadNetwork)??bridgeHeight(x,z,player.position.y,campus.levelLink,linkLevel)??(campus.bioConnection.corridor?null:bridgeHeight(x,z,player.position.y,campus.bioConnection,siteDetails.bioLevel))));
   const lake=lakeAt(x,z,campus);
   if(lake){const road=roadNetwork.nearest(x,z);if(!(road&&road.d<road.width/2&&roadNetwork.surfaceHeight(x,z)>terrain.platformHeight(lake)+.2)){motion.speed=0;showToast('前方是湖泊，請沿岸行走');return false;}}
-  const jiyuan=createJiyuanSurface(campus,terrain);
-  const blockedBuilding=obstacles.some(building=>!(jiyuan&&building.osm===JIYUAN_OSM)&&distanceToRing(x,z,building.ring)<radius&&!(building.passage&&!motion.riding&&passageAt(x,z,player.position.y,building,terrain,radius))&&!(connection!==null&&[campus.levelLink.from,campus.levelLink.to,campus.bioConnection.from,campus.bioConnection.to].includes(building.osm)));
-  if(jiyuan?.blocked(x,z,radius,player.position.y,motion.riding)||welcomeBoard.blocked(x,z,radius)||blockedBuilding||landscapeLayout.blocked(x,z,radius)||siteDetails.blocked(x,z,radius,player.position.y)){motion.speed=0;return false;}
+  const jiyuan=createJiyuanSurface(campus,terrain);const zhili=createZhiliSurface(campus,terrain);
+  const blockedBuilding=obstacles.some(building=>!(jiyuan&&building.osm===JIYUAN_OSM)&&!(zhili&&building.osm===ZHILI_OSM)&&distanceToRing(x,z,building.ring)<radius&&!(building.passage&&!motion.riding&&passageAt(x,z,player.position.y,building,terrain,radius))&&!(connection!==null&&[campus.levelLink.from,campus.levelLink.to,campus.bioConnection.from,campus.bioConnection.to].includes(building.osm)));
+  if(jiyuan?.blocked(x,z,radius,player.position.y,motion.riding)||zhili?.blocked(x,z,radius,player.position.y,motion.riding)||welcomeBoard.blocked(x,z,radius)||blockedBuilding||landscapeLayout.blocked(x,z,radius)||siteDetails.blocked(x,z,radius,player.position.y)){motion.speed=0;return false;}
   player.position.set(x,connection??walkHeight(x,z),z);
  }
  return true;

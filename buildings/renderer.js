@@ -1,4 +1,5 @@
 import {addJiyuanInterior} from './foresight/renderer.js';
+import {addZhiliInterior} from './zhili/interior.js';
 import {passageLevel} from '../building-passages.js';
 import {SIDEWALK_RISE,ROAD_SURFACE_LIFT} from '../sidewalk-layout.js';
 import {selectFront} from '../building-layout.js';
@@ -11,12 +12,14 @@ export function addBuildings(THREE,scene,campus,terrain,profiles,network){
  function outline(ring){const s=new THREE.Shape();ring.forEach(([x,z],i)=>i?s.lineTo(x,-z):s.moveTo(x,-z));s.closePath();return s;}
  for(const a of [...campus.places,...campus.buildings].filter(a=>a.height)){
   const p=profiles[a.osm],base=terrain.platformHeight(a),xs=a.ring.map(v=>v[0]),zs=a.ring.map(v=>v[1]),cx=(Math.min(...xs)+Math.max(...xs))/2,cz=(Math.min(...zs)+Math.max(...zs))/2;
-  if(p.interiorData){const interior=addJiyuanInterior(THREE,group,campus,terrain,p.interiorData);blockers.push(...interior.blockers);entries.push({id:p.id,cx,cz,detail:interior.detail,shell:interior.shell,limit:p.detailDistance||145});continue;}
+  if(p.interiorData&&p.interiorKind!=='zhili'){const interior=addJiyuanInterior(THREE,group,campus,terrain,p.interiorData);blockers.push(...interior.blockers);entries.push({id:p.id,cx,cz,detail:interior.detail,shell:interior.shell,limit:p.detailDistance||145});continue;}
   if(p.style==='gatehouse'){const detail=new THREE.Group(),shell=scene.getObjectByName('entrance-guardhouse');group.add(detail);if(shell)blockers.push(shell);entries.push({id:p.id,cx,cz,detail,shell,limit:p.detailDistance||145});continue;}
   const wall=material(p.wall,['canteen','technology','library'].includes(p.style)?'tiles':['brick-frame','foresight','academic','dorm-two-tone','guesthouse'].includes(p.style)),accent=material(p.accent||p.wall),frame=material(p.frame),glass=material(p.glass),dark=material('#25363c'),awning=material('#477f7b');
   const lowerBase=Math.min(base-3,...a.ring.map(([x,z])=>(network?network.integratedHeight(x,z,terrain.height(x,z)):terrain.height(x,z))-1));
   const shape=outline(a.ring);shape.holes=(a.holes||[]).map(outline);
   function solid(shape,bottom,top,name){const g=new THREE.ExtrudeGeometry(shape,{depth:top-bottom,bevelEnabled:false});g.rotateX(-Math.PI/2);const mesh=new THREE.Mesh(g,wall);mesh.position.y=bottom;mesh.name=name;mesh.castShadow=true;mesh.receiveShadow=true;group.add(mesh);blockers.push(mesh);return mesh;}
+  // Zhili: walkable empty-room interior replaces the solid extrusion; facade details still apply.
+  const zhiliInterior=p.interiorKind==='zhili'&&p.interiorData?addZhiliInterior(THREE,group,campus,terrain,p.interiorData,network):null;if(zhiliInterior)blockers.push(...zhiliInterior.blockers);
   let shell;
   if(p.style==='water-towers'){
    const concrete=material('#a7aaa2'),tankMat=material('#b9bcb7'),water=material('#687d7a');
@@ -27,7 +30,7 @@ export function addBuildings(THREE,scene,campus,terrain,profiles,network){
    const level=passageLevel(a,terrain);shell=solid(shape,lowerBase,level,'building-shell-'+p.id);
    for(const [i,region]of a.passage.shellRegions.entries()){const part=outline(region[0]);part.holes=region.slice(1).map(outline);solid(part,level,level+a.passage.clearHeight,'building-passage-side-'+i);}
    solid(shape,level+a.passage.clearHeight,base+a.height,'building-passage-ceiling-'+p.id);
-  }else shell=solid(shape,lowerBase,base+a.height,'building-shell-'+p.id);
+  }else shell=zhiliInterior?zhiliInterior.shell:solid(shape,lowerBase,base+a.height,'building-shell-'+p.id);
   if(p.upperWall){const split=(p.splitAt||1)*(a.floorHeight||3.6),ug=new THREE.ExtrudeGeometry(shape,{depth:Math.max(.1,a.height-split),bevelEnabled:false});ug.rotateX(-Math.PI/2);const upper=new THREE.Mesh(ug,material(p.upperWall));upper.position.set(cx*(1-1.0005),base+split+.015,cz*(1-1.0005));upper.scale.set(1.0005,1,1.0005);upper.name='upper-plaster-'+p.id;group.add(upper);}
   const detail=new THREE.Group();detail.name='building-details-'+p.id;group.add(detail);const batches=new Map();
   function box(w,h,d,x,y,z,mat,angle=0){if(!batches.has(mat))batches.set(mat,[]);batches.get(mat).push({w,h,d,x,y,z,angle});}

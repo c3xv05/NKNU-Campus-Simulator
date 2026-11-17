@@ -320,7 +320,9 @@
     "frontRoadIds": [
       218881800
     ],
-    "accessReference": "facilities/building-access/layout.json"
+    "accessReference": "facilities/building-access/layout.json",
+    "interiorFile": "./buildings/zhili/interior.json",
+    "interiorKind": "zhili"
   },
   "frontageAlignment": {
     "sourceRing": [
