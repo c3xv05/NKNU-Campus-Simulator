@@ -562,9 +562,10 @@ function frame(now){
    scooter.rotation.z=THREE.MathUtils.lerp(scooter.rotation.z,-side*Math.min(Math.abs(motion.speed)/9,1)*.12,1-Math.exp(-dt*8));
    document.getElementById('speed').textContent=Math.round(Math.abs(motion.speed)*3.6)+' km/h';
   }else{
-   const dir=new THREE.Vector3(side,0,-f);if(dir.lengthSq()>0){if(dir.lengthSq()>1)dir.normalize();dir.applyAxisAngle(new THREE.Vector3(0,1,0),yaw);
-    const speed=keys.ShiftLeft||keys.ShiftRight?9:5;movePlayer(dir.x*speed*dt,dir.z*speed*dt,.3);player.rotation.y=Math.atan2(-dir.x,-dir.z);
+   const dir=new THREE.Vector3(side,0,-f);let walkSpeed=0;if(dir.lengthSq()>0){if(dir.lengthSq()>1)dir.normalize();dir.applyAxisAngle(new THREE.Vector3(0,1,0),yaw);
+    const speed=keys.ShiftLeft||keys.ShiftRight?9:5;if(movePlayer(dir.x*speed*dt,dir.z*speed*dt,.3)!==false)walkSpeed=speed*Math.sqrt(dir.lengthSq());player.rotation.y=Math.atan2(-dir.x,-dir.z);
    }
+   avatar.update(dt,walkSpeed);
   }
   near=places.reduce((best,p)=>{const d=distanceToRing(player.position.x,player.position.z,p.ring);return d<19&&(!best||d<best.d)?{...p,d}:best;},null);
   nearLake=campus.water.find(lake=>distanceToRing(player.position.x,player.position.z,lake.ring)<8)||null;
