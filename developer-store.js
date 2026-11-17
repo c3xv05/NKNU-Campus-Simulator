@@ -1,5 +1,5 @@
 export const REPOSITORY='c3xv05/NKNU-Campus-Simulator';
-export const LATEST_RECORD_ISSUE=80;
+export const LATEST_RECORD_ISSUE=83;
 export function latestRecordIssue(issues){return Math.max(LATEST_RECORD_ISSUE,...cloudRecords(issues).map(i=>Number(i.number??i.issue_number)||0));}
 export const RECORD_MARKER='<!-- nknu-dev-record -->';
 export const DRAFT_KEY='nknu-developer-drafts-v1';
