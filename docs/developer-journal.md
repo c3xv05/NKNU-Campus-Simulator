@@ -11,6 +11,11 @@
 來源basketball-parking/layout.json與entrance.json；build-garage-access→pedestrian-patches→sidewalk-plan→motor-pavement-plan→court-access→road-regions→r04-vegetation。渲染與通行同用sports-courts/access-surface，地形依footprints裁切，外牆由parking/renderer負責，不再用高土坡遮住。
 
 
+驗證：S11東南角／新舊人行道幾何、來源重建冪等、地下層完整露出／10處轉角共高、車道柱位淨距、原球場出入口、車道支撐、702白磚15cm、路幅／坡度、生科通廊及最新Issue交接純測試通過；開發者手機瀏覽器驗證最新#81連結／送出接續編號、草稿與離線流程通過。本機桌面及390px手機各6,128通行點與541渲染射線，含車道三線雙向步行騎車、南側人行道新舊出口橫越與東階梯；東／南水平射線直接命中地下層牆，空中與地面畫面核對。
+
+整合另一對話PR77霽遠樓室內，14個資產／模組與最新main逐位元相同，霽遠純測試1,296門口／4,432樓梯採樣及桌面／手機各326路線、3,264門口點、3,344樓梯點、486射線與相機回歸通過；以b0868ac作保留項目比較基準，避免把新停車場當成霽遠樓舊版「全campus只能改該樓」斷言。合併前再次核對main及最新紀錄Issue；正式部署與核對結果回寫Issue #78。
+
+
 ## 2026-11-17：依地圖重描生科輪廓、正交T與下層小平台／32階
 
 依使用者本輪Google Maps截圖，兩棟生科改相向階梯形細翼及橫向主翼，各12頂點；以S05共同軸正交化，南北邊平行S05、東西邊垂直S05，T橫段也平行S05。保留PR75中央接點與致理／高斯的對齊位置、原platformAnchor與樓層高程，並非再往南搬一次。此筆取代PR75保留原輪廓／原通廊方向，以及PR74的northEndVertices=[5,7]與96階；不恢復其他撤回修改。
