@@ -1,8 +1,18 @@
 # 開發者紀錄與後續討論入口
 
+## 2026-11-17：生科雙棟南移，T支線垂直S05
+
+依使用者最新更正，生科A／B整體沿世界南向（+Z）移14.723923m，兩棟各頂點X、輪廓、相對位置與樓層不變。中央通廊中點與致理／高斯levelLink中點沿S05法線對齊；T支線保持12m與置中，改垂直S05共同軸，而非沿生科原通廊法線。這筆取代前輪「生科建築不動、支線垂直通廊」；其餘撤回決定維持。距離為現有模型推導，非實測。
+
+來源buildings/bio-a、bio-b/building.json保留beforeSouthAlignment及原platformAnchor，避免平移導致樓層高程漂移。campus-corridors/layout.json的southAlignment記錄偏移、對齊目標及道路軸；build-campus-corridors依該軸推導坡口方向，向陽路東梯／梯腳鋪面跟隨新接點重建，保留矩形下層樓梯、露天上層與B端等寬通廊。原共用地形融合依新建物基座、通廊及坡口重新計算；白磚、車道裁切、植栽避讓同步重建，原始高程與道路坡度不動。
+
+重建時白磚差集出現零面積LineString，build-sidewalk-plan僅接收Polygon以消除無面積邊線，不刪除有效鋪面。依campus-corridors/README既有生成鏈重建。
+
 集中紀錄：[GitHub Issues 索引 #9](https://github.com/c3xv05/NKNU-Campus-Simulator/issues/9)。
 網站「開發者紀錄」「問題回報」均使用含 `<!-- nknu-dev-record -->` 標記的 GitHub Issues。
 下次討論時先讀此檔及專案開放／已關閉的相關 Issues。頁面以 GitHub API 分頁讀取；本機草稿只有完成 GitHub 送出後才可遠端讀取。
+
+驗證：campus-corridors幾何／純測試、702處白磚15cm與支撐採樣、原路幅／地形、S05/S06大圓弧、S07/S20/S22正確內角與高斯候車棚通過。桌面及390px手機皆完成通廊／坡口三線雙向步行騎車、兩層、矩形東梯、原中央及便利商店階梯與地圖檢查，無阻擋／跳層；每種viewport 3,835渲染射線通過。空中、S05地面、通廊下層與東梯畫面核對。正式發布結果記於Issue #9。
 
 ## 2026-11-10：主要幹道立面、實體連接區與開發者介面
 

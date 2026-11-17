@@ -61,10 +61,12 @@ blend=shape.buffer(a['groundBlend'],join_style=2).difference(shape).difference(m
 a['groundBlendPlan']={'width':a['groundBlend'],'regions':regions(blend),'triangles':tessellate(blend,1,True),'footprints':triangles(blend)}
 transitions=[a]
 raw,apron=derive_biology(c,source);bio=c['bioConnection'];cfg=source['biology'];corridor=raw.difference(buildings);bio['corridor'].update(regions=regions(corridor),triangles=triangles(corridor));joint=bio['corridor']['joint'];east=bio['corridor']['east'];axis=bio['corridor']['axis'];road=next(r for r in c['roads']if r['osm']==cfg['accessRoad'])
-# Perpendicular to the connector and exactly at its midpoint: a true centred T.
-ray=LineString([[joint[i]-east[i]*100 for i in range(2)],joint]);hit=ray.intersection(LineString(road['line']));start=list(hit.coords)[0];length=math.dist(start,joint);normal=[-east[1],east[0]]
+# The stem follows S05's normal; its joint remains centred between the wings.
+stemEast=source['biology'].get('southAlignment',{}).get('roadAxis')
+stemEast=[stemEast[1],-stemEast[0]] if stemEast else east
+ray=LineString([[joint[i]-stemEast[i]*100 for i in range(2)],joint]);hit=ray.intersection(LineString(road['line']));start=list(hit.coords)[0];length=math.dist(start,joint);normal=[-stemEast[1],stemEast[0]]
 a={'id':'biology-s05','road':cfg['accessRoad'],'line':[start,joint],'width':cfg['accessWidth'],'sidewalkEntry':True,'entryRun':cfg['entryRun'],'entryFlare':cfg['entryFlare'],'targetFloor':2,'linearGrade':True,'entryStations':[]}
-def at(along,across):return [start[i]+east[i]*along+normal[i]*across for i in range(2)]
+def at(along,across):return [start[i]+stemEast[i]*along+normal[i]*across for i in range(2)]
 for j in range(round((a['width']+2*a['entryFlare'])/.5)+1):
     across=-(a['width']/2+a['entryFlare'])+j*.5;segment=LineString([at(0,across),at(length,across)]);hit=segment.intersection(motor);parts=[p for p in (list(hit.geoms)if hasattr(hit,'geoms')else[hit])if p.geom_type=='LineString'];point=max((list(p.coords)[-1]for p in parts),key=lambda p:segment.project(Point(p)));a['entryStations'].append({'across':across,'along':segment.project(Point(point)),'point':list(point)})
 flare_end=max(s['along']for s in a['entryStations'])+a['entryRun'];flare=Polygon([at(0,-a['width']/2-a['entryFlare']),at(flare_end,-a['width']/2-a['entryFlare']),at(flare_end,a['width']/2+a['entryFlare']),at(0,a['width']/2+a['entryFlare'])]);shape=ribbon(a['line'],a['width']).union(flare).difference(buildings).difference(motor).difference(corridor)

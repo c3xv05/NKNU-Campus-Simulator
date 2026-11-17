@@ -59,6 +59,15 @@
       "road": 218881795,
       "width": 28,
       "buildingClearance": 0.25
+    },
+    "southAlignment": {
+      "southOffset": 14.72392257781232,
+      "target": "levelLink midpoint",
+      "roadAxis": [
+        0.343021060053454,
+        0.9393277129733821
+      ],
+      "reference": "2026-11-17使用者要求；兩棟同量南移，T支線垂直S05；距離依現有模型推導，非實測。"
     }
   },
   "beforeAlignmentCorrection": {
