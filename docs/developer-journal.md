@@ -1,5 +1,9 @@
 # 開發者紀錄與後續討論入口
 
+## 2026-11-17：致理外殼依平面圖重繪並北移；廣場延伸、移除中央樓梯
+
+來源buildings/zhili/source九張平面圖與plan.json；比例由B1車格、踏階、走廊反推為1:250 A3縮印A4。以國土測繪中心2023正射影像比對：遊戲道路與空拍吻合，建物（OSM＋人工調整）普遍偏南6～20m，故不依空拍絕對位置搬動，而以圖面1F路緣弧線對遊戲瀝青邊界套合北向位置，東立面保留原臨路線。terrain.js支援terrainRing，致理沿用舊輪廓作地形墊底，避免改動周邊地形。build-teaching-courtyard以legacyRings解析舊致理頂點，空出範圍併入下層並輸出zhiliExtension（regions／edges），renderer依外側地形高低產生擋土牆或實心基座＋矮牆並回傳碰撞。walkObstacles僅替換致理三角形（未重跑全域build-walk-obstacles，避免原main既有的過期差異）。
+
 ## 2026-11-17：西南路口再降0.8層，累計4.68m；接續Issue #83
 
 使用者要求同一籃球場西南交口再下降0.8層。沿用前輪3.6m模型層高，再降2.88m，加上PR81既有1.8m，累計4.68m；本筆取代先前總降幅1.8m。位置仍[34.4,-136.6]，最新紀錄[Issue #83](https://github.com/c3xv05/NKNU-Campus-Simulator/issues/83)，接續#80。

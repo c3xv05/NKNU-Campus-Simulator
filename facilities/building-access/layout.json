@@ -73,30 +73,7 @@
       "desc": "2026-11-16使用者要求：兩層各八階，縮短梯跑並對齊致理，退開並補齊人行道；尺寸與立面定位為模型近似。"
     }
   ],
-  "courtyardStairs": [
-    {
-      "id": "courtyard-center",
-      "line": [
-        [
-          -139,
-          -201
-        ],
-        [
-          -132,
-          -214
-        ]
-      ],
-      "width": 3.6,
-      "topWidth": 3.6,
-      "steps": 24,
-      "flights": 2,
-      "landingFraction": 0.14,
-      "name": "中央廣場一二樓小階梯",
-      "topLevel": "teaching-courtyard",
-      "bottomLevel": "zhili-ground",
-      "desc": "依使用者要求於廣場中央開口，由二樓小樓梯通往下方一樓；尺寸為模型近似。"
-    }
-  ],
+  "courtyardStairs": [],
   "communicationAlias": {
     "name": "便利商店",
     "location": "致理／高斯連接處",
@@ -164,7 +141,18 @@
     "note": "兩段各八階及歇腳平台為使用者要求；每段2.56m、歇腳平台1.6m（總6.72m）與補磚定位為模型近似。",
     "gapBackInset": 6.5,
     "gapBuilding": "gauss",
-    "gapCorner": 0
+    "gapCorner": 0,
+    "frontLine": [
+      [
+        -121.186977,
+        -284.81336
+      ],
+      [
+        -103.986977,
+        -236.61336
+      ]
+    ],
+    "frontLineReference": "致理外殼改為平面圖塔樓後，便利商店階梯固定在原致理frontEdge=1（北→南）線段，不隨新外殼移動。"
   },
   "beforeRestLanding": {
     "stairs": [
@@ -248,5 +236,32 @@
     "name": "生科東側寬階梯",
     "desc": "依使用者自S01面向生科照片：寬階梯、四段梯跑與三個休息平台、交錯花台及兩側矮牆；踏階與尺寸為模型近似。",
     "photoPlanters": true
+  },
+  "removedCourtyardStairs": {
+    "stairs": [
+      {
+        "id": "courtyard-center",
+        "line": [
+          [
+            -139,
+            -201
+          ],
+          [
+            -132,
+            -214
+          ]
+        ],
+        "width": 3.6,
+        "topWidth": 3.6,
+        "steps": 24,
+        "flights": 2,
+        "landingFraction": 0.14,
+        "name": "中央廣場一二樓小階梯",
+        "topLevel": "teaching-courtyard",
+        "bottomLevel": "zhili-ground",
+        "desc": "依使用者要求於廣場中央開口，由二樓小樓梯通往下方一樓；尺寸為模型近似。"
+      }
+    ],
+    "reference": "使用者2026-11-17要求去掉中央廣場階梯，只保留便利商店處階梯。"
   }
 }
