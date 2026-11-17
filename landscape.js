@@ -59,10 +59,10 @@ export function addLandscape(THREE,scene,layout,height){
   items.forEach((item,i)=>{dummy.position.set(0,0,0);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);transform(dummy,item,i);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);if(color)mesh.setColorAt(i,new THREE.Color(color(item)));});
   mesh.instanceMatrix.needsUpdate=true;if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;mesh.receiveShadow=true;mesh.castShadow=name==='tree-trunks';group.add(mesh);return mesh;
  }
- // Style A low-poly forest: several species, each with instanced trunks and faceted crowns.
+ // Soft rounded forest: several species, each with instanced trunks and faceted crowns.
  const species=createTreeSpecies(THREE),bySpecies=species.map(()=>[]);for(const t of layout.trees)bySpecies[treeSpeciesIndex(t,species)].push(t);
- const trunkMaterial=new THREE.MeshStandardMaterial({color:0x6c5540,roughness:1,flatShading:true});
- const crownMaterial=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.95,flatShading:true});crownMaterial.alphaHash=true;
+ const trunkMaterial=new THREE.MeshStandardMaterial({color:0x7a5c42,roughness:1});
+ const crownMaterial=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.9});crownMaterial.alphaHash=true;
  crownMaterial.onBeforeCompile=shader=>{
   shader.vertexShader='attribute float instanceFade; varying float vCanopyFade;\n'+shader.vertexShader;
   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvCanopyFade=instanceFade;');
