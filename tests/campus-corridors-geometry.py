@@ -33,6 +33,16 @@ print('PASS: S05-parallel boundaries, square L, restored lower access, B-end con
 for building in c['places']:
  previous=next(b for b in old['places']if b['osm']==building['osm'])
  if building['osm'] not in [bio['from'],bio['to']]:assert building==previous;continue
- offset=json.loads((root/'facilities/campus-corridors/layout.json').read_text())['biology']['southAlignment']['southOffset']
- for p,q in zip(building['ring'],previous['ring']):assert p[0]==q[0] and abs(p[1]-q[1]-offset)<1e-6
+ for p,q in zip(building['ring'],building['ring'][1:]+building['ring'][:1]):
+  edge=delta([p,q]);assert min(abs(dot(edge,along)),abs(cross(edge,along)))<1e-5,'Every building edge must follow S05 or its normal'
+ assert Polygon(building['ring']).is_valid and len(building['ring'])==12
  assert Polygon(building['ring']).intersection(motor).area<1e-6
+assert abs(cross(delta(bio['line']),along))<1e-6,'The T crossbar must parallel S05'
+assert stair['steps']==32 and stair['flights']==4
+landing=next(a for a in c['campusTransitions']if a['id']=='biology-east-landing');shape=union(landing['regions'])
+assert landing['targetFloor']==1 and math.isclose(shape.area,5*stair['width'],abs_tol=1e-5)
+assert math.dist(landing['line'][1],stair['line'][0])<1e-7
+assert shape.intersection(Polygon(stair['ring'])).area<1e-6
+assert shape.intersection(union(bio['corridor']['regions'])).area<1e-6
+assert shape.intersection(buildings).area<1e-6
+print('PASS: screenshot-shaped orthogonal wings, S05-parallel crossbar, separate rectangular lower landing and 32 steps')

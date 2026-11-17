@@ -35,7 +35,7 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
   const [a,b]=def.line,dx=b[0]-a[0],dz=b[1]-a[1],run=Math.hypot(dx,dz),yaw=Math.atan2(dx,dz),normal=[-dz/run,dx/run];
   // Low stepped cheek walls border each flight; the central walking line stays open.
   for(const band of stairBands(def).filter(b=>b.landing)){const t=(band.start+band.end)/2,h=stairSurface(def,t),w=stairWidth(def,t);if(def.landingSidewalls!==false)for(const side of [-1,1])box(.45,.85,run*(band.end-band.start),a[0]+dx*t+normal[0]*side*(w/2+.25),h+.425,a[1]+dz*t+normal[1]*side*(w/2+.25),concrete,yaw,def.id+'-landing-sidewall');
-   if(def.photoPlanters){const side=planters.length%2?1:-1,x=a[0]+dx*t+normal[0]*side*w*.32,z=a[1]+dz*t+normal[1]*side*w*.32,planterHeight=stairSurface(def,t,x,z);box(1.5,1,1.5,x,planterHeight+.5,z,concrete,0,'biology-stair-planter');box(1.2,.12,1.2,x,planterHeight+1.04,z,new THREE.MeshStandardMaterial({color:0x617b46,roughness:1}));planters.push({x,z,y:planterHeight,radius:1.05});}}
+   if(def.photoPlanters){const side=planters.length%2?1:-1,x=a[0]+dx*t+normal[0]*side*w*.23,z=a[1]+dz*t+normal[1]*side*w*.23,planterHeight=stairSurface(def,t,x,z);box(1.5,1,1.5,x,planterHeight+.5,z,concrete,0,'biology-stair-planter');box(1.2,.12,1.2,x,planterHeight+1.04,z,new THREE.MeshStandardMaterial({color:0x617b46,roughness:1}));planters.push({x,z,y:planterHeight,radius:1.05});}}
  }
  // Wide entrance lintel and recessed lobby between the two biology wings, facing S01.
  const [sa,sb]=stairs.line,run=Math.hypot(sb[0]-sa[0],sb[1]-sa[1]),normal=[-(sb[1]-sa[1])/run,(sb[0]-sa[0])/run],yaw=Math.atan2(sb[0]-sa[0],sb[1]-sa[1]);

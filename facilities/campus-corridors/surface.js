@@ -10,12 +10,13 @@ export function createCampusCorridors(campus,terrain,network){
  const saved=cache.get(network);if(saved?.campus===campus&&saved.terrain===terrain)return saved.value;
  const lower=terrain.platformHeight(campus.places.find(a=>a.osm===campus.levelLink.from)),bioLower=terrain.platformHeight(campus.places.find(a=>a.osm===campus.bioConnection.from));
  const approaches=(campus.campusTransitions||[]).map(a=>{
-  const level=a.id==='courtyard-s32'?lower+((a.targetFloor||1)-1)*campus.courtyard.floorHeight:bioLower+3.6;
+  const level=a.id==='courtyard-s32'?lower+((a.targetFloor||1)-1)*campus.courtyard.floorHeight:bioLower+((a.targetFloor||2)-1)*3.6;
   function entry(across){const stations=a.entryStations;if(!stations)return null;let i=1;while(i<stations.length-1&&across>stations[i].across)i++;const p=stations[i-1],q=stations[i],t=clamp((across-p.across)/(q.across-p.across),0,1);return{along:p.along+(q.along-p.along)*t,point:p.point.map((v,k)=>v+(q.point[k]-v)*t)};}
   function centerX(z){for(let i=1;i<a.line.length;i++){const p=a.line[i-1],q=a.line[i];if(z>=q[1]){const t=clamp((z-p[1])/(q[1]-p[1]),0,1);return p[0]+(q[0]-p[0])*t;}}return a.line.at(-1)[0];}
   const profile=(x,z)=>{
    if(a.id==='courtyard-s32'){const start=a.line[0][1]-(a.roadInset+1),end=a.line.at(-1)[1]+a.flatEnd;if(z>=start)return network.surfaceHeight(x,z)+.035;const length=start-end,d=clamp(start-z,0,length),e=Math.min(1.5,length/3),mix=(d<e?d*d/(2*e):d>length-e?length-e-(length-d)**2/(2*e):d-e/2)/(length-e),initial=network.surfaceHeight(centerX(start)+x-centerX(z),start)+.035;return initial+(level-initial)*mix;}
    if(a.kind==='road-apron')return network.surfaceHeight(x,z)+.035;
+   if(a.kind==='biology-landing')return level;
    const p=project(x,z,a.line),station=entry(p.across),initialDistance=station?.along??(a.roadInset?a.roadInset+1:0),length=p.total-a.flatEnd-initialDistance,d=clamp(p.along-initialDistance,0,length),u=d/length,e=Math.min(a.sidewalkEntry?.75:1.5,length/3),mix=a.linearGrade?(d<e?d*d/(2*e):d>length-e?length-e-(length-d)**2/(2*e):d-e/2)/(length-e):u*u*(3-2*u),q=station?.point??(a.roadInset&&p.along<=initialDistance?[x,z]:at(a.line,initialDistance,p.across)),initial=network.surfaceHeight(...q)+.035,h=initial+(level-initial)*mix;
    if(a.sidewalkEntry){const distance=p.along-initialDistance,fade=clamp((distance-a.entryRun)/1.5,0,1),edge=clamp((Math.abs(p.across)-a.width/2)/a.entryFlare,0,1)*(1-fade*fade*(3-2*fade)),side=network.surfaceHeight(x,z)+.035+.15*clamp(distance/.3,0,1);return h+(side-h)*edge;}
    return h;

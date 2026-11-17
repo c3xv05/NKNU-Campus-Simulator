@@ -76,11 +76,15 @@ for offset in [-a['width']/2,0,a['width']/2]:
     for part in (list(hit.geoms)if hasattr(hit,'geoms')else[hit]):
         if part.geom_type=='LineString' and part.length>1e-5:entries.append(segment.project(Point(part.coords[0])))
 a['flatEnd']=length-min(entries)+cfg['flatEnd'];a.update(regions=regions(shape),triangles=tessellate(shape,.2),footprints=triangles(shape));transitions.append(a);bio['ramp']=a['line'];bio['accessWidth']=a['width']
+# A flat rectangle precedes the first descending tread on the lower level.
+if bio.get('eastLanding'):
+    landing=bio['eastLanding'];shape=Polygon(landing['ring']).difference(buildings).difference(motor).difference(corridor)
+    a={**landing,'id':'biology-east-landing','kind':'biology-landing','regions':regions(shape),'triangles':tessellate(shape),'footprints':triangles(shape)};transitions.append(a)
 # Flat ground apron outside the strictly rectangular staircase, meeting the skew S01 edge.
 shape=apron.difference(motor).difference(buildings).difference(Polygon(bio['stairs']['ring']));bottom=bio['stairs']['line'][1];reach=max(math.dist(bottom,p)for p in apron.exterior.coords)
 a={'id':'biology-s01-apron','kind':'road-apron','road':cfg['stairs']['road'],'line':[bottom,[bottom[i]+east[i]*reach for i in range(2)]],'width':bio['stairs']['width'],'regions':regions(shape),'triangles':tessellate(shape),'footprints':triangles(shape)};transitions.append(a)
 # Retain earth at 1F while leaving the east stair opening and both wing ends clear.
-bio['corridor']['retainingEdges']=[];centerline=LineString(bio['line']);staircut=Polygon(bio['stairs']['ring']).buffer(.05)
+bio['corridor']['retainingEdges']=[];centerline=LineString(bio['line']);staircut=unary_union([Polygon(bio['stairs']['ring']),Polygon(bio['eastLanding']['ring'])]if bio.get('eastLanding')else[Polygon(bio['stairs']['ring'])]).buffer(.05)
 if cfg['lowerRetainingWalls']:
  for region in bio['corridor']['regions']:
   for ring in region:
