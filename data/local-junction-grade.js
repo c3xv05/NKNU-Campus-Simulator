@@ -1,0 +1,2 @@
+// Source: facilities/southwest-junction/layout.json; local model correction, not survey data.
+export const localJunctionGrade={"id":"basketball-southwest-junction","center":[34.4,-136.6],"drop":1.8,"coreRadius":16,"fadeRadius":70,"roads":[218881795,218881799,399830914],"reference":"2026-11-17使用者確認X約34.99／Y高度約13.67是籃球場西南側向陽路與環手星月大道交口；降低半層。依3.6m模型層高取1.8m，16m核心與70m平順融合範圍為模型近似。保留路線、路寬、原始高程及建築／球場平台；此筆取代該路口原端點高度，非恢復S05調坡。"};
