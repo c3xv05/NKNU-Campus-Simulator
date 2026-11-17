@@ -26,7 +26,10 @@ def first_contact(line):
 # The southwest gate joins the nearest exterior road/sidewalk along the south normal.
 g=p['southwest'];start=point(g['along'],g['across']);ray=[start,point(g['along']+g['direction'][0]*25,g['across']+g['direction'][1]*25)];end=first_contact(ray);swLine=[start,end];sw=LineString(swLine).buffer(p['gateWidth']/2,cap_style=2).difference(allCourts).difference(exclusions)
 g=p['northeast'];stairLine=[point(g['along'],g['across']),point(g['along'],g['across']-g['run'])];stairs=LineString(stairLine).buffer(p['gateWidth']/2,cap_style=2);line=[point(*q)for q in g['rampLine']];end=first_contact(line);path=LineString(line);endDistance=path.project(Point(end));line=[q for q in line if path.project(Point(q))<endDistance-1e-7]+[end];east=LineString(line).buffer(1.2,cap_style=2,join_style=2).difference(allCourts).difference(exclusions).difference(stairs)
+if c.get('courtParking',{}).get('exposedSides'):
+ line=[stairLine[-1],first_contact([stairLine[-1],point(g['along'],g['across']-25)])];east=LineString(line).buffer(p['gateWidth']/2,cap_style=2).difference(allCourts).difference(exclusions).difference(stairs)
 accesses=[{'id':'basketball-sw-ramp','kind':'ramp','court':444902481,'line':swLine,'startOffset':0,'regions':regions(sw),'triangles':triangles(sw)},{'id':'basketball-east-stairs','kind':'stairs','court':444902481,'line':stairLine,'steps':g['steps'],'rise':g['rise'],'regions':regions(stairs),'triangles':triangles(stairs)},{'id':'basketball-east-ramp','kind':'ramp','court':444902481,'line':line,'startOffset':-g['rise'],'regions':regions(east),'triangles':triangles(east)}]
+if c.get('courtParking',{}).get('exposedSides'):accesses[2].update(id='basketball-east-ground-stairs',kind='stairs',steps=18,endAtGround=True)
 for access,shape in [(accesses[0],sw),(accesses[2],east)]:
  boundary=shape.boundary.intersection(target.boundary.buffer(.00001));lines=[]
  def collect_edges(g):
@@ -38,6 +41,11 @@ reserved=unary_union([sw,east,stairs]+([Polygon(c['courtParking']['entrance']['r
 shoulders=[]
 for z in c['sportsZones']:
  rect=zones[z['id']];side=Polygon([point(x,b)for x,b in ([(-500,-500),(mid,-500),(mid,500),(-500,500)]if z['id']=='tennis'else[(mid,-500),(500,-500),(500,500),(mid,500)])]);envelope=rect.buffer(p['transitionWidth'],join_style=2).intersection(side).difference(exclusions);shape=envelope.difference(allCourts).difference(reserved)
+ if z['id']=='basketball' and c.get('courtParking',{}).get('exposedSides'):
+  lo,hi,left,right=z['bounds']
+  hidden=Polygon([point(a,b)for a,b in [(-500,left),(hi,left),(hi,500),(-500,500)]])
+  exposed=shape.difference(hidden);shape=shape.intersection(hidden)
+  shoulders.append({'id':'basketball-basement-ground','kind':'garage-ground','court':z['courtIds'][0],'inner':z['ring'],'outer':regions(envelope),'regions':regions(exposed),'triangles':triangles(exposed),'apron':c['courtParking']['groundApron']})
  shoulders.append({'id':z['id']+'-shoulder','kind':'shoulder','court':z['courtIds'][0],'inner':z['ring'],'outer':regions(envelope),'regions':regions(shape),'triangles':triangles(shape)})
 lo,hi,left,right=c['sportsZones'][0]['bounds'];swV=p['southwest']['across'];neU=p['northeast']['along'];half=p['gateWidth']/2;fences=[]
 for side,a,b in [('east',point(lo,left),point(hi,left)),('south',point(hi,left),point(hi,right)),('west',point(hi,right),point(lo,right))]:
