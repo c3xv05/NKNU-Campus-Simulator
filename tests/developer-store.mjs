@@ -6,4 +6,4 @@ const url=new URL(issueLink(record));assert.equal(url.origin,'https://github.com
 assert.equal(cloudRecords([{number:1,body:RECORD_MARKER},{number:2,body:'other'},{number:3,body:RECORD_MARKER,pull_request:{}}]).length,1);
 console.log('PASS: durable draft parsing, record marker, exact encoded GitHub handoff, position metadata and PR exclusion');
 
-assert.equal(latestRecordIssue([{number:99,body:RECORD_MARKER,pull_request:{}},{number:85,body:RECORD_MARKER},{number:90,body:'unrelated'}]),85);assert.equal(latestRecordIssue([]),LATEST_RECORD_ISSUE);assert(recordBody(record,85).includes('接續紀錄：#85'));
+assert.equal(latestRecordIssue([{number:LATEST_RECORD_ISSUE+10,body:RECORD_MARKER,pull_request:{}},{number:LATEST_RECORD_ISSUE+1,body:RECORD_MARKER},{number:LATEST_RECORD_ISSUE+9,body:'unrelated'}]),LATEST_RECORD_ISSUE+1);assert.equal(latestRecordIssue([]),LATEST_RECORD_ISSUE);assert(recordBody(record,85).includes('接續紀錄：#85'));

@@ -37,7 +37,7 @@
       "floorHeight": 3.3
     },
     "placementCorrection": "放大後以剛性平移[-2,-1.5]m避開原道路與人行道，沒有縮回比例或改動地形／鋪面。",
-    "stairsCorrection": "2026-11-17：兩端樓梯梯口朝圖面北側走廊；一樓依不同平面保留安全門直通道，梯跑回接二樓走廊。梯數與尺寸仍為模型近似。"
+    "stairsCorrection": "2026-11-17使用者最新更正取代PR86：兩端一至二樓與其他層相同採兩跑轉角梯，梯口皆朝內側走廊；左右外側無出口、完整封牆。階數與尺寸仍為模型近似。"
   },
   "rooms": [
     {
@@ -1921,11 +1921,7 @@
       "stepsPerFlight": 8,
       "flights": 2,
       "corridorSide": "north",
-      "groundFlight": "straight-return",
-      "groundExit": [
-        256,
-        1145
-      ]
+      "exteriorExit": false
     },
     {
       "id": "east-end",
@@ -1938,11 +1934,7 @@
       "stepsPerFlight": 8,
       "flights": 2,
       "corridorSide": "north",
-      "groundFlight": "straight-return",
-      "groundExit": [
-        1498,
-        1145
-      ]
+      "exteriorExit": false
     }
   ],
   "groundRoomNumbers": {

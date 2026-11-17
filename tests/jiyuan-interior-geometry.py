@@ -6,7 +6,7 @@ from shapely.ops import unary_union
 root=Path(__file__).resolve().parents[1]
 read=lambda p:json.loads((root/p).read_text())
 plan=read('buildings/foresight/plan.json');data=read('buildings/foresight/interior.json');c=read('data/campus.json')
-baseline=json.loads(subprocess.check_output(['git','show','e10c351:data/campus.json'],cwd=root))
+baseline=json.loads(subprocess.check_output(['git','show','0072855:data/campus.json'],cwd=root))
 current=json.loads(json.dumps(c));old=next(b for b in baseline['places'] if b['osm']==381731688)
 current['places']=[old if b['osm']==381731688 else b for b in current['places']]
 assert current==baseline,'Non-Jiyuan campus data must remain identical'
@@ -65,16 +65,17 @@ for i,f in enumerate(data['floors'][:-1]):
  for stair in f['stairs'][2:]:
   definition=next(s for s in plan['stairs'] if s['id']==stair['id']);x1,y1,x2,y2=definition['box']
   arrival=pixel(stair['route'][-1]);assert abs(arrival[1]-(y1+14))<.001
-  assert abs(pixel(stair['route'][0])[1]-(y2-14 if i==0 else y1+14))<.001
+  assert abs(pixel(stair['route'][0])[1]-(y1+14))<.001
   landing=Polygon([(x1,y1),(x2,y1),(x2,y1+24),(x1,y1+24)])
   next_floor=unary_union([Polygon([pixel(p) for p in r[0]],[[pixel(p) for p in h] for h in r[1:]]) for r in data['floors'][i+1]['surfaceRegions']])
   assert next_floor.buffer(.001).covers(landing),'upper landing must reach corridor at full storey height'
+  turns=[t for t in stair['treads'] if t['flight']==-1]
+  assert len(turns)==1 and turns[0]['height']==data['floorHeight']/2
+  assert len(stair['route'])==4 and all(sum(t['flight']==j for t in stair['treads'])==8 for j in [0,1])
   if i==0:
-   # The safety lane stays free at full standing height all the way to the door.
-   lane=LineString([(x1+20,y1),(x1+20,y2)])
-   for tread in stair['treads']:
-    if tread['height']>0:assert Polygon([pixel(p) for p in tread['ring']]).distance(lane)>.3/place['scale']
-   door=LineString([pixel(p) for p in f['entrances'][1 if stair['id']=='west-end' else 2]])
-   assert door.distance(Point(x1+20,y2))<.001
+   assert definition['exteriorExit'] is False and 'groundExit' not in definition
+   wall=unary_union([LineString([pixel(p) for p in w]) for w in f['walls']])
+   assert wall.buffer(.001).covers(LineString([(x1+1,y2),(x2-1,y2)])),'outside wall must be continuous'
+assert len(data['floors'][0]['entrances'])==1,'only the main lobby is an exterior entrance'
 path=root/'buildings/foresight/interior.json';before=path.read_bytes();subprocess.run(['python',str(root/'scripts/build-jiyuan-interior.py')],check=True);assert before==path.read_bytes()
 print('PASS: 8 private + 8 shared baths per floor; every bathroom entered from its room only; no corridor intrusion; all spaces reachable; uniform XYZ 1.1; unchanged site; repeat build identical. Main clear widths:',clearances)
