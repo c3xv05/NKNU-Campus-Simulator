@@ -50,8 +50,10 @@ export function addJiyuanInterior(THREE,parent,campus,terrain,data){
   }
   for(const stairs of f.stairs){
    for(const t of stairs.treads){const a=t.ring[0],b=t.ring[1],c=t.ring[3],w=Math.hypot(b[0]-a[0],b[1]-a[1]),d=Math.hypot(c[0]-a[0],c[1]-a[1]),x=(a[0]+t.ring[2][0])/2,z=(a[1]+t.ring[2][1])/2;box(w,t.flight<0?.16:.1875,d,x,f.level+t.height-(t.flight<0?.08:.09375),z,'landing',Math.atan2(a[1]-b[1],b[0]-a[0]),f.floor);}
-   // Rails follow each flight; posts and handrail stay at the outside edges.
-   for(const side of[0,1]){const a=stairs.bounds[side],b=stairs.bounds[3-side];const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz);for(let i=0;i<=8;i++){const t=i/8,h=side?1.5+1.5*t:1.5*(1-t);box(.045,.92,.045,a[0]+dx*t,f.level+h+.46,a[1]+dz*t,'steel',0,f.floor);}rail(a,b,f.level+(side?2.5:2.5),f.level+(side?4:1),f.floor);}
+   // Derive rail direction and height from the actual flight, including ground returns.
+   for(const flight of [0,1]){const steps=stairs.treads.filter(t=>t.flight===flight);if(!steps.length)continue;const first=steps[0],last=steps.at(-1),rise=first.height-(flight===0?0:stairs.treads.filter(t=>t.flight===0).at(-1).height);
+    for(const side of [0,1]){const forward=(last.ring[0][0]+last.ring[3][0]-first.ring[0][0]-first.ring[3][0])*(first.ring[0][0]-first.ring[3][0])+(last.ring[0][1]+last.ring[3][1]-first.ring[0][1]-first.ring[3][1])*(first.ring[0][1]-first.ring[3][1])>0,a=first.ring[forward?3-side:side],b=last.ring[forward?side:3-side],h1=first.height-rise,h2=last.height;for(let i=0;i<=8;i++){const u=i/8;box(.045,.92,.045,a[0]+(b[0]-a[0])*u,f.level+h1+(h2-h1)*u+.46,a[1]+(b[1]-a[1])*u,'steel',0,f.floor);}rail(a,b,f.level+h1+1,f.level+h2+1,f.floor);}
+   }
    const p=stairs.route[0];label(f.floor+'F ↑ '+(f.floor+1)+'F',p[0],f.level+2.3,p[1],0,1.5);
   }
  }

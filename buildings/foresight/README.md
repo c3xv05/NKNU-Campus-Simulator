@@ -24,7 +24,7 @@
 
 206/207及213/214的浴室已分開；208/209、210/211及對側的共用浴室，外斜邊原先畫反、侵入走廊，已沿原圖重描。走廊使用獨立保留多邊形，不准房間或浴室佔用；所有房門、浴室門均有明確所屬，產生器不再用最近點自動開浴室走廊門或補走道。清除原先相鄰房間角落的重疊。主通道模型淨寬約2.04m、2.48m及3.97m；205/206等門前原圖的小轉折口仍依圖保留。
 
-中央會客室／大廳、標準層交誼廳／半圓公共空間與露台、兩端洗衣間及四組逐層樓梯保留。樓梯仍為模型兩梯跑各八階及轉折平台，與原圖相同位置；端部樓梯井修至房界，避免侵入208/223。踏階與樓板孔共用支撐資料。
+中央會客室／大廳、標準層交誼廳／半圓公共空間與露台、兩端洗衣間及四組逐層樓梯保留。中央樓梯維持原配置；兩端標準層已翻轉為梯口朝北側走廊，南側半層轉折，北側整層平台與對應樓板開孔。一樓不同於標準層，保留通往安全門的地面通道，旁側16階直跑回接二樓走廊，二樓只挖該梯道；不把出口通道放在半層平台下。直跑／16階與尺寸為模型近似，非實測。上層兩跑各八階；踏階、樓板孔與扶手共用方向及高度，梯道不侵入208/223。
 
 ## 1.1倍與場地保護
 
@@ -46,4 +46,4 @@ THREE_MODULE_PATH=/tmp/three.module.js python tests/jiyuan-interior-browser.py
 
 建築目錄同步生成室內，不要重建整套道路或地形。核對圖另以`python scripts/build-jiyuan-review.py`產生（需PyMuPDF）。純測試包含房間／浴室不可侵入走廊、獨立／共用名單、浴室只接指定寢室、走廊側牆封閉、設備形狀不重疊、主通道三線、每層雙向樓梯、1.1倍渲染／碰撞一致、室內遮地面不改外部高度及重建一致。瀏覽器每層實走寢室／浴室門與三線走廊並檢查樓板／踏階射線，不能只驗證所有空間碰巧連通。
 
-地形／道路比對基準為整合PR79／81後的`8f9d50d`（霽遠樓基型仍為PR77）；受限制環境可先`git show 8f9d50d:data/campus.json > /tmp/jiyuan-fix-baseline.json`、`git show 8f9d50d:buildings/foresight/interior.json > /tmp/jiyuan-fix-old-interior.json`，再設定`CAMPUS_BASELINE_JSON`與`JIYUAN_BASELINE_INTERIOR`執行Node測試。
+地形／道路比對基準為整合PR79／81後的`e10c351`（霽遠樓基型仍為PR77）；受限制環境可先`git show e10c351:data/campus.json > /tmp/jiyuan-fix-baseline.json`、`git show 8f9d50d:buildings/foresight/interior.json > /tmp/jiyuan-fix-old-interior.json`，再設定`CAMPUS_BASELINE_JSON`與`JIYUAN_BASELINE_INTERIOR`執行Node測試。

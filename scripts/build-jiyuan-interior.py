@@ -65,13 +65,20 @@ for floor in range(5):
  # Only short source drafting gaps are closed; no bridging across the courtyard.
  footprint=unary_union([Polygon(p.exterior) for p in polygons(footprint)])
  assert footprint.geom_type=='Polygon',f'disconnected floor {floor}: {footprint.geom_type}'
- holes=unary_union([box(x1+2,y1+2,x2-2,y2-25) for x1,y1,x2,y2 in [s['box'] for s in plan['stairs']]]) if floor else Polygon()
+ holes=[]
+ for stair in plan['stairs']:
+  x1,y1,x2,y2=stair['box']
+  if stair.get('corridorSide')=='north':
+   # The first-floor straight return occupies only one lane; its arrival is north.
+   holes.append(box((x1+x2)/2+3 if floor==1 else x1+2,y1+25,x2-2,y2-2))
+  else:holes.append(box(x1+2,y1+2,x2-2,y2-25))
+ holes=unary_union(holes) if floor else Polygon()
  floor_surface=footprint.difference(holes)
  walls=unary_union([s['polygon'].boundary for s in spaces]+[footprint.boundary])
  openings=unary_union([d['line'].buffer(2,cap_style='flat') for d in doors])
  # Main entrance is the lower edge of the central lobby; end exits are ground only.
  if floor==0:
-  exits=[LineString([(875,854),(925,854)])]+[LineString([(s['box'][0]+20,s['box'][3]),(s['box'][2]-20,s['box'][3])]) for s in plan['stairs'][2:]]
+  exits=[LineString([(875,854),(925,854)])]+[LineString([(s['groundExit'][0]-13,s['groundExit'][1]),(s['groundExit'][0]+13,s['groundExit'][1])]) for s in plan['stairs'][2:]]
   openings=unary_union([openings]+[e.buffer(4,cap_style='square') for e in exits])
  else:exits=[]
  windows=[]
@@ -127,7 +134,19 @@ for floor in range(5):
      else:top=floor_height/2+floor_height/2*(j+1)/8;xa=mid+gap/2;xb=x2;ya=end+(start-end)*j/8;yb=end+(start-end)*(j+1)/8
      tread.append({'ring':[world(p) for p in [(xa,ya),(xb,ya),(xb,yb),(xa,yb)]],'height':top,'flight':flight})
    tread.append({'ring':[world(p) for p in [(x1,y1),(x2,y1),(x2,end),(x1,end)]],'height':floor_height/2,'flight':-1})
-   rec['stairs'].append({'id':s['id'],'treads':tread,'route':[world(p) for p in [((x1+mid-gap/2)/2,y2-14),((x1+mid-gap/2)/2,end-12),((mid+gap/2+x2)/2,end-12),((mid+gap/2+x2)/2,y2-14)]],'bounds':[world(p) for p in [(x1,y1),(x2,y1),(x2,y2),(x1,y2)]]})
+   route=[((x1+mid-gap/2)/2,y2-14),((x1+mid-gap/2)/2,end-12),((mid+gap/2+x2)/2,end-12),((mid+gap/2+x2)/2,y2-14)]
+   if s.get('corridorSide')=='north':
+    # Mirror both the shared treads and route, keeping the full-floor landing at the hall.
+    for t in tread:t['ring']=[world((pixel(p)[0],y1+y2-pixel(p)[1])) for p in t['ring']]
+    route=[(x,y1+y2-y) for x,y in route]
+    if floor==0 and s.get('groundFlight')=='straight-return':
+     # Ground PDF differs: a straight return beside a clear, full-height safety-door lane.
+     # Do not route the exit underneath the 1.65m half landing of an upper-floor U stair.
+     xa=mid+gap/2;xb=x2;start=y2-25;end=y1+25
+     tread=[{'ring':[world(p) for p in [(xa,start+(end-start)*(j+1)/16),(xb,start+(end-start)*(j+1)/16),(xb,start+(end-start)*j/16),(xa,start+(end-start)*j/16)]],'height':floor_height*(j+1)/16,'flight':j//8} for j in range(16)]
+     tread.append({'ring':[world(p) for p in [(x1,start),(x2,start),(x2,y2),(x1,y2)]],'height':0,'flight':-1})
+     route=[((xa+xb)/2,y2-14),((xa+xb)/2,y1+14)]
+   rec['stairs'].append({'id':s['id'],'treads':tread,'route':[world(p) for p in route],'bounds':[world(p) for p in [(x1,y1),(x2,y1),(x2,y2),(x1,y2)]]})
  floors.append(rec)
 result={'version':1,'building':381731688,'modelScale':model_scale,'scalePivot':place['origin'],'floorHeight':floor_height,'floorCount':5,'source':plan['source'],'floors':floors}
 (root/'buildings/foresight/interior.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n')

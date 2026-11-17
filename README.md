@@ -118,7 +118,7 @@ python scripts/build-building-catalog.py
 「送至 GitHub 儲存」會開啟填好的公開 Issue，需在 GitHub 完成送出；下次可於同一介面讀取。
 程式不把開啟 GitHub 誤標為已同步，也不在公開前端放入 GitHub token。入口碼只控制介面，GitHub 寫入由 GitHub 本身的登入授權。
 
-最新開發紀錄：[Issue #83](https://github.com/c3xv05/NKNU-Campus-Simulator/issues/83)。後續依含 `nknu-dev-record` 標記的最新Issue編號接續，#9保留為歷史。
+最新開發紀錄：[Issue #85](https://github.com/c3xv05/NKNU-Campus-Simulator/issues/85)。後續依含 `nknu-dev-record` 標記的最新Issue編號接續，#9保留為歷史。
 後續討論先讀 [開發者紀錄](docs/developer-journal.md) 及含 `<!-- nknu-dev-record -->` 的 Issues。
 未送出的本機草稿不會出現在其他裝置或遠端工具中。
 

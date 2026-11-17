@@ -6,7 +6,7 @@ from shapely.ops import unary_union
 root=Path(__file__).resolve().parents[1]
 read=lambda p:json.loads((root/p).read_text())
 plan=read('buildings/foresight/plan.json');data=read('buildings/foresight/interior.json');c=read('data/campus.json')
-baseline=json.loads(subprocess.check_output(['git','show','8f9d50d:data/campus.json'],cwd=root))
+baseline=json.loads(subprocess.check_output(['git','show','e10c351:data/campus.json'],cwd=root))
 current=json.loads(json.dumps(c));old=next(b for b in baseline['places'] if b['osm']==381731688)
 current['places']=[old if b['osm']==381731688 else b for b in current['places']]
 assert current==baseline,'Non-Jiyuan campus data must remain identical'
@@ -56,5 +56,25 @@ walkdata=json.loads((root/'data/sidewalk-plan.js').read_text().split('=',1)[1].s
 for f in data['floors']:assert unary_union([Polygon(r[0],r[1:])for r in f['regions']]).intersection(walk.difference(entry.buffer(.01))).area<1e-5
 clearances={'central':90*plan['placement']['scale']-.15*1.1,'upper-wing':48*plan['placement']['scale']-.15*1.1,'diagonal':math.hypot(40.75,40.75)*plan['placement']['scale']-.15*1.1}
 assert min(clearances.values())>2
+# A stair must join the real corridor, not merely be walkable between two isolated points.
+place=plan['placement'];cs=math.cos(place['angle']);sn=math.sin(place['angle'])
+def pixel(p):
+ x=(p[0]-place['origin'][0])/place['scale'];z=(p[1]-place['origin'][1])/place['scale']
+ return [x*cs+z*sn+place['sourceOrigin'][0],x*sn-z*cs+place['sourceOrigin'][1]]
+for i,f in enumerate(data['floors'][:-1]):
+ for stair in f['stairs'][2:]:
+  definition=next(s for s in plan['stairs'] if s['id']==stair['id']);x1,y1,x2,y2=definition['box']
+  arrival=pixel(stair['route'][-1]);assert abs(arrival[1]-(y1+14))<.001
+  assert abs(pixel(stair['route'][0])[1]-(y2-14 if i==0 else y1+14))<.001
+  landing=Polygon([(x1,y1),(x2,y1),(x2,y1+24),(x1,y1+24)])
+  next_floor=unary_union([Polygon([pixel(p) for p in r[0]],[[pixel(p) for p in h] for h in r[1:]]) for r in data['floors'][i+1]['surfaceRegions']])
+  assert next_floor.buffer(.001).covers(landing),'upper landing must reach corridor at full storey height'
+  if i==0:
+   # The safety lane stays free at full standing height all the way to the door.
+   lane=LineString([(x1+20,y1),(x1+20,y2)])
+   for tread in stair['treads']:
+    if tread['height']>0:assert Polygon([pixel(p) for p in tread['ring']]).distance(lane)>.3/place['scale']
+   door=LineString([pixel(p) for p in f['entrances'][1 if stair['id']=='west-end' else 2]])
+   assert door.distance(Point(x1+20,y2))<.001
 path=root/'buildings/foresight/interior.json';before=path.read_bytes();subprocess.run(['python',str(root/'scripts/build-jiyuan-interior.py')],check=True);assert before==path.read_bytes()
 print('PASS: 8 private + 8 shared baths per floor; every bathroom entered from its room only; no corridor intrusion; all spaces reachable; uniform XYZ 1.1; unchanged site; repeat build identical. Main clear widths:',clearances)
