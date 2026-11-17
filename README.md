@@ -216,3 +216,7 @@ CAMPUS_TEST_URL=http://127.0.0.1:8000/ python tests/loading-browser.py --baselin
 
 
 便利商店代稱處的第一組階梯現為「八階→水平歇腳平台→八階」，上方小梯維持八階；對齊致理且退開人行道，高斯側凹缺口已補成連續白磚，鄰地同步處理；詳[階梯來源與重建](facilities/building-access/README.md)。和平校區切換按鍵旁標「測試版」。此次是使用者指定的局部幾何修改，舊PR70效能基準的場景雜湊不再預期一致；一般載入回歸可使用不加--baseline-ref的tests/loading-browser.py。
+
+### 霽遠樓室內
+
+霽遠樓現為五層可通行室內，每層約3m；一樓與標準層分別配置房間、浴室、公共空間與四處樓梯，保持既有道路及地形。來源、模型近似與重建／驗證見 [霽遠樓README](buildings/foresight/README.md)。

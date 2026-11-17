@@ -365,3 +365,6 @@ B1入口4.8m寬、約33m折坡、5.6m門洞與前4.5m順接前坪為既有模型
 移除籃球東側／南側接到球場頂面的土坡，改garage-ground接地面：牆邊2m近停車層地坪，外側沿共用三角面平順接原道路／白磚／地形；西南、東北轉角平順融回保留的西／北土坡，不能產生新斷層。停車場南牆與東側基牆／通風帶露出，移除會遮牆的球場土色裙邊，保留天花樓板及柱。原球場獨立步行出入口及東側原6階短梯保留，後續沿牆斜坡改直接向路邊的18階（模型配置），避免再遮住東側停車場外牆；新車道內側一根柱位往牆側退2m以保留完整通行淨寬。尺寸、出口線位與接地帶寬為模型近似，非測量；原始高程、道路坡度、四籃球場、網球、生科32階與其餘已確認／撤回決定保留。
 
 來源basketball-parking/layout.json與entrance.json；build-garage-access→pedestrian-patches→sidewalk-plan→motor-pavement-plan→court-access→road-regions→r04-vegetation。渲染與通行同用sports-courts/access-surface，地形依footprints裁切，外牆由parking/renderer負責，不再用高土坡遮住。
+## 2026-11-17 霽遠樓室內
+
+使用者提供「燕巢宿舍.pdf」第1、2頁及本次指定照做的霽遠樓清稿：保留於 [霽遠來源](buildings/foresight/source/)、配置及限制見 [README](buildings/foresight/README.md)。平面用途、房號及浴室位置依圖，約3m層高與浴室四設備／共用兩套依使用者說明。牆厚、門窗／設備擺位、套合及樓梯踏階等為模型近似；沒有新增道路或地形資料，未推定床桌配置。

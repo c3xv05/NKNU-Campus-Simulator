@@ -36,6 +36,10 @@ export function createLandscapeLayout(campus,network,height){
  }
  for(let z=483;z<519;z+=1.1)for(let x=-277;x< -258;x+=1.1)if(ringDistance(x,z,bed)===0)flowers.push({x,z,y:height(x,z)+.2,size:.65,tint:(Math.round(x+z)%3+3)%3});
  const wall=[]; // Retaining walls removed at the user’s request.
+ // Preserve the seeded campus layout: remove only plants crossing the new Jiyuan shell.
+ // Filtering after generation avoids shifting every later random tree/flower in the campus.
+ const interiorRings=(campus.jiyuanInterior?.floors[0].regions||[]).map(r=>r[0]);
+ if(interiorRings.length)for(const [items,margin]of [[trees,t=>3.6*t.size],[flowers,()=>.35],[weeds,()=>.35]])for(let i=items.length-1;i>=0;i--)if(interiorRings.some(r=>ringDistance(items[i].x,items[i].z,r)<margin(items[i])))items.splice(i,1);
  const treeCells=new Map();for(const tree of trees){const key=`${Math.floor(tree.x/15)},${Math.floor(tree.z/15)}`;if(!treeCells.has(key))treeCells.set(key,[]);treeCells.get(key).push(tree);}
  function blocked(x,z,radius=.5){
   if(ringDistance(x,z,bed)<radius)return true;

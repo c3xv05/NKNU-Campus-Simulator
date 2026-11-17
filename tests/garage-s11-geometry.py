@@ -3,10 +3,10 @@ import json,subprocess
 from pathlib import Path
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
-root=Path(__file__).resolve().parents[1];c=json.loads((root/'data/campus.json').read_text());old=json.loads(subprocess.check_output(['git','show','a6c05f7:data/campus.json'],cwd=root));p=c['courtParking'];a=p['entrance'];lo,hi,left,right=p['bounds'];u=p['axis'];v=[-u[1],u[0]]
+root=Path(__file__).resolve().parents[1];c=json.loads((root/'data/campus.json').read_text());old=json.loads(subprocess.check_output(['git','show','b0868ac:data/campus.json'],cwd=root));p=c['courtParking'];a=p['entrance'];lo,hi,left,right=p['bounds'];u=p['axis'];v=[-u[1],u[0]]
 def union(r):return unary_union([Polygon(x[0],x[1:])for x in r])
 def plan(text):return union(json.loads(text.split('=',1)[1].rstrip(';\n'))['regions'])
-walk=plan((root/'data/sidewalk-plan.js').read_text());before=plan(subprocess.check_output(['git','show','a6c05f7:data/sidewalk-plan.js'],cwd=root,text=True));ramp=Polygon(a['ring']);oldramp=Polygon(old['courtParking']['entrance']['ring'])
+walk=plan((root/'data/sidewalk-plan.js').read_text());before=plan(subprocess.check_output(['git','show','b0868ac:data/sidewalk-plan.js'],cwd=root,text=True));ramp=Polygon(a['ring']);oldramp=Polygon(old['courtParking']['entrance']['ring'])
 assert a['road']==218881799 and p['vehicleEntrance']=='southeast-facing-s11'
 assert a['portalAcross']<left+8 and a['portalAcross']>left+a['openingWidth']/2
 assert ramp.intersection(walk).area<.001
