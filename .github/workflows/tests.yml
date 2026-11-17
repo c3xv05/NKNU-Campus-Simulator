@@ -1,0 +1,29 @@
+name: tests
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Node tests
+        run: |
+          known=$(grep -v '^#' tests/known-failures.txt | sed '/^$/d')
+          failed=0
+          for t in tests/*.mjs; do
+            name=$(basename "$t" .mjs)
+            if node "$t" > /tmp/out.txt 2>&1; then
+              echo "PASS $name"
+              if echo "$known" | grep -qx "$name"; then echo "::notice::$name now passes; remove it from tests/known-failures.txt"; fi
+            elif echo "$known" | grep -qx "$name"; then
+              echo "::warning::known failure: $name"
+            else
+              echo "::error::FAIL $name"; tail -20 /tmp/out.txt; failed=1
+            fi
+          done
+          exit $failed

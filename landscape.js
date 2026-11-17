@@ -6,6 +6,7 @@ import {sidewalkSides,SIDEWALK_WIDTH} from './sidewalk-layout.js';
 import {offsetRing} from './building-layout.js';
 import {ringDistance} from './terrain.js';
 import {coverAt} from './landcover.js';
+import {createTreeSpecies,treeSpeciesIndex,treeCrownPalette} from './tree-models.js';
 function bezier(a,b,c,d,t){const u=1-t;return[u*u*u*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],u*u*u*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]];}
 export function entranceBed(){
  const x=-267.5,tip=[x,519],left=[x-9,492],right=[x+9,492],ring=[];
@@ -58,31 +59,37 @@ export function addLandscape(THREE,scene,layout,height){
   items.forEach((item,i)=>{dummy.position.set(0,0,0);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);transform(dummy,item,i);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);if(color)mesh.setColorAt(i,new THREE.Color(color(item)));});
   mesh.instanceMatrix.needsUpdate=true;if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;mesh.receiveShadow=true;mesh.castShadow=name==='tree-trunks';group.add(mesh);return mesh;
  }
- instances('tree-trunks',new THREE.CylinderGeometry(.19,.32,1,5),material(0x6c5540),layout.trees,(d,t)=>{d.position.set(t.x,t.y+2.2*t.size,t.z);d.scale.set(t.size,4.4*t.size,t.size);});
- const crowns=layout.trees.flatMap(t=>[t,{...t,x:t.x+1.1*t.size,z:t.z-.8*t.size,y:t.y+1.5*t.size,size:t.size*.8}]);
- const canopy=instances('forest-canopies',new THREE.SphereGeometry(1,7,5),material(0xffffff),crowns,(d,t)=>{d.position.set(t.x,t.y+5*t.size,t.z);d.scale.set(3*t.size,3.3*t.size,2.8*t.size);},t=>new THREE.Color().setHSL(.29+t.tint*.08,.3,.19+t.tint*.08));
- if(canopy){
-  const fades=new THREE.InstancedBufferAttribute(new Float32Array(crowns.length).fill(1),1);
-  canopy.geometry.setAttribute('instanceFade',fades);canopy.material.alphaHash=true;
-  canopy.material.onBeforeCompile=shader=>{
-   shader.vertexShader='attribute float instanceFade; varying float vCanopyFade;\n'+shader.vertexShader;
-   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvCanopyFade=instanceFade;');
-   shader.fragmentShader='varying float vCanopyFade;\n'+shader.fragmentShader;
-   shader.fragmentShader=shader.fragmentShader.replace('#include <alphahash_fragment>','if(vCanopyFade<0.01)discard;\ndiffuseColor.a *= vCanopyFade;\n#include <alphahash_fragment>');
-  };
-  canopy.material.customProgramCacheKey=()=> 'canopy-view-fade-v1';
-  group.userData.updateView=(camera,focus)=>{
-   const dx=camera.x-focus.x,dy=camera.y-focus.y,dz=camera.z-focus.z,length=dx*dx+dy*dy+dz*dz;
-   let changed=false;
-   crowns.forEach((t,i)=>{
-    const y=t.y+5*t.size,vx=t.x-focus.x,vy=y-focus.y,vz=t.z-focus.z;
+ // Soft rounded forest: several species, each with instanced trunks and faceted crowns.
+ const species=createTreeSpecies(THREE),bySpecies=species.map(()=>[]);for(const t of layout.trees)bySpecies[treeSpeciesIndex(t,species)].push(t);
+ const trunkMaterial=new THREE.MeshStandardMaterial({color:0x7a5c42,roughness:1});
+ const crownMaterial=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.9});crownMaterial.alphaHash=true;
+ crownMaterial.onBeforeCompile=shader=>{
+  shader.vertexShader='attribute float instanceFade; varying float vCanopyFade;\n'+shader.vertexShader;
+  shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvCanopyFade=instanceFade;');
+  shader.fragmentShader='varying float vCanopyFade;\n'+shader.fragmentShader;
+  shader.fragmentShader=shader.fragmentShader.replace('#include <alphahash_fragment>','if(vCanopyFade<0.01)discard;\ndiffuseColor.a *= vCanopyFade;\n#include <alphahash_fragment>');
+ };
+ crownMaterial.customProgramCacheKey=()=> 'canopy-view-fade-v2';
+ const canopies=[];
+ species.forEach((sp,k)=>{
+  const items=bySpecies[k];if(!items.length)return;const place=(d,t)=>{d.position.set(t.x,t.y-.05,t.z);d.rotation.y=t.tint*Math.PI*2;d.scale.setScalar(t.size);};
+  const trunks=instances('tree-trunks-'+sp.name,sp.trunk,trunkMaterial,items,place);trunks.castShadow=true;
+  const [h,s,l]=treeCrownPalette[k%treeCrownPalette.length];
+  const mesh=instances('forest-canopies-'+sp.name,sp.crown,crownMaterial,items,(d,t)=>{place(d,t);d.scale.set(t.size*1.22,t.size*1.12,t.size*1.22);},t=>new THREE.Color().setHSL(h+(t.tint-.5)*.05,s,l+t.tint*.07));
+  const fades=new THREE.InstancedBufferAttribute(new Float32Array(items.length).fill(1),1);mesh.geometry.setAttribute('instanceFade',fades);mesh.castShadow=true;
+  canopies.push({items,fades,sp});
+ });
+ group.userData.updateView=(camera,focus)=>{
+  const dx=camera.x-focus.x,dy=camera.y-focus.y,dz=camera.z-focus.z,length=dx*dx+dy*dy+dz*dz;
+  for(const {items,fades,sp} of canopies){let changed=false;
+   items.forEach((t,i)=>{
+    const y=t.y+sp.fadeHeight*t.size,vx=t.x-focus.x,vy=y-focus.y,vz=t.z-focus.z;
     const u=Math.max(0,Math.min(1,(vx*dx+vy*dy+vz*dz)/(length||1)));
     const distance=Math.hypot(vx-dx*u,vy-dy*u,vz-dz*u);
-    const next=distance<3.7*t.size+1?0:1;
+    const next=distance<sp.fadeRadius*t.size+1?0:1;
     if(fades.getX(i)!==next){fades.setX(i,next);changed=true;}
-   });if(changed)fades.needsUpdate=true;
-  };
- }
+   });if(changed)fades.needsUpdate=true;}
+ };
  instances('flower-stems',new THREE.CylinderGeometry(.025,.03,1,3),material(0x5d7941),layout.flowers,(d,f)=>{d.position.set(f.x,f.y+.35*f.size,f.z);d.scale.set(1,.7*f.size,1);});
  instances('flower-heads',new THREE.IcosahedronGeometry(1,0),material(0xffffff),layout.flowers,(d,f)=>{d.position.set(f.x,f.y+.7*f.size,f.z);d.rotation.y=f.angle||0;d.scale.set(.48*f.size,.16*f.size,.38*f.size);},f=>flowerPalette[f.tint%flowerPalette.length]);
  const grass=new THREE.BufferGeometry();grass.setAttribute('position',new THREE.Float32BufferAttribute([-.2,0,0,.2,0,0,0,.55,0,0,0,-.2,0,0,.2,0,.4,0],3));grass.computeVertexNormals();
