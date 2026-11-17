@@ -1,3 +1,4 @@
+import {jiyuanSupportAt} from './buildings/foresight/surface.js';
 import {corridorSupportAt} from './facilities/campus-corridors/surface.js';
 import {parkingSupportAt} from './facilities/basketball-parking/surface.js';
 import {passageSupportAt} from './building-passages.js';
@@ -28,6 +29,7 @@ export function sidewalkSections(campus,network){
  return sections;
 }
 export function platformHeightAt(x,z,currentY,campus,terrain,network){
+ const interior=jiyuanSupportAt(x,z,currentY,campus,terrain);if(interior!==null)return interior;
  const parking=parkingSupportAt(x,z,currentY,campus,terrain,network);if(parking!==null)return parking;
  const passage=passageSupportAt(x,z,currentY,campus,terrain);if(passage!==null)return passage;
  const huanyu=huanyuSupportAt(x,z,currentY,campus,terrain,network);if(huanyu!==null)return huanyu;

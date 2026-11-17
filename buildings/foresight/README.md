@@ -1,5 +1,32 @@
 # 霽遠樓
 
-修改 `building.json` 的 geometry 與 appearance 後，於專案根目錄執行 `python scripts/build-building-catalog.py`。
+五層可通行室內模型，每層約 3 公尺、外觀總高 15 公尺。
 
-使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。
+## 來源與配置
+
+- `source/dormitory-plans.pdf`：使用者提供的完整宿舍平面圖，霽遠樓為第 1、2 頁。
+- `source/reviewed-jiyuan-drafts.pdf`：本次使用者指定照做的兩張草稿，保留供對照。
+- `plan.json`：可編輯的房間、浴室、公共空間、門位、樓梯及圖面座標套合來源。
+- `interior.json`：生成之樓板三角面、隔間／窗洞、門洞、踏階及浴室設備；渲染與通行共用。
+
+一樓含 101–122、124 共 23 間寢室與管理員室，不擅補 123；二至五樓各 24 間，依標準圖換樓層前綴（3–5 樓房號規則仍待現場核對）。每層 14 處浴室、24 套設備，包含使用者特別指出的 208–212、219–223 區；每套含蹲式馬桶、小便斗、洗手台及蓮蓬頭，兩間共用者兩套。
+
+一樓中央大廳／會客室，標準層中央交誼廳／半圓公共空間與外露台、兩端洗衣間及中央兩處／兩端兩處樓梯。四處樓梯均能逐層上下，踏階孔洞與支撐一致；採兩梯跑各八階及轉折平台作模型近似，並非原圖量得實際階數。房門採開放門洞，浴室共用入口保留可走淨寬；浴室設備有模型，沒有使用功能。寢室床桌配置原圖未標，不自行宣稱已還原。
+
+## 不影響地形與道路
+
+`geometry.ring`、原基準與地形平台輪廓保留；新外牆依清稿獨立套合。原地形、原始高程、道路線位／寬度／坡度及全部鋪面不重新生成。以建築基座封住原外殼的地面裁切，新增牆緣基座落地；模型本身避開原車道、步道及人行道；既有P05入口步道末端接入大廳，沒有移動或重建其鋪面。植栽在原程序生成完成後，僅移除會穿入霽遠樓／外牆的個體，不改亂數序列或校園其他植栽。
+
+牆厚、門窗寬、設備位置、套合比例、外觀與樓梯尺寸皆為模型近似，非測繪／施工圖；2F 原圖不推定有電梯。五層的寢室及浴室配置承接標準層，未提供的立面、床位及設備精確位置仍可校正。
+
+## 重建及驗證
+
+```sh
+python scripts/build-building-catalog.py
+python tests/jiyuan-interior-geometry.py
+node tests/jiyuan-interior.mjs
+python -m http.server 8138
+THREE_MODULE_PATH=/tmp/three.module.js python tests/jiyuan-interior-browser.py
+```
+
+目錄產生器會同步執行室內產生器；不要為室內重建整套道路或地形。Node 測試會與開發基準 `a6c05f7` 比對全地形網格與全部道路採樣；受限制環境可先 `git show a6c05f7:data/campus.json > /tmp/jiyuan-baseline-campus.json`，再設定 `CAMPUS_BASELINE_JSON=/tmp/jiyuan-baseline-campus.json`。瀏覽器測試 hook 僅由測試注入，不發布為場景 API。

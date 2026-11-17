@@ -1,0 +1,147 @@
+"""Compile the reviewed Jiyuan plan into shared render/collision surfaces.
+No campus footprint, terrain, paving or road data is rewritten by this generator.
+"""
+import json, math
+from pathlib import Path
+from shapely.geometry import Polygon, LineString, Point, box
+from shapely.ops import unary_union, nearest_points
+from shapely import constrained_delaunay_triangles
+root=Path(__file__).resolve().parents[1]
+plan=json.loads((root/'buildings/foresight/plan.json').read_text())
+place=plan['placement']; angle=place['angle']; scale=place['scale']; cs=math.cos(angle); sn=math.sin(angle)
+def world(p):
+ u=(p[0]-place['sourceOrigin'][0])*scale;v=(p[1]-place['sourceOrigin'][1])*scale
+ return [round(place['origin'][0]+cs*u+sn*v,7),round(place['origin'][1]+sn*u-cs*v,7)]
+def local(p):return world(p)
+def pixel(p):
+ x=(p[0]-place['origin'][0])/scale;z=(p[1]-place['origin'][1])/scale
+ return [x*cs+z*sn+place['sourceOrigin'][0],x*sn-z*cs+place['sourceOrigin'][1]]
+def boundary_segment(segment,polygon):
+ a,b=segment;return polygon.boundary.distance(Point(pixel([(a[0]+b[0])/2,(a[1]+b[1])/2])))<.2
+
+def rings(poly):return [[local(p) for p in list(poly.exterior.coords)[:-1]]]+[[local(p) for p in list(r.coords)[:-1]] for r in poly.interiors]
+def polygons(g):return [g] if g.geom_type=='Polygon' else [p for p in g.geoms if p.geom_type=='Polygon']
+def triangles(g):return [[world(p) for p in list(t.exterior.coords)[:3]] for t in constrained_delaunay_triangles(g).geoms]
+def edge_door(poly,at,width=30):
+ # Project onto the nearest real boundary so passage cut and label never drift.
+ line=poly.boundary;pt=line.interpolate(line.project(Point(at)));dist=line.project(pt);a=line.interpolate(dist-width/2);b=line.interpolate(dist+width/2)
+ # Avoid wrapping at the polygon origin, which would cut an unrelated edge.
+ for p,q in zip(poly.exterior.coords,list(poly.exterior.coords)[1:]):
+  edge=LineString([p,q])
+  if edge.distance(pt)<.01:
+   dx=q[0]-p[0];dy=q[1]-p[1];n=math.hypot(dx,dy);return LineString([(pt.x-dx/n*width/2,pt.y-dy/n*width/2),(pt.x+dx/n*width/2,pt.y+dy/n*width/2)])
+ raise ValueError(at)
+floors=[]
+for floor in range(5):
+ spaces=[];doors=[];connectors=[];core=unary_union([Polygon(p) for p in plan['corridors']])
+ for definition in plan['rooms']:
+  n=definition['number']; number=str(plan['groundRoomNumbers'].get(str(n))) if floor==0 else str(n+(floor-1)*100)
+  kind='manager' if floor==0 and number=='None' else 'room';name='管理員室' if kind=='manager' else number
+  p=Polygon(definition['polygon']);door=edge_door(p,definition['door']);doors.append({'line':door,'kind':'room','name':name})
+  center=door.interpolate(.5,normalized=True); end=nearest_points(center,core)[1]
+  if center.distance(end)>0 and not any(Polygon(b['polygon']).boundary.distance(center)<4 for b in plan['bathrooms']):connectors.append(LineString([center,end]).buffer(24,cap_style='square'))
+  spaces.append({'id':name,'kind':kind,'name':name,'polygon':p,'door':door})
+ for definition in plan['bathrooms']:
+  p=Polygon(definition['polygon']);served=[s for n in definition['rooms'] for s in spaces if s['name']==('管理員室' if floor==0 and plan['groundRoomNumbers'][str(n)] is None else str(plan['groundRoomNumbers'][str(n)] if floor==0 else n+(floor-1)*100))]
+  for room in served:
+   common=p.boundary.intersection(room['polygon'].boundary)
+   if room['door'].interpolate(.5,normalized=True).distance(p.boundary)<4:
+    pt=nearest_points(p.boundary,room['door'].interpolate(.5,normalized=True))[0]
+   elif common.length>18:
+    lines=[common] if common.geom_type=='LineString' else [v for v in common.geoms if v.geom_type=='LineString'];part=max(lines,key=lambda x:x.length);pt=part.interpolate(.5,normalized=True)
+   else:pt=nearest_points(p.boundary,room['polygon'])[0]
+   doors.append({'line':edge_door(p,[pt.x,pt.y],24),'kind':'bathroom','name':definition['id']})
+  # Shared service vestibules also open to the hall, as on the source plan.
+  candidates=[]
+  for a,b in zip(p.exterior.coords,list(p.exterior.coords)[1:]):
+   length=math.dist(a,b)
+   for j in range(1,max(2,int(length/9))):
+    u=j/max(2,int(length/9));pt=Point(a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u)
+    if min(math.dist(pt.coords[0],a),math.dist(pt.coords[0],b))<15:continue
+    if any(room['polygon'].buffer(3).contains(pt) for room in spaces if room['kind'] in ['room','manager']):continue
+    candidates.append(pt)
+  assert candidates,definition['id']
+  pt=min(candidates,key=lambda v:v.distance(core));door=edge_door(p,[pt.x,pt.y],26);doors.append({'line':door,'kind':'bathroom','name':definition['id']})
+  end=nearest_points(pt,core)[1]
+  if pt.distance(end)>0:connectors.append(LineString([pt,end]).buffer(23,cap_style='square'))
+  spaces.append({'id':definition['id'],'kind':'bathroom','name':'浴室','polygon':p,'sets':len(served),'serves':[s['name'] for s in served]})
+ for definition in plan['publicSpaces']:
+  p=Polygon(definition['polygon']).buffer(0);door=edge_door(p,definition['door'],48 if definition['id'] in ['lounge','semicircle'] else 26);doors.append({'line':door,'kind':'public','name':definition['name']})
+  center=door.interpolate(.5,normalized=True);end=nearest_points(center,core)[1]
+  if center.distance(end)>0:connectors.append(LineString([center,end]).buffer(24,cap_style='square'))
+  spaces.append({'id':definition['id'],'kind':'laundry' if 'laundry' in definition['id'] else 'public','name':definition.get('groundName',definition['name']) if floor==0 else definition['name'],'polygon':p,'door':door})
+ if floor:
+  p=Polygon(plan['standardTerrace']['polygon']);door=edge_door(p,plan['standardTerrace']['door'],48);doors.append({'line':door,'kind':'public','name':'露台'})
+  spaces.append({'id':'terrace','kind':'terrace','name':'露台','polygon':p,'door':door})
+ stairs=[box(*s['box']) for s in plan['stairs']]
+ footprint=unary_union([s['polygon'] for s in spaces]+stairs+[core]+connectors).buffer(2,join_style='mitre').buffer(-2,join_style='mitre')
+ # Only short source drafting gaps are closed; no bridging across the courtyard.
+ footprint=unary_union([Polygon(p.exterior) for p in polygons(footprint)])
+ assert footprint.geom_type=='Polygon',f'disconnected floor {floor}: {footprint.geom_type}'
+ holes=unary_union([box(x1+2,y1+2,x2-2,y2-25) for x1,y1,x2,y2 in [s['box'] for s in plan['stairs']]]) if floor else Polygon()
+ floor_surface=footprint.difference(holes)
+ walls=unary_union([s['polygon'].boundary for s in spaces]+[footprint.boundary])
+ openings=unary_union([d['line'].buffer(2,cap_style='square') for d in doors])
+ # Main entrance is the lower edge of the central lobby; end exits are ground only.
+ if floor==0:
+  exits=[LineString([(875,854),(925,854)])]+[LineString([(s['box'][0]+20,s['box'][3]),(s['box'][2]-20,s['box'][3])]) for s in plan['stairs'][2:]]
+  openings=unary_union([openings]+[e.buffer(4,cap_style='square') for e in exits])
+ else:exits=[]
+ windows=[]
+ for room in [s for s in spaces if s['kind'] in ['room','manager']]:
+  exterior=room['polygon'].boundary.intersection(footprint.boundary.buffer(.1))
+  candidates=[exterior] if exterior.geom_type=='LineString' else [v for v in getattr(exterior,'geoms',[]) if v.geom_type=='LineString']
+  candidates=[v for v in candidates if v.length>40]
+  if candidates:
+   line=max(candidates,key=lambda v:v.length);pt=line.interpolate(.5,normalized=True);window=edge_door(room['polygon'],[pt.x,pt.y],min(48,line.length*.6));windows.append(window)
+ window_cut=unary_union([w.buffer(1,cap_style='square') for w in windows])
+ cut=walls.difference(openings.union(window_cut))
+ wall_lines=[cut] if cut.geom_type=='LineString' else [x for x in cut.geoms if x.geom_type=='LineString']
+ segments=[]
+ for line in wall_lines:
+  for a,b in zip(line.coords,list(line.coords)[1:]):
+   if math.dist(a,b)>1:segments.append([world(a),world(b)])
+ # Room to shared bathroom openings must cut the room-side wall too, not just the bath side.
+ rec={'floor':floor+1,'height':floor*3,'regions':[rings(p) for p in polygons(footprint)],'roofTriangles':triangles(footprint.difference(Polygon(plan['standardTerrace']['polygon'])) if floor else footprint),'windows':[[world(p) for p in w.coords] for w in windows],'surfaceRegions':[rings(p) for p in polygons(floor_surface)],'floorTriangles':triangles(floor_surface),'lowWallIndices':[i for i,segment in enumerate(segments) if floor and boundary_segment(segment,Polygon(plan['standardTerrace']['polygon'])) and not boundary_segment(segment,Polygon(plan['publicSpaces'][1]['polygon']))],'walls':segments,'exteriorWallIndices':[i for i,segment in enumerate(segments) if boundary_segment(segment,footprint)],'spaces':[],'doors':[],'entrances':[[world(p) for p in e.coords] for e in exits],'stairs':[]}
+ for s in spaces:
+  center=s['polygon'].representative_point();r={k:v for k,v in s.items() if k not in ['polygon','door']};r.update(ring=rings(s['polygon'])[0],center=world([center.x,center.y]),triangles=triangles(s['polygon']))
+  if 'door' in s:r['door']=[world(v) for v in s['door'].coords]
+  if s['kind']=='bathroom':
+   # Pack equipment inside the real service polygon, clear of all bathroom doors.
+   candidates=[];x1,y1,x2,y2=s['polygon'].bounds
+   bathdoors=[d['line'] for d in doors if d['kind']=='bathroom' and d['name']==s['id']]
+   for ix in range(12):
+    for iy in range(10):
+     q=Point(x1+10+(x2-x1-20)*ix/11,y1+10+(y2-y1-20)*iy/9)
+     if s['polygon'].buffer(-8).contains(q) and all(q.distance(dl)>13 for dl in bathdoors):candidates.append(q)
+   walks=[]
+   for door in bathdoors:
+    a,b=list(door.coords);dx=b[0]-a[0];dy=b[1]-a[1];length=math.hypot(dx,dy);m=door.interpolate(.5,normalized=True)
+    walks.append(LineString([(m.x-dy/length*14,m.y+dx/length*14),(m.x+dy/length*14,m.y-dx/length*14)]))
+   kinds=['sink','urinal','squat','shower'];chosen=[];chosen_boxes=[]
+   sizes={'sink':(.54,.44),'urinal':(.38,.36),'squat':(.48,.65),'shower':(.68,.68)}
+   def equipment_box(q,kind):
+    w,h=sizes[kind];return box(q.x-w/scale/2,q.y-h/scale/2,q.x+w/scale/2,q.y+h/scale/2)
+   for k in range(s['sets']*4):
+    eligible=[q for q in candidates if all(q.distance(v)>14 for v in chosen) and (kinds[k%4] not in ['sink','urinal'] or all(q.distance(v)>14 for v in walks)) and s['polygon'].buffer(-.5).contains(equipment_box(q,kinds[k%4])) and all(equipment_box(q,kinds[k%4]).intersection(v).area<.001 for v in chosen_boxes)]
+    assert eligible,('equipment overflow',s['id'])
+    q=max(eligible,key=lambda q:(min([q.distance(v) for v in chosen] or [100]))-s['polygon'].boundary.distance(q)*.2);chosen.append(q);chosen_boxes.append(equipment_box(q,kinds[k%4]))
+   r['fixtures']=[{'kind':kinds[i%4],'center':world([q.x,q.y]),'angle':-angle} for i,q in enumerate(chosen)]
+  rec['spaces'].append(r)
+ for d in doors:rec['doors'].append({'kind':d['kind'],'name':d['name'],'line':[world(p) for p in d['line'].coords]})
+ # The same treads feed geometry and support; two parallel flights with a level turn.
+ if floor<4:
+  for s in plan['stairs']:
+   x1,y1,x2,y2=s['box'];gap=6;mid=(x1+x2)/2;landing=25;start=y2-landing;end=y1+landing;w=(x2-x1-gap)/2
+   tread=[]
+   for flight in range(2):
+    for j in range(8):
+     if flight==0:top=1.5*(j+1)/8;xa=x1;xb=mid-gap/2;ya=start+(end-start)*(j+1)/8;yb=start+(end-start)*j/8
+     else:top=1.5+1.5*(j+1)/8;xa=mid+gap/2;xb=x2;ya=end+(start-end)*j/8;yb=end+(start-end)*(j+1)/8
+     tread.append({'ring':[world(p) for p in [(xa,ya),(xb,ya),(xb,yb),(xa,yb)]],'height':top,'flight':flight})
+   tread.append({'ring':[world(p) for p in [(x1,y1),(x2,y1),(x2,end),(x1,end)]],'height':1.5,'flight':-1})
+   rec['stairs'].append({'id':s['id'],'treads':tread,'route':[world(p) for p in [((x1+mid-gap/2)/2,y2-14),((x1+mid-gap/2)/2,end-12),((mid+gap/2+x2)/2,end-12),((mid+gap/2+x2)/2,y2-14)]],'bounds':[world(p) for p in [(x1,y1),(x2,y1),(x2,y2),(x1,y2)]]})
+ floors.append(rec)
+result={'version':1,'building':381731688,'floorHeight':3,'floorCount':5,'source':plan['source'],'floors':floors}
+(root/'buildings/foresight/interior.json').write_text(json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n')
+print('Jiyuan:',len(floors),'floors;',sum(s['kind']=='room' for f in floors for s in f['spaces']),'rooms;',sum(s['kind']=='bathroom' for f in floors for s in f['spaces']),'bathrooms')

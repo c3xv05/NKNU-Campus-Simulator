@@ -1,15 +1,17 @@
+import {addJiyuanInterior} from './foresight/renderer.js';
 import {passageLevel} from '../building-passages.js';
 import {SIDEWALK_RISE,ROAD_SURFACE_LIFT} from '../sidewalk-layout.js';
 import {selectFront} from '../building-layout.js';
 // Original geometry and procedural materials, derived from the supplied facade references.
 // A building keeps one shell and a few instanced detail batches; distant details are hidden.
-export async function loadBuildingProfiles(){const r=await fetch('./buildings/catalog.json');if(!r.ok)throw new Error('建築外觀資料載入失敗');return r.json();}
+export async function loadBuildingProfiles(){const r=await fetch('./buildings/catalog.json');if(!r.ok)throw new Error('建築外觀資料載入失敗');const profiles=await r.json();await Promise.all(Object.values(profiles).filter(p=>p.interiorFile).map(async p=>{const response=await fetch(p.interiorFile);if(!response.ok)throw new Error('霽遠樓室內資料載入失敗');p.interiorData=await response.json();}));return profiles;}
 export function addBuildings(THREE,scene,campus,terrain,profiles,network){
  const group=new THREE.Group();group.name='campus-buildings';scene.add(group);const blockers=[],entries=[],materials=new Map(),cube=new THREE.BoxGeometry(1,1,1),dummy=new THREE.Object3D();
  function material(color,brick=false){const key=color+brick;if(materials.has(key))return materials.get(key);const m=new THREE.MeshStandardMaterial({color,roughness:.9});if(brick==='tiles'){const c=document.createElement('canvas');c.width=c.height=128;const ctx=c.getContext('2d');ctx.fillStyle='#d8d8d1';ctx.fillRect(0,0,128,128);ctx.strokeStyle='#a4a59c';ctx.lineWidth=1;ctx.strokeRect(.5,.5,127,127);m.map=new THREE.CanvasTexture(c);m.map.wrapS=m.map.wrapT=THREE.RepeatWrapping;m.map.repeat.set(1.5,1.5);m.map.colorSpace=THREE.SRGBColorSpace;}else if(brick){const c=document.createElement('canvas');c.width=128;c.height=64;const x=c.getContext('2d');x.fillStyle='#d4c6ba';x.fillRect(0,0,128,64);for(let row=0;row<8;row++)for(let col=-1;col<8;col++){x.fillStyle=['#9f6555','#ad7460','#a86c59'][(row+col+9)%3];x.fillRect(col*24+(row%2)*12,row*8,23,7);}m.map=new THREE.CanvasTexture(c);m.map.wrapS=m.map.wrapT=THREE.RepeatWrapping;m.map.repeat.set(.8,.8);m.map.colorSpace=THREE.SRGBColorSpace;}materials.set(key,m);return m;}
  function outline(ring){const s=new THREE.Shape();ring.forEach(([x,z],i)=>i?s.lineTo(x,-z):s.moveTo(x,-z));s.closePath();return s;}
  for(const a of [...campus.places,...campus.buildings].filter(a=>a.height)){
   const p=profiles[a.osm],base=terrain.platformHeight(a),xs=a.ring.map(v=>v[0]),zs=a.ring.map(v=>v[1]),cx=(Math.min(...xs)+Math.max(...xs))/2,cz=(Math.min(...zs)+Math.max(...zs))/2;
+  if(p.interiorData){const interior=addJiyuanInterior(THREE,group,campus,terrain,p.interiorData);blockers.push(...interior.blockers);entries.push({id:p.id,cx,cz,detail:interior.detail,shell:interior.shell,limit:p.detailDistance||145});continue;}
   if(p.style==='gatehouse'){const detail=new THREE.Group(),shell=scene.getObjectByName('entrance-guardhouse');group.add(detail);if(shell)blockers.push(shell);entries.push({id:p.id,cx,cz,detail,shell,limit:p.detailDistance||145});continue;}
   const wall=material(p.wall,['canteen','technology','library'].includes(p.style)?'tiles':['brick-frame','foresight','academic','dorm-two-tone','guesthouse'].includes(p.style)),accent=material(p.accent||p.wall),frame=material(p.frame),glass=material(p.glass),dark=material('#25363c'),awning=material('#477f7b');
   const lowerBase=Math.min(base-3,...a.ring.map(([x,z])=>(network?network.integratedHeight(x,z,terrain.height(x,z)):terrain.height(x,z))-1));
