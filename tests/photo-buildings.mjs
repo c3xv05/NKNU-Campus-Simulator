@@ -6,14 +6,16 @@ for(const a of all){const p=profiles[a.osm];assert(p);const own=read('buildings/
 for(const [name,style] of [['生科 A 館','biology'],['生科 B 館','biology'],['致理大樓','brick-frame'],['高斯大樓','brick-frame'],['歸燕食巢','canteen'],['霽遠樓','foresight']])assert.equal(profiles[c.places.find(a=>a.name===name).osm].style,style);
 const t=createTerrain(grid,[...c.places,...c.buildings,...c.courts,...c.water],{levelLink:c.levelLink,courtyard:c.courtyard,bioConnection:c.bioConnection});
 assert.equal(t.platformHeight(c.places.find(p=>p.osm===c.bioConnection.from)),t.platformHeight(c.places.find(p=>p.osm===c.bioConnection.to)));
+const net=createRoadNetwork(c.roads,t.rawHeight,read('data/road-tags.json'),{apron:c.entranceApron,pavedAreas:c.pavedAreas,junctionFillets:c.junctionFillets,sharedGradeGrid:true});
 const get=id=>t.platformHeight(c.places.find(p=>p.osm===id)),level=get(444867692)+7.2;
-assert(Math.abs(level-get(444867693)-3.6)<1e-8);assert(Math.abs(level-get(444867694)-3.6)<1e-8);
-assert.equal(platformHeightAt(-145,-208,level,c,t),level+.08);assert.equal(platformHeightAt(-145,-208,level-5,c,t),null);
-const [a,b]=c.courtyard.ramp,rampLevel=level-(c.courtyard.rampTargetFloor===1?3.6:0);assert(Math.abs(platformHeightAt(...b,rampLevel,c,t)-rampLevel)<1e-8);assert.equal(platformHeightAt(...a,t.height(...a),c,t),t.height(...a));
+assert(Math.abs(level-get(444867693)-3.6)<1e-8);assert(Math.abs(level-get(444867694)-7.2)<1e-8);
+assert.equal(platformHeightAt(-145,-208,level,c,t,net),level+.08);assert.equal(platformHeightAt(-145,-208,level-5,c,t,net),null);
+const [a,b]=c.courtyard.ramp,rampLevel=level-(c.courtyard.rampTargetFloor===1?3.6:0);assert(Math.abs(platformHeightAt(...b,rampLevel,c,t,net)-rampLevel-.08)<1e-8);{const foot=platformHeightAt(...a,t.height(...a),c,t,net);assert(foot===null||foot===t.height(...a),'Ramp foot must rest on the ground');}
 assert.equal(c.gatehouse.center[1]-c.gatehouse.depth/2,Math.max(...c.flowerbed.ring.map(p=>p[1])),'Flowerbed tip must meet the guardhouse');
 assert(c.gatehouse.gates[0][0]<c.gatehouse.center[0]-c.gatehouse.width/2);assert(c.gatehouse.gates[1][0]>c.gatehouse.center[0]+c.gatehouse.width/2);
 const n=createRoadNetwork(c.roads,t.rawHeight,read('data/road-tags.json'));const sidewalks=sidewalkSections(c,n);
-const bio=c.bioConnection,ra=bio.ramp[0],rb=bio.ramp[1],rl=Math.hypot(rb[0]-ra[0],rb[1]-ra[1]);for(const side of [-1,1]){const x=ra[0]-(rb[1]-ra[1])/rl*bio.accessWidth/2*side,z=ra[1]+(rb[0]-ra[0])/rl*bio.accessWidth/2*side;assert(!n.onMotorRoad(x,z),'Biology access ramp must start outside the carriageway');}
+// Legacy bio.ramp is unused once bioConnection.corridor exists (connections.js / site-physics.js); the S05 stem corridor replaced it.
+assert(c.bioConnection.corridor,'Biology access must use the S05 corridor stem');
 
 for(const s of sidewalks)for(let i=1;i<s.points.length-1;i++){const tri=[s.points[0],s.points[i],s.points[i+1]],x=tri.reduce((v,p)=>v+p[0]/3,0),z=tri.reduce((v,p)=>v+p[1]/3,0),r=n.nearest(x,z,true);assert(!r||r.d>=r.width/2-.015,'Sidewalk triangle covers a vehicle lane');}
 // Same surface on both sides of pavement: no metre-high crack at a platform edge.

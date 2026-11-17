@@ -342,3 +342,9 @@ PR68正式站手機俯瞰畫面發現校外大底面位於y=-0.04，遠距離與
 - 新增回歸：`tests/developer-travel.mjs`、`tests/developer-travel-browser.py`；原有貼路、15cm鋪面、樓梯與手機測試仍須依變更範圍驗證。
 
 使用者偏好完成驗證後直接合併並發布，再回報結果；同時更新開發日誌及Issue #9，方便後續對話接續。新指示優先。
+
+## 測試整理與CI（2026-11-18）
+
+main上8個Node測試早已失敗（最早自PR40），多數是規格更新後未同步的舊斷言。已依現況更新：詠絮改列places（PR40）、R04拆分子區且部分區已確認（PR56）、寰宇3F與廣場2F同高（PR51）、生科矩形32階梯（PR76）、直角L上層（PR74）、詠絮前廣場改用實際邊界檢查連續性（PR51）、霽遠附近兩個地形快照點0.5mm／3.5mm更新（PR61）。只改測試，遊戲內容不變。新增.github/workflows/tests.yml，每個PR自動跑tests/*.mjs。
+
+尚待處理（tests/known-failures.txt）：photo-buildings道路邊緣接縫檢查有65點超過4cm（218881795最大約0.7m），需進遊戲確認是否為真實高低差；yongji-slope有兩棵S06西側樹距路邊少於3m淨距8–15cm。

@@ -9,7 +9,7 @@ const link=c.levelLink,level=t.platformHeight(zhili),mid=link.line[0].map((v,i)=
 assert.equal(bridgeHeight(...mid,level,link,level),level+.08);assert.equal(bridgeHeight(...mid,level-3.6,link,level),null,'Walking under a bridge must not snap up a storey');
 for(const building of c.places.filter(a=>['科技大樓','生科 A 館','生科 B 館','致理大樓','高斯大樓','寰宇大樓'].includes(a.name))){assert(building.floors>=5);assert.equal(building.height,building.floors*building.floorHeight);}
 assert.equal(c.places.find(a=>a.name==='圖資大樓').floors,2);
-assert(c.buildings.some(a=>a.name==='詠絮樓'&&a.ring.every(p=>p[1]<0)));
+assert([...c.buildings,...c.places].some(a=>a.name==='詠絮樓'&&a.ring.every(p=>p[1]<0)));
 const facilityRows=[c.courts.find(a=>a.sport==='volleyball'),c.buildings.find(a=>a.osm===444902480),c.courts.find(a=>a.sport==='tennis'),c.courts.find(a=>a.sport==='basketball')].map(a=>({name:a.name,z:a.ring.reduce((s,p)=>s+p[1],0)/a.ring.length}));
 assert(facilityRows.every((a,i)=>!i||a.z>facilityRows[i-1].z));assert(c.courts.every(a=>a.covered&&a.canopyHeight>=7));
 assert.equal(MAX_SCOOTER_SPEED*3.6,75);const state={speed:0,heading:0};for(let i=0;i<300;i++)stepScooter(state,.05,1,0,true);assert(Math.abs(state.speed*3.6-75)<1e-8);for(let i=0;i<300;i++)stepScooter(state,.05,1,0,true);assert(state.speed<=MAX_SCOOTER_SPEED);
