@@ -38,8 +38,8 @@
   },
   "biology": {
     "northEndVertices": [
-      5,
-      7
+      1,
+      0
     ],
     "floors": [
       1,
@@ -58,7 +58,8 @@
     "stairs": {
       "road": 218881795,
       "width": 28,
-      "buildingClearance": 0.25
+      "buildingClearance": 0.25,
+      "topLandingDepth": 5
     },
     "southAlignment": {
       "southOffset": 14.72392257781232,
@@ -68,7 +69,8 @@
         0.9393277129733821
       ],
       "reference": "2026-11-17使用者要求；兩棟同量南移，T支線垂直S05；距離依現有模型推導，非實測。"
-    }
+    },
+    "footprintReference": "facilities/biology-layout/layout.json"
   },
   "beforeAlignmentCorrection": {
     "courtyardAccess": {
