@@ -12,7 +12,7 @@ with sync_playwright() as p:
   page=c.new_page();errors=[];page.on('pageerror',lambda e:(errors.append(str(e)),print(str(e),flush=True)));page.on('console',lambda m:errors.append(m.text) if m.type=='error' and 'Shader Error' in m.text else None);page.goto(base);page.wait_for_function('window.__jiyuan',timeout=180000);page.get_by_role('button',name='開始探索',exact=True).click(timeout=90000)
   result=page.evaluate('__jiyuan.test()');print(json.dumps({'mobile':mobile,**result}),flush=True);assert not result['failures'],result
   level=page.evaluate('__jiyuan.camera()');page.wait_for_function('__jiyuan.cameraState().frame>=12',timeout=90000);camera=page.evaluate('__jiyuan.cameraState()');assert level+1.5<camera['y']<level+2.84*1.1,camera;print('camera',camera,flush=True)
-  for mode in ['exterior','bath','cut'] if not mobile else ['exterior','bath']:
+  for mode in ['exterior','bath','stair-ground','stair-upper','cut'] if not mobile else ['exterior','bath','stair-ground','stair-upper']:
    page.evaluate('__jiyuan.view',mode);page.wait_for_timeout(300);page.screenshot(path=f'/tmp/nknu-jiyuan-{mobile}-{mode}.png')
   assert not errors,errors;c.close()
  b.close()
