@@ -3,5 +3,3 @@
 # photo-buildings: road-edge seam check (4cm limit; test uses ungraded terrain without site surfaces). The large Xiangyang cliff
 # is now replaced in-game by facilities/xiangyang-planter (road-level planter + court wall); remaining are ~28 smaller 4-17cm steps along 218881795 and the 218881799 SW junction.
 photo-buildings
-# yongji-slope: two S06 west forest trees sit 8-15cm inside the 3m road clearance.
-yongji-slope
