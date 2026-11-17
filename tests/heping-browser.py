@@ -13,28 +13,28 @@ with sync_playwright() as p:
   page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.on('console',lambda m:errors.append(m.text) if m.type=='error' and 'Shader Error' in m.text else None)
   page.goto(base+'heping.html')
   page.get_by_role('button',name='開始探索',exact=True).click(timeout=90000);page.wait_for_function('window.__heping')
-  assert page.locator('#top [aria-current=page]').inner_text()=='和平校區 測試版'
+  assert page.locator('#top [aria-current=page], #tools [aria-current=page]').inner_text()=='和平校區 測試版'
   assert not page.locator('#developerCoordinates').is_visible()
   page.evaluate("async()=>{const auth=await import('./developer-auth.js');auth.loginDeveloper('0315');}")
-  page.locator('#developerCoordinates').wait_for(state='visible');assert page.evaluate('campusDeveloperContext().campus')=='heping'
+  page.locator('#devOrb').click();page.locator('#developerCoordinates').wait_for(state='visible');assert page.evaluate('campusDeveloperContext().campus')=='heping'
   page.evaluate("async()=>{const auth=await import('./developer-auth.js');auth.logoutDeveloper();}");assert not page.locator('#developerCoordinates').is_visible()
   original=page.evaluate('({x:__heping.player.position.x,z:__heping.player.position.z})')
   page.keyboard.down('KeyW');page.wait_for_timeout(450);page.keyboard.up('KeyW');moved=page.evaluate('({x:__heping.player.position.x,z:__heping.player.position.z})');assert moved!=original
   page.locator('#ride').click();assert page.evaluate('__heping.state.riding');page.locator('#ride').click()
-  page.locator('#aerial').click();assert page.evaluate('__heping.state.aerial');page.screenshot(path=f'/tmp/heping-{mobile}-air.png');page.locator('#aerial').click()
+  (page.locator('#hudMenuButton').click() if page.locator('#hudMenuButton').is_visible() and page.locator('#hudMenuButton').get_attribute('aria-expanded')!='true' else None);page.locator('#aerial').click();assert page.evaluate('__heping.state.aerial');page.screenshot(path=f'/tmp/heping-{mobile}-air.png');(page.locator('#hudMenuButton').click() if page.locator('#hudMenuButton').is_visible() and page.locator('#hudMenuButton').get_attribute('aria-expanded')!='true' else None);page.locator('#aerial').click()
   page.locator('#mapOpen').click();page.get_by_role('button',name='教育大樓',exact=True).last.click();page.locator('#mapTravel').click();assert not page.locator('#mapDialog').is_visible()
   result=page.evaluate('''()=>{const r=[];for(const p of __heping.data.places){__heping.travel(p.id);if(__heping.world.blocked(__heping.player.position.x,__heping.player.position.z,.8))r.push(p.name);}return r;}''');assert not result,result
   if mobile:
-   page.locator('#aerial').click();before=page.evaluate('__heping.state');stick=page.locator('#joystick').bounding_box();x=stick['x']+stick['width']/2;y=stick['y']+stick['height']/2
+   (page.locator('#hudMenuButton').click() if page.locator('#hudMenuButton').is_visible() and page.locator('#hudMenuButton').get_attribute('aria-expanded')!='true' else None);page.locator('#aerial').click();before=page.evaluate('__heping.state');stick=page.locator('#joystick').bounding_box();x=stick['x']+stick['width']/2;y=stick['y']+stick['height']/2
    cdp=c.new_cdp_session(page)
    cdp.send('Input.dispatchTouchEvent',{'type':'touchStart','touchPoints':[{'x':x,'y':y,'id':1},{'x':280,'y':440,'id':2}]})
    cdp.send('Input.dispatchTouchEvent',{'type':'touchMove','touchPoints':[{'x':x,'y':y-30,'id':1},{'x':320,'y':445,'id':2}]})
    page.wait_for_timeout(450);cdp.send('Input.dispatchTouchEvent',{'type':'touchEnd','touchPoints':[]})
-   after=page.evaluate('__heping.state');assert before['orbit']!=after['orbit'];assert before['yaw']!=after['yaw'];page.locator('#aerial').click()
+   after=page.evaluate('__heping.state');assert before['orbit']!=after['orbit'];assert before['yaw']!=after['yaw'];(page.locator('#hudMenuButton').click() if page.locator('#hudMenuButton').is_visible() and page.locator('#hudMenuButton').get_attribute('aria-expanded')!='true' else None);page.locator('#aerial').click()
   page.evaluate("__heping.travel('gate')");page.screenshot(path=f'/tmp/heping-{mobile}-ground.png');page.locator('#mapOpen').click();page.screenshot(path=f'/tmp/heping-{mobile}-map.png');page.locator('#mapClose').click()
   # Return to Yanchao through the in-game campus control; existing scene still loads.
-  page.locator('#top').get_by_role('link',name='燕巢校區',exact=True).click();page.get_by_role('button',name='開始探索',exact=True).click(timeout=180000);page.screenshot(path=f'/tmp/yanchao-switch-{mobile}.png')
-  switch=page.locator('#tools .campus-switcher').bounding_box();assert switch and switch['width']>100
+  (page.locator('#hudMenuButton').click() if page.locator('#hudMenuButton').is_visible() and page.locator('#hudMenuButton').get_attribute('aria-expanded')!='true' else None);page.locator('#top, #tools').get_by_role('link',name='燕巢校區',exact=True).click();page.get_by_role('button',name='開始探索',exact=True).click(timeout=180000);page.screenshot(path=f'/tmp/yanchao-switch-{mobile}.png')
+  (page.locator('#hudMenuButton').click() if page.locator('#hudMenuButton').is_visible() and page.locator('#hudMenuButton').get_attribute('aria-expanded')!='true' else None);switch=page.locator('#tools .campus-switcher').bounding_box();assert switch and switch['width']>100
   page.locator('#tools').get_by_role('link',name='和平校區 測試版',exact=True).click();page.get_by_role('button',name='開始探索',exact=True).click(timeout=90000)
   assert not errors,errors
   print('PASS:', 'mobile' if mobile else 'desktop','campus round-trip, walking, riding, aerial, map travel, safe arrivals, no JS/Shader errors',flush=True);c.close()

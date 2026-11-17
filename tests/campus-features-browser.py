@@ -14,7 +14,7 @@ with sync_playwright() as p:
  assert page.locator('#joystick').is_visible();assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
  state=lambda:page.evaluate('window.__game.state()')
  def travel(id):
-  page.locator('#travelMenu summary').click();page.locator('[data-travel="'+id+'"]').click()
+  (page.locator('#hudMenuButton').click() if page.locator('#hudMenuButton').is_visible() and page.locator('#hudMenuButton').get_attribute('aria-expanded')!='true' else None);page.locator('#travelMenu').evaluate('e=>e.open=true');page.locator('[data-travel="'+id+'"]').click()
   target=page.evaluate('id=>{const d=window.__game.destinations.find(d=>d.id===id);return window.__game.state().riding&&d.roadArrival?d.roadArrival:d;}',id);actual=state()
   assert abs(actual['x']-target['x'])<.01 and abs(actual['z']-target['z'])<.01
  travel('canteen');page.wait_for_function("document.querySelector('#info').textContent.includes('歸燕食巢')")

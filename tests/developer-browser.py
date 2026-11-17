@@ -14,21 +14,21 @@ with sync_playwright() as p:
  page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(base+'/developer-fixture.html')
  page.locator('#developerEntry').click();page.locator('#devPass').fill('wrong');page.get_by_role('button',name='進入開發者介面',exact=True).click();assert '不正確' in page.locator('#devLoginStatus').inner_text();assert not page.locator('#devOrb').is_visible()
  page.locator('#devPass').fill('0315');page.get_by_role('button',name='進入開發者介面',exact=True).click();assert page.locator('#devOrb').is_visible()
- page.locator('#devOrb').click();page.locator('#devReport').click();page.locator('#devRecordTitle').fill('校門測試');page.locator('#devRecordBody').fill('靠花圃的路面需要再調整。')
+ page.locator('#devOrb').click();page.locator('#devOrbRecords').click();page.locator('#devReport').click();page.locator('#devRecordTitle').fill('校門測試');page.locator('#devRecordBody').fill('靠花圃的路面需要再調整。')
  page.wait_for_function("JSON.parse(localStorage.getItem('nknu-developer-drafts-v1')).length===1")
  page.wait_for_function("document.getElementById('devCloudList').textContent.includes('已保存的校門回報')")
- assert page.locator('#devLatestRecord').get_attribute('href').endswith('/issues/85');assert '一般議題' not in page.locator('#devCloudList').inner_text();assert '不列出的 PR' not in page.locator('#devCloudList').inner_text();assert not page.evaluate('window.bad')
+ assert page.locator('#devLatestRecord').get_attribute('href').endswith('/issues/88');assert '一般議題' not in page.locator('#devCloudList').inner_text();assert '不列出的 PR' not in page.locator('#devCloudList').inner_text();assert not page.evaluate('window.bad')
  with page.expect_popup() as info:page.locator('#devSend').click()
- popup=info.value;popup.wait_for_load_state();q=parse_qs(urlparse(popup.url).query);assert q['title'][0]=='[問題回報] 校門測試';assert 'local-id:' in q['body'][0] and '-275.3' in q['body'][0];assert '接續紀錄：#85' in q['body'][0];popup.close()
+ popup=info.value;popup.wait_for_load_state();q=parse_qs(urlparse(popup.url).query);assert q['title'][0]=='[問題回報] 校門測試';assert 'local-id:' in q['body'][0] and '-275.3' in q['body'][0];assert '接續紀錄：#88' in q['body'][0];popup.close()
  assert '請在該頁完成送出' in page.locator('#devStatus').inner_text()
- page.locator('#devRecordBody').fill('修改後的本機草稿');page.reload();page.locator('#devOrb').click();page.locator('#devReport').click();assert page.locator('#devRecordBody').input_value()=='修改後的本機草稿'
+ page.locator('#devRecordBody').fill('修改後的本機草稿');page.reload();page.locator('#devOrb').click();page.locator('#devOrbRecords').click();page.locator('#devReport').click();assert page.locator('#devRecordBody').input_value()=='修改後的本機草稿'
  with page.expect_download() as info:page.locator('#devExport').click()
  download=info.value;download.save_as('/tmp/nknu-developer-records-test.json');d=json.load(open('/tmp/nknu-developer-records-test.json'));assert d['records'][0]['body']=='修改後的本機草稿'
  assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
  page.screenshot(path='/tmp/nknu-developer-mobile.png')
  page.locator('#devBack').click();page.locator('#devLogout').click();assert not page.locator('#devOrb').is_visible();page.reload();assert not page.locator('#devOrb').is_visible()
  # GitHub failure preserves editing and draft access.
- page.locator('#developerEntry').click();page.locator('#devPass').fill('0315');page.get_by_role('button',name='進入開發者介面',exact=True).click();page.locator('#devOrb').click();page.locator('#devJournal').click()
+ page.locator('#developerEntry').click();page.locator('#devPass').fill('0315');page.get_by_role('button',name='進入開發者介面',exact=True).click();page.locator('#devOrb').click();page.locator('#devOrbRecords').click();page.locator('#devJournal').click()
  c.unroute('https://api.github.com/repos/c3xv05/NKNU-Campus-Simulator/issues?*');c.route('https://api.github.com/repos/c3xv05/NKNU-Campus-Simulator/issues?*',lambda r:r.fulfill(status=403,json={'message':'rate limit'}));page.locator('#devRefresh').click();page.wait_for_function("document.getElementById('devStatus').textContent.includes('暫時無法讀取')")
  assert not errors,errors
  print('PASS: password gate, developer orb/menu, autosave/reload, GitHub handoff is not falsely marked sent, remote records/XSS safety, metadata/export, logout, mobile layout and offline fallback');b.close()

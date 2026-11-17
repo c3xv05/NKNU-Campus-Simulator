@@ -36,7 +36,7 @@ with sync_playwright() as p:
    assert page.evaluate("performance.getEntriesByName('campus-load-ready').length")==1
   page.get_by_role('button',name='開始探索',exact=True).click();before=page.evaluate('__startup.getPosition()');page.keyboard.down('KeyW');page.wait_for_function('(p)=>{const q=__startup.getPosition();return Math.hypot(q.x-p.x,q.z-p.z)>.01;}',arg=before,timeout=20000);page.keyboard.up('KeyW')
   page.locator('#rideToggle').click();assert page.locator('#rideToggle').get_attribute('aria-pressed')=='true';page.locator('#rideToggle').click()
-  page.locator('#travelMenu summary').click();page.locator('[data-travel=zhili]').click();page.locator('#mapOpen').click();assert page.locator('#mapDialog').is_visible();page.locator('#mapClose').click()
+  (page.locator('#hudMenuButton').click() if page.locator('#hudMenuButton').is_visible() and page.locator('#hudMenuButton').get_attribute('aria-expanded')!='true' else None);page.locator('#travelMenu').evaluate('e=>e.open=true');page.locator('[data-travel=zhili]').click();page.locator('#mapOpen').click();assert page.locator('#mapDialog').is_visible();page.locator('#mapClose').click()
   page.screenshot(path=f'/tmp/nknu-loading-{variant}-{mobile}.png');assert not errors,errors
   results.append(result);context.close()
  browser.close()
