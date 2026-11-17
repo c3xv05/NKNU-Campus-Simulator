@@ -4,7 +4,7 @@
 
 ```text
 繼續修改 c3xv05/NKNU-Campus-Simulator。
-先檢查工作區，讀 AGENTS.md、docs/next-chat.md、docs/developer-journal.md、GitHub最新開發紀錄Issue（含 nknu-dev-record 標記，依Issue編號由新到舊，勿把PR當Issue；目前#80） 及本次相關來源；以最新遠端 main 和最新需求為準，不要恢復已撤回的改動。
+先檢查工作區，讀 AGENTS.md、docs/next-chat.md、docs/developer-journal.md、GitHub最新開發紀錄Issue（含 nknu-dev-record 標記，依Issue編號由新到舊，勿把PR當Issue；目前#83） 及本次相關來源；以最新遠端 main 和最新需求為準，不要恢復已撤回的改動。
 本對話只處理：【一個細節／區域】。
 位置：【S／R編號、建築名稱；貼上開發者複製的座標JSON】。
 需求：【目前問題與期望結果】。
