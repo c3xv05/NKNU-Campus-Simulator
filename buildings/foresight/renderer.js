@@ -15,6 +15,9 @@ export function addJiyuanInterior(THREE,parent,campus,terrain,data){
  const group=new THREE.Group();group.name='jiyuan-interior';group.scale.setScalar(scale);group.position.set((1-scale)*pivot[0],(1-scale)*ground,(1-scale)*pivot[1]);parent.add(group);const blockers=[],props=new THREE.Group();props.name='jiyuan-interior-details';group.add(props);
  const cube=new THREE.BoxGeometry(1,1,1),dummy=new THREE.Object3D(),batches=new Map(),materials={};
  for(const[k,color]of Object.entries({wall:0xb87d62,inner:0xebe5d5,frame:0xb7b8ae,floor:0xd6d1c5,bath:0xc4d9d4,wood:0x8b6446,white:0xf5f2e8,steel:0x858f91,dark:0x29484e,water:0x78b0b1,glass:0x719eaa,landing:0xd5d2c6,partition:0xa9c3c4,cabinet:0xd9d4c4}))materials[k]=new THREE.MeshStandardMaterial({color,roughness:.85,side:THREE.DoubleSide});
+ // Slab undersides face the hemisphere ground colour; an unlit ceiling keeps eye-level views neutral.
+ materials.ceiling=new THREE.MeshBasicMaterial({color:0xd9d4c8,side:THREE.DoubleSide});
+ function ceiling(triangles,y,name){const positions=[];for(const tri of triangles)for(const[x,z]of [...tri].reverse())positions.push(x,y-.004,z);const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();const m=new THREE.Mesh(g,materials.ceiling);m.name=name;props.add(m);}
  function box(w,h,d,x,y,z,key='inner',angle=0,level=0){const k=key+':'+level;if(!batches.has(k))batches.set(k,[]);batches.get(k).push({w,h,d,x,y,z,angle});}
  function segment(a,b,y,h,key='inner',width=.15,level=0){const dx=b[0]-a[0],dz=b[1]-a[1];box(Math.hypot(dx,dz),h,width,(a[0]+b[0])/2,y+h/2,(a[1]+b[1])/2,key,Math.atan2(-dz,dx),level);}
  function meshTriangles(triangles,y,bottom,key,name,owner=group){const positions=[];for(const tri of triangles){for(const[x,z]of tri)positions.push(x,y,z);if(bottom!==null)for(const[x,z]of [...tri].reverse())positions.push(x,bottom,z);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();const m=new THREE.Mesh(g,materials[key]);m.name=name;m.receiveShadow=true;owner.add(m);blockers.push(m);return m;}
@@ -25,6 +28,7 @@ export function addJiyuanInterior(THREE,parent,campus,terrain,data){
  for(const region of surface.floors[0].regions){const s=new THREE.Shape();region[0].forEach(([x,z],i)=>i?s.lineTo(x,-z):s.moveTo(x,-z));s.closePath();const g=new THREE.ExtrudeGeometry(s,{depth:1,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,materials.wall);m.name='jiyuan-plan-foundation';m.position.y=base-1.16;group.add(m);blockers.push(m);foundation??=m;}
  for(const f of surface.floors){
   meshTriangles(f.floorTriangles,f.level,f.level-.16,'floor','jiyuan-floor-'+f.floor);
+  if(f.floor>1)ceiling(f.floorTriangles,f.level-.16,'jiyuan-ceiling-'+f.floor);
   for(const [i,[a,b]]of f.walls.entries())segment(a,b,f.level,f.lowWallIndices.includes(i)?1.05:2.84,f.exteriorWallIndices.includes(i)?'wall':'inner',.15,f.floor);
   // Ceiling/wall cap band ties each partition to the next slab without closing door openings.
   for(const d of f.doors){const[a,b]=d.line,dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz),ang=Math.atan2(-dz,dx),nx=-dz/l,nz=dx/l;
@@ -64,6 +68,7 @@ export function addJiyuanInterior(THREE,parent,campus,terrain,data){
  }
  // Roof closes the uppermost rooms; lower ceilings are the underside of real slabs.
  meshTriangles(surface.floors[4].roofTriangles,base+15,base+14.82,'frame','jiyuan-roof');
+ ceiling(surface.floors[4].roofTriangles,base+14.82,'jiyuan-ceiling-roof');
  for(const[key,items]of batches){const [mat,level]=key.split(':'),m=new THREE.InstancedMesh(cube,materials[mat],items.length);m.name='jiyuan-'+mat+'-'+level;for(let i=0;i<items.length;i++){const b=items[i];dummy.position.set(b.x,b.y,b.z);if(b.quaternion)dummy.quaternion.copy(b.quaternion);else dummy.rotation.set(0,b.angle||0,0);dummy.scale.set(b.w,b.h,b.d);dummy.updateMatrix();m.setMatrixAt(i,dummy.matrix);}m.computeBoundingSphere();m.receiveShadow=true;group.add(m);if(['inner','frame','landing'].includes(mat))blockers.push(m);}
  const[a,b]=surface.floors[0].entrances[0];label('霽遠樓',(a[0]+b[0])/2,base+2.6,(a[1]+b[1])/2,Math.atan2(a[1]-b[1],b[0]-a[0]),2.5);
  return{group,detail:props,shell:foundation,blockers,surface:worldSurface};
