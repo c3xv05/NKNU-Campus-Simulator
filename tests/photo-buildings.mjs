@@ -9,7 +9,7 @@ assert.equal(t.platformHeight(c.places.find(p=>p.osm===c.bioConnection.from)),t.
 const net=createRoadNetwork(c.roads,t.rawHeight,read('data/road-tags.json'),{apron:c.entranceApron,pavedAreas:c.pavedAreas,junctionFillets:c.junctionFillets,sharedGradeGrid:true});
 const get=id=>t.platformHeight(c.places.find(p=>p.osm===id)),level=get(444867692)+7.2;
 assert(Math.abs(level-get(444867693)-3.6)<1e-8);assert(Math.abs(level-get(444867694)-7.2)<1e-8);
-assert.equal(platformHeightAt(-145,-208,level,c,t,net),level+.08);assert.equal(platformHeightAt(-145,-208,level-5,c,t,net),null);
+/*2026-11-18 upper plaza = Zhili 2F drawing plaza (podium roof)*/assert.equal(platformHeightAt(-141.62,-233.18,level,c,t,net),level+.08);assert.equal(platformHeightAt(-141.62,-233.18,level-5,c,t,net),null);
 const [a,b]=c.courtyard.ramp,rampLevel=level-(c.courtyard.rampTargetFloor===1?3.6:0);assert(Math.abs(platformHeightAt(...b,rampLevel,c,t,net)-rampLevel-.08)<1e-8);{const foot=platformHeightAt(...a,t.height(...a),c,t,net);assert(foot===null||foot===t.height(...a),'Ramp foot must rest on the ground');}
 assert.equal(c.gatehouse.center[1]-c.gatehouse.depth/2,Math.max(...c.flowerbed.ring.map(p=>p[1])),'Flowerbed tip must meet the guardhouse');
 assert(c.gatehouse.gates[0][0]<c.gatehouse.center[0]-c.gatehouse.width/2);assert(c.gatehouse.gates[1][0]>c.gatehouse.center[0]+c.gatehouse.width/2);

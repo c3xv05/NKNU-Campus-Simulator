@@ -707,3 +707,7 @@ plan.json保存corridorSide、groundFlight及groundExit，build-building-catalog
 ## 2026-11-18：高斯依物理系館平面圖定位、S05主階梯依致理圖面
 
 學校營繕組公開的化學（寰宇）、物理（高斯）平面圖與燕巢配置圖下載存檔。致理1F圖面南側±0方格鋪面與高斯1F西北視聽階梯教室完全重疊，證實該處是高斯2F露台（與致理1F同高），與使用者說明一致；高斯依致理圖面「物理系館」外框北移約12m，外殼為3F外框（截去東側露台）。courtyard：下層＋高斯2F露台、扣高斯其餘1F與舊外殼；上層＋化學系廣場＋寰宇2F露台、避開高斯。building-access：compactAccess.drawingStair取代8＋平台＋8及上方小梯。sidewalk-plan：沿高斯新立面補鋪至牆；r04：教學區凸包納入terrainRing，舊高斯位置不變樹林。測試同步：frontage-alignment、gauss-stop（候車棚≥15m）、campus-corridors（高斯抵達點）、photo-access（2組階梯）、two-level-plaza、jiyuan-interior（重繪窗含高斯與S05階梯）。photo-buildings接縫數與改前相同（375處，既有）。
+
+## 2026-11-18（續）：己梯、高斯西側寬樓梯、階梯式花台、廣場依圖面重畫
+
+teachingStairs改為三組：zhili-lower（S05主階梯）、zhili-ji（己梯，致理1F→上層）、gauss-west（高斯1F→下層，stair-layout新增bottomLevel 'gauss-ground'）。courtyard新增floorRegions.gaussCourt（高斯1F高，surface/renderer支援）、gaussPodium實心體、planters（致理三排、高斯三排，blocked）。上層＝圖面L（致理2F廣場、走道、化學系廣場、寰宇東側臂）＋寰宇穿堂短連接；下層加致理±0鋪面，致理只以1F外框扣除（2F懸挑下仍是廣場）。致理室內：2F在己梯上開孔（HOLE_2F）、清牆（OPEN_2F）、openAreas讓梯井不被室內碰撞擋住；B1／1F外框避開所有teachingStairs與frontApron/gapFootprint。測試同步更新（photo-access 4組階梯與寬度、spatial-corrections、two-level-plaza、photo-buildings上層點、campus-corridors與spatial-corrections瀏覽器路徑）。

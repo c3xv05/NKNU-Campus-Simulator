@@ -33,7 +33,7 @@ export function createZhiliSurface(campus,terrain){
   for(const fl of floors){if(y<fl.y-.5||y>fl.y+H-.7)continue;const d=ringDistance(p[0],p[1],fl.outline);if(d>=r+.05)continue;
    if(riding)return true;
    for(const w of fl.near(p,r+.1))if(rectDistance(p,w)<r+.02)return true;
-   if(d===0&&supportAt(x,z,y)===null)return true;
+   if(d===0&&!(fl.openAreas||[]).some(a=>inRect(p,a))&&supportAt(x,z,y)===null)return true;
   }
   return false;
  }

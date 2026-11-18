@@ -23,7 +23,7 @@ window.__corr={
   // The upper connector is open to the sky; no roof, columns or lintel project above it.
   for(const t of[.3,.5,.7]){const p=at(t),ray=new THREE.Raycaster(new THREE.Vector3(p[0],s.bioFloors[1].level+.01,p[1]),new THREE.Vector3(0,1,0));ray.far=4;const hit=ray.intersectObjects(siteDetails.group.children,false)[0];if(hit)result.failures.push({kind:'upper-roof',name:hit.object.name});}
   const frame=campus.courtyard.alignment,corner=frame.innerCorner,n=frame.outward,t=frame.along,pt=(u,v)=>corner.map((p,i)=>p+n[i]*u+t[i]*v);
-  for(const reverse of[false,true]){const path=[pt(-1.8,10),pt(-1.8,-1.8),pt(18,-1.8),pt(Math.hypot(frame.frontLine[1][0]-frame.frontLine[0][0],frame.frontLine[1][1]-frame.frontLine[0][1])-1.5,-1.8)];if(reverse)path.reverse();testPath('square-L',path,()=>s.lower+3.6+.08);}
+  for(const reverse of[false,true]){const path=[[-144.31, -240.71], [-162.0, -239.71], [-163.35, -228.61]]/*2026-11-18 drawn upper plaza: podium roof -> 2F walkway -> 化學系廣場*/;if(reverse)path.reverse();testPath('square-L',path,()=>s.lower+3.6+.08);}
   const stairs=accessStairs(campus,terrain,roadNetwork)[0],[a,end]=stairs.line,sx=end[0]-a[0],sz=end[1]-a[1],run=Math.hypot(sx,sz),point=(u,v)=>[a[0]+sx*u-sz/run*v,a[1]+sz*u+sx/run*v];
   if(stairs.steps!==32||Math.abs(stairs.top-s.bioLower)>.0001||stairs.width!==stairs.topWidth)result.failures.push('lower-rectangular-stair');
   for(const fraction of[-.4,0,.4])for(const reverse of[false,true]){const path=Array.from({length:321},(_,i)=>point(reverse?1-i/320:i/320,stairs.width*fraction));testPath('lower-east-stair-'+fraction+'-'+reverse,path,(x,z)=>{const u=((x-a[0])*sx+(z-a[1])*sz)/(run*run);return stairSurface(stairs,u,x,z)+.08;});}

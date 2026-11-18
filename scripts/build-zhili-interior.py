@@ -65,7 +65,11 @@ WALL_BAND = .25
 STAIR = {'甲梯': {'entrance': 'y1', 'door': ('y1', .5, 1.6)}, '乙梯': {'entrance': 'x0', 'door': ('x0', .5, 1.4)},
          '丙梯': {'entrance': 'x0', 'door': ('x0', .5, 1.4)}, '丁梯': {'entrance': 'y1', 'door': ('x0', .82, 1.1)}}
 # Interior doors whose drawn swing arcs would otherwise survive as wall fragments (drawing metres).
-EXTRA_DOORS = {'B': [[7.0, 40.2, 9.1, 41.3]]}  # B05 演講廳 double door to the south 門廳
+EXTRA_DOORS = {'B': [[7.0, 40.2, 9.1, 41.3]]}
+# 己梯 (user 2026-11-18 "己梯要蓋"): open straight stair from the 1F ±0 paving (y55.3) up to the 2F plaza (y48.7);
+# the 2F floor is open over it and its top opens onto the plaza.
+OPEN_2F = [19.0, 46.3, 21.3, 55.4]     # walls cleared (top landing opens onto the plaza)
+HOLE_2F = [19.0, 48.7, 21.3, 55.4]     # 2F slab open over the flight  # B05 演講廳 double door to the south 門廳
 # Entrances on the 1F outline (drawing metres): north lobby, corridor south end, east main lobby, two west-lobby doors.
 MANUAL_EXITS = {'1': [[[64.4, 26.6], [64.4, 29.4]], [[26.7, 55.4], [26.7, 57.5]], [[38.4, 66.6], [42.4, 66.6]],
                       [[7.9, 46.3], [10.9, 46.3]], [[13.2, 46.3], [16.0, 46.3]]],
@@ -274,6 +278,7 @@ for k in ALL_FLOORS:
             q = [p[0] + (0 if horiz else sgn * .8), p[1] + (sgn * .8 if horiz else 0)]
             if not Pk.buffer(-.01).contains(Polygon([(q[0] - .01, q[1] - .01), (q[0] + .01, q[1] - .01), (q[0], q[1] + .01)])): probe = q
         exits.append({'manual': True, 'rect': rects(sel), 'line': [world(a0), world(a1)], 'outside': world(probe), 'inside': world([2 * p[0] - probe[0], 2 * p[1] - probe[1]])})
+    if k == '2': walls &= 1 - rect_mask(OPEN_2F); doors &= 1 - rect_mask(OPEN_2F)
     for r in EXTRA_DOORS.get(k, []):
         doors |= rect_mask(r) & walls & (1 - band); walls &= 1 - (rect_mask(r) & (1 - band)); walls |= doors
     doors &= walls
@@ -294,7 +299,7 @@ for k in ALL_FLOORS:
         if cut.sum() < 5: continue
         walls_final &= 1 - cut; rr = rects(cut); sills += [dict(rect=q, top=w['sill']) for q in rr]; heads += [dict(rect=q, bottom=w['head']) for q in rr]
         glass.append({'a': a, 'b': b, 'normal': w['normal'], 'sill': w['sill'], 'head': w['head']})
-    floors_out.append({'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'outline': ring_coords(Pk), 'walls': rects(walls_final.astype(np.uint8)), 'lintels': rects(doors.astype(np.uint8)),
+    floors_out.append({'openAreas': [OPEN_2F] if k == '2' else [], 'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'outline': ring_coords(Pk), 'walls': rects(walls_final.astype(np.uint8)), 'lintels': rects(doors.astype(np.uint8)),
                        'sills': sills, 'heads': heads, 'windows': glass, 'doors': door_list, 'exits': exits, 'stairs': stairs, 'voidMask': void,
                        'spaces': [{'name': s['name'], 'num': s.get('num'), 'type': s['type'], 'anchor': world(s['anchor']) if s.get('anchor') else None} for s in spaces]})
 
@@ -308,6 +313,7 @@ for i, fl in enumerate(floors_out):
         for c in cs:
             pts = [[ox + x * CELL, oy + y * CELL] for x, y in c.reshape(-1, 2)]
             if len(pts) > 2: slab = slab.difference(Polygon(pts).buffer(0))
+    if fl['key'] == '2': slab = slab.difference(box(*HOLE_2F))
     slab = slab.buffer(0); parts = [slab] if slab.geom_type == 'Polygon' else list(slab.geoms)
     fl['slab'] = [[ring_coords(p), *[[[round(x, 3), round(y, 3)] for x, y in h.coords][:-1] for h in p.interiors]] for p in parts if p.area > .5]
     fl['slabTriangles'] = [[world(q) for q in list(t.exterior.coords)[:-1]] for p in parts for t in constrained_delaunay_triangles(p).geoms if t.area > 1e-6]

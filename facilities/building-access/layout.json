@@ -49,6 +49,50 @@
       "bottomProfile": "sidewalk",
       "landingSidewalls": false,
       "levelRestLanding": false
+    },
+    {
+      "id": "zhili-ji",
+      "name": "己梯（致理1F→2F中央廣場，依圖面）",
+      "line": [
+        [
+          -126.747459,
+          -247.13591
+        ],
+        [
+          -120.531379,
+          -249.354096
+        ]
+      ],
+      "width": 2.3,
+      "topWidth": 2.3,
+      "steps": 22,
+      "flights": 1,
+      "landingFraction": 0,
+      "topLevel": "teaching-courtyard",
+      "bottomLevel": "zhili-ground",
+      "desc": "致理1F／2F圖面己梯：開放直跑，寬2.3m。"
+    },
+    {
+      "id": "gauss-west",
+      "name": "高斯西側寬樓梯（高斯1F→下層廣場，依圖面）",
+      "line": [
+        [
+          -127.538049,
+          -195.19905
+        ],
+        [
+          -121.321969,
+          -197.417236
+        ]
+      ],
+      "width": 3.4,
+      "topWidth": 3.4,
+      "steps": 22,
+      "flights": 1,
+      "landingFraction": 0,
+      "topLevel": "zhili-ground",
+      "bottomLevel": "gauss-ground",
+      "desc": "物理1F圖面西側庭院W梯，寬3.4m。"
     }
   ],
   "courtyardStairs": [],
