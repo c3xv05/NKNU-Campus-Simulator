@@ -21,5 +21,6 @@ for(const [i,f] of d.floors.entries()){
  // Slab above each flight opens over the flights, keeping the entrance landing solid.
  const up=d.floors[i+1];for(const s of f.stairs){const [x0,y0,x1,y1]=s.hole,c=[(x0+x1)/2,(y0+y1)/2];assert(!up.slab.some(([o,...holes])=>ringDistance(c[0],c[1],o)===0&&!holes.some(h=>ringDistance(c[0],c[1],h)===0)),'stair hole in '+up.label);}
 }
+assert.equal(d.floors[1].exits.filter(e=>e.manual).length,3,'1F north lobby, south corridor end and east main entrance');
 assert(treads>500&&doors>150,JSON.stringify({treads,doors}));
 console.log('PASS: Zhili B1–8F empty-room interior, stacked four-core stairwells reaching every floor, stair openings, doors for numbered rooms',{treads,doors});

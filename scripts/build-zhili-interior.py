@@ -31,6 +31,8 @@ WALL_BAND = .25
 # Stair entrance ends read from the drawings (door / 上下 marks); one stacked stairwell per core.
 STAIR_ENTRANCE = {'甲梯': 'y1', '乙梯': 'x0', '丙梯': 'x0', '丁梯': 'y1'}
 TYPICAL_RECT = {}
+# Entrances read from the 1F drawing (drawing-metre lines on the outline): north lobby, corridor south end, east main lobby.
+MANUAL_EXITS = {'1': [[[61.3, 26.4], [61.3, 29.2]], [[16.5, 55.2], [16.5, 57.6]], [[38.4, 66.6], [42.4, 66.6]]]}
 
 minx, miny, maxx, maxy = outline.bounds
 ox, oy = minx - 1, miny - 1
@@ -183,6 +185,15 @@ for k in ORDER:
             q = [p[0] + (0 if horiz else sgn * .6), p[1] + (sgn * .6 if horiz else 0)]
             if not outline.contains(Polygon([(q[0] - .01, q[1] - .01), (q[0] + .01, q[1] - .01), (q[0] + .01, q[1] + .01)])): probe = q
         exits.append({'rect': rects(sel.astype(np.uint8)), 'line': [world([p[0] - d[0], p[1] - d[1]]), world([p[0] + d[0], p[1] + d[1]])], 'outside': world(probe or p), 'inside': world([2 * p[0] - (probe or p)[0], 2 * p[1] - (probe or p)[1]])})
+    for (a0, a1) in MANUAL_EXITS.get(k, []):
+        horiz = abs(a1[1] - a0[1]) < 1e-6; p = [(a0[0] + a1[0]) / 2, (a0[1] + a1[1]) / 2]
+        r = [min(a0[0], a1[0]) - (0 if horiz else .5), min(a0[1], a1[1]) - (.5 if horiz else 0), max(a0[0], a1[0]) + (0 if horiz else .5), max(a0[1], a1[1]) + (.5 if horiz else 0)]
+        a = to_px(r[:2]); b = to_px(r[2:]); sel = np.zeros((H, W), np.uint8); sel[a[1]:b[1] + 1, a[0]:b[0] + 1] = 1; sel &= band | walls
+        probe = None
+        for sgn in (1, -1):
+            q = [p[0] + (0 if horiz else sgn * .8), p[1] + (sgn * .8 if horiz else 0)]
+            if not outline.buffer(-.01).contains(Polygon([(q[0] - .01, q[1] - .01), (q[0] + .01, q[1] - .01), (q[0] + .01, q[1] + .01)])): probe = q
+        exits.append({'manual': True, 'rect': rects(sel), 'line': [world(a0), world(a1)], 'outside': world(probe), 'inside': world([2 * p[0] - probe[0], 2 * p[1] - probe[1]])})
     # Stairs: switchbacks from this floor to the next, entrance on the short side facing the corridor.
     stairs = []
     if k != ORDER[-1]:
@@ -206,6 +217,10 @@ for k in ORDER:
         a = to_px(st['rect'][:2]); b = to_px(st['rect'][2:]); walls[a[1]:b[1] + 1, a[0]:b[0] + 1] = 0; doors[a[1]:b[1] + 1, a[0]:b[0] + 1] = 0
     doors &= walls
     walls_final = walls & (1 - doors)
+    # Drop isolated specks (door-swing arcs, text strokes) that would snag walkers; keep columns and real walls.
+    n, lab, st, _ = cv2.connectedComponentsWithStats(walls_final.astype(np.uint8), 8)
+    for i in range(1, n):
+        if st[i, 4] * CELL * CELL < .3 and not (band & (lab == i)).any() and not (solid & (lab == i)).any(): walls_final[lab == i] = 0
     for e in exits:
         for r in e['rect']: x0, y0, x1, y1 = to_px(r[:2]) + to_px(r[2:]); walls_final[y0:y1 + 1, x0:x1 + 1] = 0
     floors_out.append({'key': k, 'label': f['label'], 'level': LEVEL[k], 'walls': rects(walls_final.astype(np.uint8)), 'lintels': rects(doors.astype(np.uint8)),
