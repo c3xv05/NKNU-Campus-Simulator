@@ -36,6 +36,8 @@ def edge_door(poly,at,width=30):
   if edge.distance(pt)<.01:
    dx=q[0]-p[0];dy=q[1]-p[1];n=math.hypot(dx,dy);return LineString([(pt.x-dx/n*width/2,pt.y-dy/n*width/2),(pt.x+dx/n*width/2,pt.y+dy/n*width/2)])
  raise ValueError(at)
+# Laundry quarter-circle walls are grid (curtain) windows, user request 2026-11-18.
+arcs=[d['arcWindow'] for d in plan['publicSpaces'] if 'arcWindow' in d]
 floors=[]
 for floor in range(5):
  spaces=[];doors=[];core=unary_union([Polygon(p) for p in plan['corridors']])
@@ -100,7 +102,7 @@ for floor in range(5):
   for a,b in zip(line.coords,list(line.coords)[1:]):
    if math.dist(a,b)>1:segments.append([world(a),world(b)])
  # Room to shared bathroom openings must cut the room-side wall too, not just the bath side.
- rec={'floor':floor+1,'height':floor*floor_height,'corridorRoutes':[[world(p) for p in route] for route in plan['corridorRoutes']],'corridorRegions':[rings(p) for p in polygons(core.difference(unary_union([s['polygon'] for s in spaces])))],'regions':[rings(p) for p in polygons(footprint)],'roofTriangles':triangles(footprint.difference(Polygon(plan['standardTerrace']['polygon'])) if floor else footprint),'windows':[[world(p) for p in w.coords] for w in windows],'surfaceRegions':[rings(p) for p in polygons(floor_surface)],'floorTriangles':triangles(floor_surface),'lowWallIndices':[i for i,segment in enumerate(segments) if floor and boundary_segment(segment,Polygon(plan['standardTerrace']['polygon'])) and not boundary_segment(segment,Polygon(plan['publicSpaces'][1]['polygon']))],'walls':segments,'exteriorWallIndices':[i for i,segment in enumerate(segments) if boundary_segment(segment,footprint)],'spaces':[],'doors':[],'entrances':[[world(p) for p in e.coords] for e in exits],'stairs':[],'partitions':[],'shaftWalls':[],'cabinets':[],'vents':[],'planters':[[world(v) for v in ring] for ring in plan.get('groundPlanters',[])] if floor==0 else []}
+ rec={'floor':floor+1,'height':floor*floor_height,'corridorRoutes':[[world(p) for p in route] for route in plan['corridorRoutes']],'corridorRegions':[rings(p) for p in polygons(core.difference(unary_union([s['polygon'] for s in spaces])))],'regions':[rings(p) for p in polygons(footprint)],'roofTriangles':triangles(footprint.difference(Polygon(plan['standardTerrace']['polygon'])) if floor else footprint),'windows':[[world(p) for p in w.coords] for w in windows],'surfaceRegions':[rings(p) for p in polygons(floor_surface)],'floorTriangles':triangles(floor_surface),'lowWallIndices':[i for i,segment in enumerate(segments) if floor and boundary_segment(segment,Polygon(plan['standardTerrace']['polygon'])) and not boundary_segment(segment,Polygon(plan['publicSpaces'][1]['polygon']))],'walls':segments,'exteriorWallIndices':[i for i,segment in enumerate(segments) if boundary_segment(segment,footprint)],'gridWindowIndices':[i for i,segment in enumerate(segments) if boundary_segment(segment,footprint) and any(all(abs(math.dist(pixel(v),a['center'])-a['radius'])<1 for v in segment) for a in arcs)],'spaces':[],'doors':[],'entrances':[[world(p) for p in e.coords] for e in exits],'stairs':[],'partitions':[],'shaftWalls':[],'cabinets':[],'vents':[],'planters':[[world(v) for v in ring] for ring in plan.get('groundPlanters',[])] if floor==0 else []}
  for s in spaces:
   center=s['polygon'].representative_point();r={k:v for k,v in s.items() if k not in ['polygon','door','layout']};r.update(ring=rings(s['polygon'])[0],center=world([center.x,center.y]),triangles=triangles(s['polygon']))
   if 'door' in s:r['door']=[world(v) for v in s['door'].coords]

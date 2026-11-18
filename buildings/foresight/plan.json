@@ -5737,7 +5737,14 @@
       "door": [
         236,
         982
-      ]
+      ],
+      "arcWindow": {
+        "center": [
+          170.7,
+          1026.0
+        ],
+        "radius": 68.5
+      }
     },
     {
       "id": "laundry-east",
@@ -5875,7 +5882,14 @@
       "door": [
         1564,
         982
-      ]
+      ],
+      "arcWindow": {
+        "center": [
+          1629.3,
+          1026.0
+        ],
+        "radius": 68.5
+      }
     }
   ],
   "standardTerrace": {

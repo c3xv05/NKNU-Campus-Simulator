@@ -37,7 +37,13 @@ export function addJiyuanInterior(THREE,parent,campus,terrain,data){
   // Exterior walls run from the slab underside through the storey (covering slab and roof edges, overhangs included) and overlap at joints, so no
   // horizontal band shows between floors and curved/angled facades have no slits.
   const grow=(a,b,e)=>{const dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz)||1;return[[a[0]-dx/l*e,a[1]-dz/l*e],[b[0]+dx/l*e,b[1]+dz/l*e]];};
-  for(const [i,[a,b]]of f.walls.entries()){const outside=f.exteriorWallIndices.includes(i),low=f.lowWallIndices.includes(i);if(outside&&!low){const[p,q]=grow(a,b,.075);segment(p,q,f.level-.16,f.floor===5?3.32:3,'wall',.15,f.floor);}else if(low){const[p,q]=grow(a,b,.075);segment(p,q,f.level-.16,1.21,'wall',.15,f.floor);}else segment(a,b,f.level,2.84,outside?'wall':'inner',.15,f.floor);}
+  // Laundry quarter-circle walls: grid (curtain) windows - sill, glazing with mullions/transoms, head band.
+  // Near-duplicate arc segments (footprint vs room boundary) are drawn once.
+  const grid=f.gridWindowIndices||[],drawn=[],near=(p,[a,b])=>{const dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dz)/(dx*dx+dz*dz||1)));return Math.hypot(p[0]-a[0]-dx*t,p[1]-a[1]-dz*t);};
+  for(const i of [...grid].sort((x,y)=>Math.hypot(f.walls[y][1][0]-f.walls[y][0][0],f.walls[y][1][1]-f.walls[y][0][1])-Math.hypot(f.walls[x][1][0]-f.walls[x][0][0],f.walls[x][1][1]-f.walls[x][0][1]))){const[a,b]=f.walls[i],m=[(a[0]+b[0])/2,(a[1]+b[1])/2];if(drawn.some(w=>near(m,w)<.08))continue;drawn.push([a,b]);const[p,q]=grow(a,b,.075),top=f.floor===5?3.16:3;
+   segment(p,q,f.level-.16,1.06,'wall',.15,f.floor);segment(p,q,f.level+2.55,top-2.55,'wall',.15,f.floor);segment(a,b,f.level+.9,1.65,'glass',.04,f.floor);
+   for(const y of[.9,1.72,2.55])segment(p,q,f.level+y-.025,.05,'frame',.17,f.floor);for(const e of[a,b])box(.045,1.65,.17,e[0],f.level+1.725,e[1],'frame',Math.atan2(a[1]-b[1],b[0]-a[0]),f.floor);}
+  for(const [i,[a,b]]of f.walls.entries()){if(grid.includes(i))continue;const outside=f.exteriorWallIndices.includes(i),low=f.lowWallIndices.includes(i);if(outside&&!low){const[p,q]=grow(a,b,.075);segment(p,q,f.level-.16,f.floor===5?3.32:3,'wall',.15,f.floor);}else if(low){const[p,q]=grow(a,b,.075);segment(p,q,f.level-.16,1.21,'wall',.15,f.floor);}else segment(a,b,f.level,2.84,outside?'wall':'inner',.15,f.floor);}
   // Ceiling/wall cap band ties each partition to the next slab without closing door openings.
   for(const d of f.doors){const[a,b]=d.line,dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz),ang=Math.atan2(-dz,dx),nx=-dz/l,nz=dx/l;
    segment(a,b,f.level+2.24,.60,'frame',.18,f.floor);
