@@ -22,8 +22,10 @@ T = geom['drawingFootprint']['transform']
 outline = Polygon(geom['drawingFootprint']['drawingRing']).buffer(0)
 CELL = .1
 FLOOR_H = geom.get('floorHeight', 3.6)
-ORDER = ['B', '1', '2', '3', '4', '5', '6', '7', '8']
-LEVEL = {k: (i - 1) * FLOOR_H for i, k in enumerate(ORDER)}  # B1 = -3.6, 1F = 0
+ALL_FLOORS = ['B', '1', '2', '3', '4', '5', '6', '7', '8']
+# User 2026-11-18: build the walkable interior for 2F and below first; 3F+ stays a solid shell.
+ORDER = ['B', '1', '2']
+LEVEL = {k: (i - 1) * FLOOR_H for i, k in enumerate(ALL_FLOORS)}  # B1 = -3.6, 1F = 0
 FREE = {'classroom', 'office', 'library', 'hall', 'corridor', 'toilet', 'stair', 'service', 'mech', 'balcony',
         'plaza', 'unknown', 'garage'}
 OPEN_TO = {'corridor', 'plaza'}
@@ -245,7 +247,7 @@ for i, fl in enumerate(floors_out):
 roof = [[world(q) for q in list(t.exterior.coords)[:-1]] for t in constrained_delaunay_triangles(outline).geoms if t.area > 1e-6]
 out = {'version': 1, 'building': 444867693, 'floorHeight': FLOOR_H, 'transform': T, 'outline': [list(p) for p in list(outline.exterior.coords)[:-1]],
        'source': {'plan': 'buildings/zhili/plan.json', 'basis': '使用者確認的平面圖判讀草稿；牆由房間分區間隙推得，門位取共用牆中點，皆為模型近似。空房間，未放家具。',
-                  'scope': '只建塔樓外框內的B1～8F；裙樓（1F階梯教室／門廳、2F屋頂廣場）與塔樓外B1停車場待處理。層高照遊戲每層3.6m（B1=-3.6m）。'},
-       'floors': floors_out, 'roofTriangles': roof, 'roofLevel': LEVEL['8'] + FLOOR_H}
+                  'scope': '使用者2026-11-18要求先做2樓以下：只建塔樓外框內B1～2F，3F以上為實心外殼；裙樓（1F階梯教室／門廳、2F屋頂廣場）與塔樓外B1停車場待處理。層高照遊戲每層3.6m（B1=-3.6m）。'},
+       'floors': floors_out, 'roofTriangles': roof, 'roofLevel': LEVEL[ORDER[-1]] + FLOOR_H, 'solidAbove': {'from': LEVEL[ORDER[-1]] + FLOOR_H, 'to': LEVEL[ALL_FLOORS[-1]] + FLOOR_H}}
 (root / 'buildings/zhili/interior.json').write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')))
 print('Zhili interior:', ', '.join(f"{f['label']} walls {len(f['walls'])} doors {len(f['doors'])} exits {len(f['exits'])} stairs {len(f['stairs'])}" for f in floors_out))

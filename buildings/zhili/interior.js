@@ -69,7 +69,9 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
    const [px,pz]=f.toWorld((r[0]+r[2])/2,(r[1]+r[3])/2);plate(fl.label+' ↑',px,y+2.5,pz,f.angle,.9);}
   for(const d of fl.doors){const[a,b]=d.line,mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2,ang=Math.atan2(-(b[1]-a[1]),b[0]-a[0]);if(['classroom','office','library','hall','service','mech','unknown'].includes(d.kind)&&/^[\dB]/.test(d.name))plate(d.name,mx,y+2.55,mz,ang,.8);}
  }
- const roofY=base+data.roofLevel;slab(data.roofTriangles,roofY,roofY-SLAB,'ceiling','zhili-roof');
+ const roofY=base+data.roofLevel;slab(data.roofTriangles,roofY-.01,roofY-SLAB,'ceiling','zhili-roof');
+ // Floors above the walkable range stay one solid brick volume (facade details still come from the building renderer).
+ if(data.solidAbove){const sh=new THREE.Shape();outline.forEach(([x,y],i)=>{const [wx,wz]=f.toWorld(x,y);i?sh.lineTo(wx,-wz):sh.moveTo(wx,-wz);});sh.closePath();const g=new THREE.ExtrudeGeometry(sh,{depth:data.solidAbove.to-data.solidAbove.from,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,mats.outer);m.position.y=base+data.solidAbove.from;m.name='zhili-solid-upper-floors';m.castShadow=true;m.receiveShadow=true;group.add(m);blockers.push(m);}
  for(const[key,items]of batches){const m=new THREE.InstancedMesh(cube,mats[key],items.length);m.name='zhili-'+key;for(let i=0;i<items.length;i++){const b=items[i];dummy.position.set(b.x,b.y,b.z);dummy.rotation.set(0,f.angle,0);dummy.scale.set(b.w,b.h,b.d);dummy.updateMatrix();m.setMatrixAt(i,dummy.matrix);}m.computeBoundingSphere();m.receiveShadow=true;m.castShadow=key==='outer';group.add(m);if(key!=='glass')blockers.push(m);}
  return{group,detail:props,shell,blockers,groundCuts:data.floors[0].slabTriangles};
 }
