@@ -18,10 +18,11 @@ export function createZhiliSurface(campus,terrain){
  const floors=data.floors.map(fl=>{const blocking=[...fl.walls,...fl.exits.filter(e=>!e.open).flatMap(e=>e.rect)];return{...fl,y:base+fl.level,near:grid(blocking),blocking};});
  const outline=data.outline;
  function supportAt(x,z,y){
-  const p=f.toDrawing(x,z);if(ringDistance(p[0],p[1],outline)!==0)return null;
+  const p=f.toDrawing(x,z);if(ringDistance(p[0],p[1],outline)!==0&&!floors.some(fl=>fl.exits.some(e=>(e.steps||[]).some(t=>inRect(p,t.rect)))))return null;
   // Stairs first: the slab below a flight must never pull a walker down.
   let best=null,error=Infinity;
   for(const fl of floors){if(y<fl.y-.5||y>fl.y+H+.6)continue;for(const s of fl.stairs){if(!inRect(p,s.rect))continue;for(const t of s.treads)if(inRect(p,t.rect)){const h=fl.y+t.height+ZHILI_CLEARANCE,e=Math.abs(y-h);if(e<.44&&e<error){best=h;error=e;}}}}
+  for(const fl of floors)for(const e of fl.exits)for(const t of e.steps||[])if(inRect(p,t.rect)){const h=fl.y+t.height+ZHILI_CLEARANCE,er=Math.abs(y-h);if(er<.44&&er<error){best=h;error=er;}}
   if(best!==null)return best;
   for(const fl of floors)if(Math.abs(y-fl.y-ZHILI_CLEARANCE)<.85&&insideRegions(p,fl.slab))return fl.y+ZHILI_CLEARANCE;
   return null;
@@ -42,7 +43,10 @@ export function zhiliSupportAt(x,z,y,campus,terrain){return createZhiliSurface(c
 export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
  campus.zhiliInterior=data;const building=campus.places.find(b=>b.osm===ZHILI_OSM),base=terrain.platformHeight(building),H=data.floorHeight,f=frame(data.transform);
  // Exterior openings stay open only where the ground outside meets the floor; otherwise they are glazed.
- for(const fl of data.floors)for(const e of fl.exits){const g=network?network.walkHeight(...e.outside,terrain.height(...e.outside)):terrain.height(...e.outside);e.open=Math.abs(g-(base+fl.level))<.45;}
+ for(const fl of data.floors)for(const e of fl.exits){const g=network?network.walkHeight(...e.outside,terrain.height(...e.outside)):terrain.height(...e.outside),rise=g-(base+fl.level);e.open=Math.abs(rise)<.45;
+  // Entrances whose outside ground sits above the floor get a door landing and indoor steps down to the floor.
+  if(e.manual&&rise>=.45&&rise<=1.6){const a=f.toDrawing(...e.line[0]),b=f.toDrawing(...e.line[1]),o=f.toDrawing(...e.outside),i=f.toDrawing(...e.inside),mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],len=Math.hypot(i[0]-o[0],i[1]-o[1]),u=[(i[0]-o[0])/len,(i[1]-o[1])/len],half=Math.hypot(b[0]-a[0],b[1]-a[1])/2,n=Math.ceil(rise/.18),h=rise/n,rect=(d0,d1)=>{const p0=[mid[0]+u[0]*d0,mid[1]+u[1]*d0],p1=[mid[0]+u[0]*d1,mid[1]+u[1]*d1],across=[Math.abs(u[1])*half,Math.abs(u[0])*half];return[Math.min(p0[0],p1[0])-across[0],Math.min(p0[1],p1[1])-across[1],Math.max(p0[0],p1[0])+across[0],Math.max(p0[1],p1[1])+across[1]];};
+   e.steps=[{rect:rect(-.3,1.2),height:rise}];for(let k=0;k<n-1;k++)e.steps.push({rect:rect(1.2+k*.3,1.2+(k+1)*.3),height:rise-(k+1)*h});e.open=true;}}
  const group=new THREE.Group();group.name='zhili-interior';parent.add(group);const blockers=[],props=new THREE.Group();props.name='zhili-interior-details';group.add(props);
  const mats={};for(const[k,c]of Object.entries({outer:0xa7644e,inner:0xece6d6,floor:0xd3cfc4,ceiling:0xe9e7df,frame:0x9c9d94,tread:0xc9c5b8,glass:0x6f98a3,steel:0x7f898b,plate:0x23434b}))mats[k]=new THREE.MeshStandardMaterial({color:c,roughness:.88,side:THREE.DoubleSide,...(k==='glass'?{transparent:true,opacity:.55}:{}),...(['inner','floor','ceiling','tread'].includes(k)?{emissive:c,emissiveIntensity:.32}:{})});
  const cube=new THREE.BoxGeometry(1,1,1),dummy=new THREE.Object3D(),batches=new Map();
@@ -57,6 +61,7 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
   for(const w of fl.walls)rectBox(w,y,y+H-SLAB,exterior(w)?'outer':'inner');
   for(const l of fl.lintels)rectBox(l,y+2.25,y+H-SLAB,'inner');
   for(const e of fl.exits){for(const r of e.rect){rectBox(r,y+2.4,y+H-SLAB,'outer');if(!e.open){rectBox(r,y,y+.9,'outer');rectBox([r[0]+.05,r[1]+.05,r[2]-.05,r[3]-.05],y+.9,y+2.4,'glass');}}}
+  for(const e of fl.exits)for(const t of e.steps||[])rectBox(t.rect,y,y+t.height,'tread');
   for(const st of fl.stairs){for(const t of st.treads){const top=y+t.height;rectBox(t.rect,top-(t.flight<0?.2:.18),top,'tread');}
    const r=st.rect,along=['x0','x1'].includes(st.entrance),mid=along?[(r[1]+r[3])/2]:[(r[0]+r[2])/2];
    // A low centre wall separates the two flights; rails are omitted in the empty-room pass.
