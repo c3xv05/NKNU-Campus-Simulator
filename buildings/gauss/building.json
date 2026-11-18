@@ -212,7 +212,10 @@
       218881800
     ],
     "accessReference": "facilities/building-access/layout.json",
-    "entranceAtSidewalk": true
+    "entranceAtSidewalk": true,
+    "interiorFile": "./buildings/gauss/interior.json",
+    "interiorKind": "plan",
+    "customFacade": true
   },
   "frontageAlignment": {
     "sourceRing": [

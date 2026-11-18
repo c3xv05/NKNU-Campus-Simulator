@@ -721,3 +721,7 @@ plan.json保存corridorSide、groundFlight及groundExit，build-building-catalog
 ## 2026-11-18（續）：己梯、高斯西側寬樓梯、階梯式花台、廣場依圖面重畫
 
 teachingStairs改為三組：zhili-lower（S05主階梯）、zhili-ji（己梯，致理1F→上層）、gauss-west（高斯1F→下層，stair-layout新增bottomLevel 'gauss-ground'）。courtyard新增floorRegions.gaussCourt（高斯1F高，surface/renderer支援）、gaussPodium實心體、planters（致理三排、高斯三排，blocked）。上層＝圖面L（致理2F廣場、走道、化學系廣場、寰宇東側臂）＋寰宇穿堂短連接；下層加致理±0鋪面，致理只以1F外框扣除（2F懸挑下仍是廣場）。致理室內：2F在己梯上開孔（HOLE_2F）、清牆（OPEN_2F）、openAreas讓梯井不被室內碰撞擋住；B1／1F外框避開所有teachingStairs與frontApron/gapFootprint。測試同步更新（photo-access 4組階梯與寬度、spatial-corrections、two-level-plaza、photo-buildings上層點、campus-corridors與spatial-corrections瀏覽器路徑）。
+
+## 2026-11-18：高斯 1F～3F 室內
+
+物理館平面圖無文字層，房間以線稿分區＋手動標註（使用者確認）；各層以外框對齊線稿求平移（1F (13,-109.5)、2F (52,-74.5)、3F (11,-31.5) v 像素）。scripts/build-gauss-interior.py 由致理產生器複製改參數；門洞依圖面方向投射到外框、門內 1.4m 淨空。interior.js 改為多棟共用（createPlanSurface/planSurfaces/PLAN_OSMS），出口高度依中央廣場各樓層（lower/upper/gaussCourt）判斷，最低層補基礎，exposedRoofs 畫未被上層覆蓋的屋頂。courtyard：gaussCourt＋平台＋門前條帶、gaussGarden、下層廣場以高斯 1F（扣露台）＋2F 外框扣除、露台下若有室內不做實心基座、levelLink.insideGauss 停用舊連通廊基礎。2F 露台外框改為圖面手描（較早先目測框西端延長約 2.6m）。
