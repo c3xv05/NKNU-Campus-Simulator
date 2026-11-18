@@ -44,7 +44,8 @@ covered = [Polygon([drawing(q) for q in r[0]]).buffer(0) for r in camp['courtyar
 covered += [Polygon([drawing(q) for q in camp['levelLink']['ring']]).buffer(0), Polygon([drawing(q) for q in camp['teachingAccess']['lowerLanding']]).buffer(0)]
 # The existing 便利商店 stairs (pre-drawing game layout) reach ~1.2 m past the drawing's south edge; keep 0.3 m clear of
 # them on B1 and the 1F podium until the steps are redone from the Zhili drawing (pending user decision with Gauss).
-STAIR_KEEP = unary_union([Polygon([drawing(q) for q in st['ring']]).buffer(.3, join_style=2) for st in camp['levelLink']['stairs']])
+STAIR_KEEP = unary_union([Polygon([drawing(q) for q in st['ring']]).buffer(.3, join_style=2) for st in camp['levelLink']['stairs']]
+                       + [Polygon([drawing(q) for q in camp['teachingAccess'][k]]).buffer(.3, join_style=2) for k in ('frontApron', 'gapFootprint') if camp.get('teachingAccess', {}).get(k)])
 OUTLINE_1F = OUTLINE_1F.difference(STAIR_KEEP).buffer(0)
 B1_OUTLINE = B1_PLAN.intersection(unary_union([OUTLINE_1F, *covered]).buffer(.3).buffer(-.3)).intersection(box(-50, -50, 200, 66.6)).buffer(0)
 if B1_OUTLINE.geom_type != 'Polygon': B1_OUTLINE = max(B1_OUTLINE.geoms, key=lambda g: g.area)

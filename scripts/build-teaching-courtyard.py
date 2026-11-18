@@ -18,7 +18,7 @@ def at(u,v):return [round(origin[i]+n[i]*u+t[i]*v,7)for i in range(2)]
 def world_polygon(p):return Polygon([at(*v)for v in list(p.exterior.coords)[:-1]])
 huanyu=lookup[444867694];zhili=lookup[444867693];gauss=lookup[444867692];store_u=max(uv(p)[0]for p in c['levelLink']['ring']);front_v=max(uv(p)[1]for p in c['levelLink']['ring']);corner_u=uv(huanyu['ring'][14])[0];corner_v=uv(ringOf(444867693)[8])[1]
 # Both free long boundaries use exactly the same S05 tangent; building shells stay fixed.
-newring=[at(corner_u,corner_v),*rawring[1:5],at(store_u,uv(rawring[5])[1]),at(store_u,front_v),at(uv(gauss['ring'][5])[0],front_v),*rawring[6:]]
+newring=[at(corner_u,corner_v),*rawring[1:5],at(store_u,uv(rawring[5])[1]),at(store_u,front_v),at(uv(ringOf(444867692)[5])[0],front_v),*rawring[6:]]
 buildings=unary_union([Polygon(a['ring']).buffer(.01,join_style=2)for a in c['places']+c['buildings']if a.get('height')]);original=unary_union([Polygon(rawring),Polygon(c['levelLink']['ring'])]).difference(buildings);shape=unary_union([Polygon(newring),Polygon(c['levelLink']['ring'])]).difference(buildings)
 inner_u=max(uv(huanyu['ring'][i])[0]for i in layout['upperPlan']['huanyuEdges'])+layout['upperPlan']['huanyuWalkWidth']
 # An exact perpendicular corner replaces the former global-Z diagonal band.
@@ -28,17 +28,29 @@ mask=unary_union([world_polygon(box(-1000,-1000,1000,front_v)),world_polygon(box
 zsite=json.loads((root/'buildings/zhili/interior.json').read_text()).get('site') if (root/'buildings/zhili/interior.json').exists() else None
 podium=Polygon(zsite['groundOutline']).buffer(0) if zsite else Polygon()
 if zsite:upper=unary_union([upper,*[Polygon(r).buffer(0) for r in zsite['plaza']]]).difference(buildings)
+# Gauss / Huanyu drawings (user 2026-11-18): Zhili 1F = Huanyu 1F = Gauss 2F (lower plaza); Zhili 2F = Huanyu 2F = Gauss 3F
+# (upper plaza, Gauss not connected). Gauss's 2F deck over its 1F audio-visual wing belongs to the lower plaza; the rest of
+# Gauss's 1F footprint and its former shell area are not plaza. The 化學系廣場 and Huanyu 2F deck join the upper plaza.
+ztr=json.loads((root/'buildings/zhili/building.json').read_text())['geometry']['drawingFootprint']['transform']
+def zw(r):return Polygon([(ztr['a']*x-ztr['b']*y+ztr['tx'],ztr['b']*x+ztr['a']*y+ztr['tz']) for x,y in r]).buffer(0)
+gplan=json.loads((root/'buildings/gauss/plan.json').read_text());hplan=json.loads((root/'buildings/huanyu/plan.json').read_text())
+gauss1F=zw(gplan['outlines']['1']);gaussDeck=zw(gplan['deck2F']['ring']).difference(buildings);gaussOld=Polygon(json.loads((root/'buildings/gauss/building.json').read_text())['geometry']['beforeDrawingFootprint']['ring'])
+gaussClosed=unary_union([gauss1F.difference(gaussDeck),gaussOld]).buffer(0)
+upper=unary_union([upper,zw(hplan['chemPlaza']['ring']),zw(hplan['deck2F']['ring'])]).difference(buildings).difference(gauss1F.buffer(.3,join_style=2)).difference(gaussOld)
 if court.get('stairs'):
  stair=court['stairs'][0];stair['line']=layout['centralStair']['line'];stair['width']=layout['centralStair']['width'];a,b=stair['line'];dx=b[0]-a[0];dz=b[1]-a[1];length=math.hypot(dx,dz);nx=-dz/length*stair['width']/2;nz=dx/length*stair['width']/2;stair['ring']=[[a[0]+nx,a[1]+nz],[b[0]+nx,b[1]+nz],[b[0]-nx,b[1]-nz],[a[0]-nx,a[1]-nz]]
 for s in c['levelLink']['stairs']+court.get('stairs',[]):upper=upper.difference(Polygon(s['ring']))
 # Revert the blanket fill; the corridor builder cuts the lower access along the existing path.
 ramp=LineString(court['ramp']).buffer(court['width']/2,cap_style=2);extension=Polygon(legacy[444867693]).buffer(0) if 444867693 in legacy else Polygon()
 # The former Zhili shell area beyond the drawing tower continues the lower plaza at Zhili 1F level.
-lowerShape=shape.union(extension).union(Polygon(c['teachingAccess']['lowerLanding'])).difference(buildings).difference(podium);lower=lowerShape.difference(Polygon(c['levelLink']['stairs'][0]['ring']))
+extension=extension.union(gaussDeck)
+sidewalkGrade=unary_union([Polygon(st['ring']) for st in c['levelLink']['stairs']]+[Polygon(c['teachingAccess'][k]) for k in ('frontApron','gapFootprint') if c['teachingAccess'].get(k)]).buffer(.02,join_style=2)
+extension=extension.difference(sidewalkGrade)
+lowerShape=shape.union(extension).union(Polygon(c['teachingAccess']['lowerLanding'])).difference(buildings).difference(podium).difference(gaussClosed).difference(sidewalkGrade);lower=lowerShape.difference(Polygon(c['levelLink']['stairs'][0]['ring']))
 # Exposed rims of the extension get a solid base (drop side) or retaining wall (uphill side) at runtime.
 extensionRegions=[];extensionEdges=[]
 if not extension.is_empty:
- ext=extension.difference(buildings).intersection(lowerShape);closed=unary_union([lowerShape,buildings.buffer(.35,join_style=2),podium.buffer(.35,join_style=2),Polygon(c['levelLink']['ring']),Polygon(c['teachingAccess']['lowerLanding']),*[Polygon(s['ring']) for s in c['levelLink']['stairs']]])
+ ext=extension.difference(buildings).intersection(lowerShape);closed=unary_union([lowerShape,buildings.buffer(.35,join_style=2),podium.buffer(.35,join_style=2),gauss1F.difference(gaussDeck).buffer(.35,join_style=2),Polygon(c['levelLink']['ring']),Polygon(c['teachingAccess']['lowerLanding']),*[Polygon(s['ring']) for s in c['levelLink']['stairs']]])
  for piece in polygons(ext):
   if piece.area<1:continue
   extensionRegions.append(coords(piece.exterior))

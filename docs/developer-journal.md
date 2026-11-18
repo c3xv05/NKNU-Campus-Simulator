@@ -703,3 +703,7 @@ plan.json保存corridorSide、groundFlight及groundExit，build-building-catalog
 ## 2026-11-18：致理B1～2F依圖面重做（v2）
 
 依使用者批評（樓梯間未封閉、牆擋路、沒照圖、外觀用通用做法）重寫scripts/build-zhili-interior.py與buildings/zhili/interior.js：只做B1～2F可步行（3F以上依圖面窗位實心），1F用裙樓外框，B1用B1圖面∩廣場下層等範圍；牆改空間分界牆＋外牆帶，樓梯間全封閉並保留門外1.2m淨空；理學院階梯教室B1＋1F挑空、12階實心座位連通；東主入口門外低1.86m改戶外台階；2F出口以中央廣場上層高度判斷開放。build-teaching-courtyard.py讀interior.json的site：下層扣裙樓、上層併2F圖面廣場＋裙樓屋頂、裙樓內不放柱、裙樓邊不生擋土牆。測試zhili-interior、campus-plazas（北側人行廣場排除裙樓）、spatial-corrections（上層面積上限改1.25倍下層）同步更新。
+
+## 2026-11-18：高斯依物理系館平面圖定位、S05主階梯依致理圖面
+
+學校營繕組公開的化學（寰宇）、物理（高斯）平面圖與燕巢配置圖下載存檔。致理1F圖面南側±0方格鋪面與高斯1F西北視聽階梯教室完全重疊，證實該處是高斯2F露台（與致理1F同高），與使用者說明一致；高斯依致理圖面「物理系館」外框北移約12m，外殼為3F外框（截去東側露台）。courtyard：下層＋高斯2F露台、扣高斯其餘1F與舊外殼；上層＋化學系廣場＋寰宇2F露台、避開高斯。building-access：compactAccess.drawingStair取代8＋平台＋8及上方小梯。sidewalk-plan：沿高斯新立面補鋪至牆；r04：教學區凸包納入terrainRing，舊高斯位置不變樹林。測試同步：frontage-alignment、gauss-stop（候車棚≥15m）、campus-corridors（高斯抵達點）、photo-access（2組階梯）、two-level-plaza、jiyuan-interior（重繪窗含高斯與S05階梯）。photo-buildings接縫數與改前相同（375處，既有）。
