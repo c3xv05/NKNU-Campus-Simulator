@@ -27,6 +27,8 @@ export function createJiyuanSurface(campus,terrain){
   for(const f of floors){if(!near(f,x,z)||y<f.level-.5||y>f.level+2.9*scale)continue;
    if(riding&&inside([x,z],f.regions))return true;
    for(const[a,b]of [...f.walls,...f.windows])if(segmentDistance(x,z,a,b)<r+.075*scale)return true;
+   // Stall partitions are thin (4cm) but solid.
+   for(const[a,b]of f.partitions||[])if(segmentDistance(x,z,a,b)<r+.02*scale)return true;
    for(const item of furniture)if(item.floor===f.floor&&Math.hypot(x-item.center[0],z-item.center[1])<r+item.radius)return true;
    if(inside([x,z],f.regions)&&supportAt(x,z,y)===null)return true;
   }

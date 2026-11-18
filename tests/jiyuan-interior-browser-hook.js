@@ -1,4 +1,9 @@
+view.auto=false;
 window.__jiyuan={
+ firstPerson:()=>{window.__freeze=false;view.auto=true;view.indoor=false;setFirstPerson(false);const s=createJiyuanSurface(campus,terrain),f=s.floors[1],p=f.spaces.find(p=>p.id==='212').center;player.position.set(p[0],f.level+.08,p[1]);return f.level;},
+ firstPersonState:()=>({first:view.first,avatar:avatar.group.visible,y:cam.position.y,py:player.position.y,button:document.getElementById('viewToggle').textContent}),
+ leave:()=>{player.position.set(-279,walkHeight(-279,0)+.08,0);},
+ noAuto:()=>{view.auto=false;setFirstPerson(false);},
  test:()=>{
   window.__freeze=true;const s=createJiyuanSurface(campus,terrain),result={failures:[],doorPoints:0,corridorPoints:0,stairPoints:0,rays:0,paths:0};scene.updateMatrixWorld(true);motion.riding=false;
   function path(id,points,y,endY){player.position.set(points[0][0],y,points[0][1]);for(let i=1;i<points.length;i++){const a=points[i-1],b=points[i],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.09);for(let j=1;j<=n;j++){const u=j/n,x=a[0]+(b[0]-a[0])*u,z=a[1]+(b[1]-a[1])*u;if(!movePlayer(x-player.position.x,z-player.position.z,.3)){result.failures.push({id,kind:'blocked',x,z,y:player.position.y});return;}if(id.startsWith('stair'))result.stairPoints++;else if(id.startsWith('corridor'))result.corridorPoints++;else result.doorPoints++;}}if(Math.abs(player.position.y-endY)>.01)result.failures.push({id,kind:'height',actual:player.position.y,expected:endY});result.paths++;}

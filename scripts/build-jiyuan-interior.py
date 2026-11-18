@@ -15,6 +15,9 @@ def world(p):
  u=(p[0]-place['sourceOrigin'][0])*scale;v=(p[1]-place['sourceOrigin'][1])*scale
  return [round(place['origin'][0]+cs*u+sn*v,7),round(place['origin'][1]+sn*u-cs*v,7)]
 def local(p):return world(p)
+def heading(back):
+ # Renderer local +z is the fixture back (wall side); convert a source-pixel direction to that yaw.
+ wx=cs*back[0]+sn*back[1];wz=sn*back[0]-cs*back[1];return round(math.atan2(wx,wz),7)
 def pixel(p):
  x=(p[0]-place['origin'][0])/scale;z=(p[1]-place['origin'][1])/scale
  return [x*cs+z*sn+place['sourceOrigin'][0],x*sn-z*cs+place['sourceOrigin'][1]]
@@ -48,10 +51,10 @@ for floor in range(5):
   assert len(served)==len(definition['rooms'])
   for entry in definition['doors']:
    n=entry['room'];name='管理員室' if floor==0 and plan['groundRoomNumbers'][str(n)] is None else str(plan['groundRoomNumbers'][str(n)] if floor==0 else n+(floor-1)*100)
-   room=next(r for r in served if r['name']==name);door=edge_door(p,entry['at'],24)
+   room=next(r for r in served if r['name']==name);door=edge_door(p,entry['at'],entry.get('width',24))
    assert room['polygon'].boundary.buffer(.1).covers(door),('bathroom door must open from room',definition['id'],n)
    doors.append({'line':door,'kind':'bathroom','name':definition['id'],'from':name,'to':definition['id']})
-  spaces.append({'id':definition['id'],'kind':'bathroom','name':'浴室','polygon':p,'sets':len(served),'serves':[s['name'] for s in served]})
+  spaces.append({'id':definition['id'],'kind':'bathroom','name':'浴室','polygon':p,'sets':len(served),'serves':[s['name'] for s in served],'layout':definition.get('layout')})
  for definition in plan['publicSpaces']:
   p=Polygon(definition['polygon']).buffer(0);door=edge_door(p,definition['door'],48 if definition['id'] in ['lounge','semicircle'] else 26);doors.append({'line':door,'kind':'public','name':definition['name']})
   center=door.interpolate(.5,normalized=True)
@@ -96,11 +99,33 @@ for floor in range(5):
   for a,b in zip(line.coords,list(line.coords)[1:]):
    if math.dist(a,b)>1:segments.append([world(a),world(b)])
  # Room to shared bathroom openings must cut the room-side wall too, not just the bath side.
- rec={'floor':floor+1,'height':floor*floor_height,'corridorRoutes':[[world(p) for p in route] for route in plan['corridorRoutes']],'corridorRegions':[rings(p) for p in polygons(core.difference(unary_union([s['polygon'] for s in spaces])))],'regions':[rings(p) for p in polygons(footprint)],'roofTriangles':triangles(footprint.difference(Polygon(plan['standardTerrace']['polygon'])) if floor else footprint),'windows':[[world(p) for p in w.coords] for w in windows],'surfaceRegions':[rings(p) for p in polygons(floor_surface)],'floorTriangles':triangles(floor_surface),'lowWallIndices':[i for i,segment in enumerate(segments) if floor and boundary_segment(segment,Polygon(plan['standardTerrace']['polygon'])) and not boundary_segment(segment,Polygon(plan['publicSpaces'][1]['polygon']))],'walls':segments,'exteriorWallIndices':[i for i,segment in enumerate(segments) if boundary_segment(segment,footprint)],'spaces':[],'doors':[],'entrances':[[world(p) for p in e.coords] for e in exits],'stairs':[]}
+ rec={'floor':floor+1,'height':floor*floor_height,'corridorRoutes':[[world(p) for p in route] for route in plan['corridorRoutes']],'corridorRegions':[rings(p) for p in polygons(core.difference(unary_union([s['polygon'] for s in spaces])))],'regions':[rings(p) for p in polygons(footprint)],'roofTriangles':triangles(footprint.difference(Polygon(plan['standardTerrace']['polygon'])) if floor else footprint),'windows':[[world(p) for p in w.coords] for w in windows],'surfaceRegions':[rings(p) for p in polygons(floor_surface)],'floorTriangles':triangles(floor_surface),'lowWallIndices':[i for i,segment in enumerate(segments) if floor and boundary_segment(segment,Polygon(plan['standardTerrace']['polygon'])) and not boundary_segment(segment,Polygon(plan['publicSpaces'][1]['polygon']))],'walls':segments,'exteriorWallIndices':[i for i,segment in enumerate(segments) if boundary_segment(segment,footprint)],'spaces':[],'doors':[],'entrances':[[world(p) for p in e.coords] for e in exits],'stairs':[],'partitions':[],'cabinets':[],'vents':[]}
  for s in spaces:
-  center=s['polygon'].representative_point();r={k:v for k,v in s.items() if k not in ['polygon','door']};r.update(ring=rings(s['polygon'])[0],center=world([center.x,center.y]),triangles=triangles(s['polygon']))
+  center=s['polygon'].representative_point();r={k:v for k,v in s.items() if k not in ['polygon','door','layout']};r.update(ring=rings(s['polygon'])[0],center=world([center.x,center.y]),triangles=triangles(s['polygon']))
   if 'door' in s:r['door']=[world(v) for v in s['door'].coords]
-  if s['kind']=='bathroom':
+  if s['kind']=='bathroom' and s.get('layout'):
+   # User-confirmed shared layout: fixed fixtures, stall partitions (open, no doors for now), wall cabinets and a closed vent.
+   layout=s['layout'];poly=s['polygon'];bathdoors=[d['line'] for d in doors if d['kind']=='bathroom' and d['name']==s['id']]
+   r['fixtures']=[{'kind':f['kind'],'center':world(f['at']),'angle':heading(f['back'])} for f in layout['fixtures']]
+   assert sorted(f['kind'] for f in r['fixtures'])==sorted(['sink','urinal','squat','shower']*s['sets']),s['id']
+   lines=[];openings=[]
+   for stall in layout['stalls']:
+    sp=Polygon(stall['polygon']);assert sp.difference(poly).area<1,('stall outside bath',s['id'])
+    door_line=LineString(stall['door']);assert sp.boundary.distance(door_line.interpolate(.5,normalized=True))<.05,('stall door off edge',s['id'])
+    openings.append(door_line);coords=list(sp.exterior.coords)
+    for a,b in zip(coords,coords[1:]):
+     edge=LineString([a,b])
+     if poly.boundary.buffer(.6).covers(edge):continue  # existing bath wall
+     lines.append(edge)
+   walls_cut=unary_union(lines).difference(unary_union([o.buffer(.3,cap_style='flat') for o in openings]))
+   for line in ([walls_cut] if walls_cut.geom_type=='LineString' else [g for g in getattr(walls_cut,'geoms',[]) if g.geom_type=='LineString']):
+    for a,b in zip(line.coords,list(line.coords)[1:]):
+     if math.dist(a,b)>.5:
+      seg=LineString([a,b]);assert not any(seg.distance(d)<1 for d in bathdoors),('partition blocks bath door',s['id']);rec['partitions'].append([world(a),world(b)])
+   for c in layout['cabinets']:rec['cabinets'].append({'center':world(c['at']),'angle':heading(c['back'])})
+   for v in layout['vents']:
+    line=LineString(v['line']);assert poly.boundary.buffer(.3).covers(line),('vent off bath wall',s['id']);rec['vents'].append([world(p) for p in v['line']])
+  elif s['kind']=='bathroom':
    # Pack equipment inside the real service polygon, clear of all bathroom doors.
    candidates=[];x1,y1,x2,y2=s['polygon'].bounds
    bathdoors=[d['line'] for d in doors if d['kind']=='bathroom' and d['name']==s['id']]
