@@ -34,7 +34,10 @@ export function addJiyuanInterior(THREE,parent,campus,terrain,data){
  for(const f of surface.floors){
   meshTriangles(f.floorTriangles,f.level,f.level-.16,'floor','jiyuan-floor-'+f.floor);
   if(f.floor>1)ceiling(f.floorTriangles,f.level-.16,'jiyuan-ceiling-'+f.floor);
-  for(const [i,[a,b]]of f.walls.entries())segment(a,b,f.level,f.lowWallIndices.includes(i)?1.05:2.84,f.exteriorWallIndices.includes(i)?'wall':'inner',.15,f.floor);
+  // Exterior walls run from the slab underside through the storey (covering slab and roof edges, overhangs included) and overlap at joints, so no
+  // horizontal band shows between floors and curved/angled facades have no slits.
+  const grow=(a,b,e)=>{const dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz)||1;return[[a[0]-dx/l*e,a[1]-dz/l*e],[b[0]+dx/l*e,b[1]+dz/l*e]];};
+  for(const [i,[a,b]]of f.walls.entries()){const outside=f.exteriorWallIndices.includes(i),low=f.lowWallIndices.includes(i);if(outside&&!low){const[p,q]=grow(a,b,.075);segment(p,q,f.level-.16,f.floor===5?3.32:3,'wall',.15,f.floor);}else if(low){const[p,q]=grow(a,b,.075);segment(p,q,f.level-.16,1.21,'wall',.15,f.floor);}else segment(a,b,f.level,2.84,outside?'wall':'inner',.15,f.floor);}
   // Ceiling/wall cap band ties each partition to the next slab without closing door openings.
   for(const d of f.doors){const[a,b]=d.line,dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz),ang=Math.atan2(-dz,dx),nx=-dz/l,nz=dx/l;
    segment(a,b,f.level+2.24,.60,'frame',.18,f.floor);
@@ -43,7 +46,7 @@ export function addJiyuanInterior(THREE,parent,campus,terrain,data){
    if(d.kind==='room')label(d.name,m[0]+nx*.13,f.level+2.48,m[1]+nz*.13,ang,Math.min(1,l*.92));
   }
   for(const [a,b]of f.entrances){segment(a,b,f.level+2.24,.6,'frame',.22,f.floor);for(const p of[a,b])box(.10,2.24,.24,p[0],f.level+1.12,p[1],'wood',0,f.floor);}
-  for(const [a,b]of f.windows){segment(a,b,f.level,1,'wall',.18,f.floor);segment(a,b,f.level+2.15,.69,'wall',.18,f.floor);segment(a,b,f.level+1,1.15,'glass',.05,f.floor);for(const p of[a,b])box(.06,1.15,.22,p[0],f.level+1.575,p[1],'frame',0,f.floor);segment(a,b,f.level+1,.055,'frame',.24,f.floor);segment(a,b,f.level+2.12,.055,'frame',.24,f.floor);}
+  for(const [a,b]of f.windows){segment(a,b,f.level,1,'wall',.18,f.floor);segment(a,b,f.level+2.15,.85,'wall',.18,f.floor);segment(a,b,f.level+1,1.15,'glass',.05,f.floor);for(const p of[a,b])box(.06,1.15,.22,p[0],f.level+1.575,p[1],'frame',0,f.floor);segment(a,b,f.level+1,.055,'frame',.24,f.floor);segment(a,b,f.level+2.12,.055,'frame',.24,f.floor);}
   // Shared-bath stalls: 1.9m panels lifted 0.12m with open doorways (no leaves yet), closed exhaust vent, 2x2 open cabinets (no doors) above urinals; pipe shafts are closed full-height boxes.
   for(const[a,b]of f.partitions)segment(a,b,f.level+.12,1.9,'partition',.04,f.floor);
   for(const[a,b]of f.shaftWalls)segment(a,b,f.level,2.84,'inner',.15,f.floor);
