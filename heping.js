@@ -5,6 +5,8 @@ import {mountCampusSwitcher} from './campus-switcher.js';
 import {createHepingWorld} from './heping-world.js';
 import {isDeveloper} from './developer-auth.js';
 import {mountDeveloperCoordinates} from './developer-coordinates.js';
+import {dockDeveloperTool} from './developer.js';
+import {mountMobileHud} from './mobile-hud.js';
 import {ringDistance} from './planar.js';
 const $=id=>document.getElementById(id);
 mountCampusSwitcher('heping',[$('top'),$('panel')]);
@@ -49,7 +51,7 @@ async function start(){
  const orbit=new THREE.Vector3(player.position.x,0,player.position.z),keys=new Set(),stick={x:0,y:0};let visits=new Set();
  try{const saved=JSON.parse(localStorage.getItem('nknu-heping-visited-v1')||'[]');if(Array.isArray(saved))visits=new Set(saved.filter(id=>data.buildings.some(b=>b.id===id)));}catch{}
  window.campusDeveloperContext=()=>({campus:'heping',page:'和平校區',position:{x:player.position.x,y:0,z:player.position.z},mode:aerial?'aerial':riding?'scooter':'walk',view:{yaw,pitch},...(aerial?{aerial:{center:{x:orbit.x,y:0,z:orbit.z},height:190}}:{})});
- const coordinates=mountDeveloperCoordinates({container:$('tools'),isDeveloper,getContext:window.campusDeveloperContext});
+ const coordinates=mountDeveloperCoordinates({container:$('tools'),isDeveloper,getContext:window.campusDeveloperContext});dockDeveloperTool($('developerCoordinates'));mountMobileHud({tools:$('tools'),touchRight:$('touchright'),mobileControls:[$('ride'),$('speed')],sheetItems:[$('top').querySelector('.campus-switcher')],travelMenu:$('tools').querySelector('details')});
  window.addEventListener('campus-developer-dialog',()=>stop());
  const stop=()=>{keys.clear();stick.x=stick.y=0;speed=0;$('knob').style.transform='';};
  const updateProgress=()=>{$('progress').textContent=`已探索 ${visits.size} / ${data.buildings.length} 個地標`;};updateProgress();

@@ -18,7 +18,7 @@ with sync_playwright() as p:
   state=page.evaluate('window.__view.state()');assert state['pitch']<0 and state['up']>.8,state
   page.screenshot(path=f'/tmp/nknu-look-up-{mobile}.png')
   page.evaluate("async()=>{const a=await import('./developer-auth.js');a.loginDeveloper('0315')}")
-  assert page.locator('#aerialControls').is_visible();before=page.evaluate('window.__view.state().player');page.locator('#aerialToggle').click();assert page.evaluate('window.__view.state().enabled')
+  page.locator('#devOrb').click();assert page.locator('#aerialControls').is_visible();before=page.evaluate('window.__view.state().player');page.locator('#aerialToggle').click();assert page.evaluate('window.__view.state().enabled')
   for height in [10,200,80]:
    page.locator('#aerialHeight').evaluate('(e,h)=>{e.value=h;e.dispatchEvent(new Event("input"))}',height);page.wait_for_function('(h)=>Math.abs(window.__view.state().camera[1]-window.__view.state().player[1]-h)<1',arg=height);assert page.evaluate('window.__view.state().height')==height
   page.keyboard.down('w');page.wait_for_function('(before)=>window.__view.state().center.some((v,i)=>Math.abs(v-before[i])>.1)',arg=before);page.keyboard.up('w');state=page.evaluate('window.__view.state()');assert state['player']==before and state['center']!=before,state

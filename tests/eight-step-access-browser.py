@@ -17,5 +17,5 @@ with sync_playwright() as p:
   assert page.locator('#tools').evaluate('(tools)=>tools.scrollWidth<=tools.clientWidth+1')
   if mobile:
    page.set_viewport_size({'width':844,'height':390});assert page.locator('#tools').evaluate('(tools)=>tools.scrollWidth<=tools.clientWidth+1');page.set_viewport_size({'width':390,'height':844})
-  page.locator('#tools').get_by_role('link',name='和平校區 測試版').click();page.get_by_role('button',name='開始探索',exact=True).click(timeout=90000);assert page.locator('#top .campus-beta').inner_text()=='測試版';page.screenshot(path=f'/tmp/nknu-eight-heping-{mobile}.png');assert not errors,errors;c.close()
+  (page.locator('#hudMenuButton').click() if page.locator('#hudMenuButton').is_visible() and page.locator('#hudMenuButton').get_attribute('aria-expanded')!='true' else None);page.locator('#tools').get_by_role('link',name='和平校區 測試版').click();page.get_by_role('button',name='開始探索',exact=True).click(timeout=90000);assert page.locator('#top .campus-beta, #tools .campus-beta').inner_text()=='測試版';page.screenshot(path=f'/tmp/nknu-eight-heping-{mobile}.png');assert not errors,errors;c.close()
  b.close();print('PASS: lower eight + level rest + eight, upper eight, full-width traversal/render/support, restored walk/ride route, terrain clearance, beta badge and campus switching')

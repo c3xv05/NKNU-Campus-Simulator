@@ -2,6 +2,7 @@ import {LATEST_RECORD_ISSUE,latestRecordIssue,REPOSITORY,RECORD_MARKER,DRAFT_KEY
 import {isDeveloper,loginDeveloper,logoutDeveloper} from './developer-auth.js';
 const root=document.createElement('div');root.innerHTML=`
 <button id="devOrb" type="button" aria-label="開發者輔助選單" hidden>開發</button>
+<div id="devOrbMenu" role="dialog" aria-label="開發者快捷選單" hidden><div class="orb-head"><strong>開發者工具</strong><button id="devOrbClose" type="button" aria-label="收合開發者選單">✕</button></div><div id="devOrbTools"></div><div class="orb-actions"><button id="devOrbRecords" type="button">📝 紀錄／回報</button><button id="devOrbLogout" type="button">登出開發者</button></div><p class="orb-hint">拖曳小圓點可移動位置</p></div>
 <dialog id="devLogin" class="dev-dialog" aria-labelledby="devLoginTitle"><div class="dev-heading"><h2 id="devLoginTitle">開發者入口</h2><button class="dev-close" data-dev-close type="button" aria-label="關閉開發者入口">✕</button></div><form id="devLoginForm"><label>入口密碼<input id="devPass" type="password" inputmode="numeric" autocomplete="off" required></label><button type="submit">進入開發者介面</button><p id="devLoginStatus" role="status"></p></form></dialog>
 <dialog id="devPanel" class="dev-dialog" aria-labelledby="devTitle"><div class="dev-heading"><h2 id="devTitle">開發者工具</h2><button class="dev-close" data-dev-close type="button" aria-label="關閉開發者工具">✕</button></div>
 <section id="devMenu" class="dev-menu"><button id="devJournal" type="button">開發者紀錄</button><button id="devReport" type="button">問題回報</button><a id="devLatestRecord" href="https://github.com/${REPOSITORY}/issues/${LATEST_RECORD_ISSUE}" target="_blank" rel="noopener">開啟最新紀錄 ↗</a><a href="https://github.com/${REPOSITORY}/blob/main/docs/research/story-seeds.md" target="_blank" rel="noopener">NPC／事件故事備忘 ↗</a><a href="./zones.html">道路分區與人行道確認 ↗</a><button id="devLogout" type="button">登出開發者介面</button></section>
@@ -12,12 +13,33 @@ const entry=document.createElement('button');entry.id='developerEntry';entry.typ
 function announce(){window.dispatchEvent(new Event('campus-developer-dialog'));}
 function open(dialog){dialog.showModal();announce();}
 entry.onclick=()=>{if(isDeveloper()){$('devMenu').hidden=false;$('devEditor').hidden=true;open(panel);fetchRecords();}else{open(login);$('devPass').focus();}};
-orb.onclick=()=>{if(!isDeveloper())return;$('devMenu').hidden=false;$('devEditor').hidden=true;open(panel);fetchRecords();};
+const orbMenu=$('devOrbMenu'),ORB_KEY='nknu-dev-orb-position';
+function orbPlace(){let pos={side:'right',y:.55};try{pos={...pos,...JSON.parse(localStorage.getItem(ORB_KEY)||'{}')};}catch{}return pos;}
+function placeOrb(pos=orbPlace()){const size=orb.offsetWidth||48,top=Math.min(Math.max(8,pos.y*innerHeight-size/2),innerHeight-size-8);orb.style.top=top+'px';orb.style.left=pos.side==='left'?'max(8px,env(safe-area-inset-left))':'auto';orb.style.right=pos.side==='right'?'max(8px,env(safe-area-inset-right))':'auto';orb.dataset.side=pos.side;if(!orbMenu.hidden)placeOrbMenu();}
+function placeOrbMenu(){const r=orb.getBoundingClientRect(),w=orbMenu.offsetWidth,h=orbMenu.offsetHeight,gap=10;let left=orb.dataset.side==='left'?r.right+gap:r.left-gap-w;left=Math.min(Math.max(8,left),innerWidth-w-8);const top=Math.min(Math.max(8,r.top+r.height/2-h/2),Math.max(8,innerHeight-h-8));orbMenu.style.left=left+'px';orbMenu.style.top=top+'px';}
+function setOrbMenu(show){orbMenu.hidden=!show||!isDeveloper();orb.setAttribute('aria-expanded',String(!orbMenu.hidden));if(!orbMenu.hidden)placeOrbMenu();}
+let drag=null,dragEnded=-1e9;
+orb.addEventListener('pointerdown',e=>{if(!isDeveloper())return;e.stopPropagation();orb.setPointerCapture?.(e.pointerId);const r=orb.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,moved:false};});
+orb.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;e.stopPropagation();if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<8)return;drag.moved=true;orb.classList.add('dragging');orb.style.right='auto';orb.style.left=Math.min(Math.max(0,e.clientX-drag.dx),innerWidth-orb.offsetWidth)+'px';orb.style.top=Math.min(Math.max(0,e.clientY-drag.dy),innerHeight-orb.offsetHeight)+'px';if(!orbMenu.hidden)placeOrbMenu();});
+function endDrag(e){if(!drag||e.pointerId!==drag.id)return;e.stopPropagation();const moved=drag.moved;drag=null;orb.classList.remove('dragging');if(!moved)return;const r=orb.getBoundingClientRect(),pos={side:r.left+r.width/2<innerWidth/2?'left':'right',y:(r.top+r.height/2)/innerHeight};try{localStorage.setItem(ORB_KEY,JSON.stringify(pos));}catch{}dragEnded=performance.now();placeOrb(pos);}
+orb.addEventListener('pointerup',endDrag);orb.addEventListener('pointercancel',endDrag);
+orb.onclick=()=>{if(performance.now()-dragEnded<350)return;if(!isDeveloper())return;setOrbMenu(orbMenu.hidden);};
+$('devOrbClose').onclick=()=>setOrbMenu(false);
+$('devOrbRecords').onclick=()=>{setOrbMenu(false);$('devMenu').hidden=false;$('devEditor').hidden=true;open(panel);fetchRecords();};
+$('devOrbLogout').onclick=()=>{setOrbMenu(false);logoutDeveloper();orb.hidden=true;};
+// A developer teleport closes the menu so the arrival is visible.
+orbMenu.addEventListener('click',e=>{if(e.target.closest('[data-travel]'))setOrbMenu(false);});
+orbMenu.addEventListener('keydown',e=>{if(e.key==='Escape'){setOrbMenu(false);orb.focus();}});
+addEventListener('resize',()=>placeOrb());placeOrb();
+// Expanding a section (e.g. other-building travel) grows the menu; keep it inside the screen.
+if(typeof ResizeObserver==='function')new ResizeObserver(()=>{if(!orbMenu.hidden)placeOrbMenu();}).observe(orbMenu);
+// Pages move their developer-only HUD controls into the orb menu, so the normal HUD stays uncluttered.
+export function dockDeveloperTool(element){if(element)$('devOrbTools').append(element);}
 root.querySelectorAll('[data-dev-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());for(const d of [login,panel])d.addEventListener('close',announce);
-$('devLoginForm').onsubmit=e=>{e.preventDefault();if(!loginDeveloper($('devPass').value)){$('devLoginStatus').textContent='密碼不正確';return;}$('devPass').value='';$('devLoginStatus').textContent='';orb.hidden=false;login.close();};
-$('devLogout').onclick=()=>{logoutDeveloper();orb.hidden=true;panel.close();};
+$('devLoginForm').onsubmit=e=>{e.preventDefault();if(!loginDeveloper($('devPass').value)){$('devLoginStatus').textContent='密碼不正確';return;}$('devPass').value='';$('devLoginStatus').textContent='';orb.hidden=false;placeOrb();login.close();};
+$('devLogout').onclick=()=>{logoutDeveloper();orb.hidden=true;setOrbMenu(false);panel.close();};
 window.campusDeveloper={isEnabled:isDeveloper,isOpen:()=>login.open||panel.open,openReport:({title,body})=>{if(!isDeveloper())return;newRecord('report');$('devRecordTitle').value=title;$('devRecordBody').value=body;save(true);$('devMenu').hidden=true;$('devEditor').hidden=false;open(panel);fetchRecords();}};
-window.addEventListener('campus-developer-auth',()=>{orb.hidden=!isDeveloper();});
+window.addEventListener('campus-developer-auth',()=>{orb.hidden=!isDeveloper();if(orb.hidden)setOrbMenu(false);else placeOrb();});
 // Keep typing and Escape inside the native modal from steering the player.
 window.addEventListener('keydown',e=>{if(login.open||panel.open){e.stopImmediatePropagation();}},true);
 let drafts=[];try{drafts=readDrafts(localStorage);}catch{}let current=null,type='journal',issues=[],page=1,loading=false;
