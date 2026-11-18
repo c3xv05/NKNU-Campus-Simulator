@@ -39,38 +39,60 @@
       ],
       "width": 12,
       "topWidth": 12,
-      "steps": 16,
-      "flights": 2,
-      "landingFraction": 0.2380952380952381,
-      "name": "S05至致理一樓大階梯",
-      "topLevel": "zhili-ground",
-      "bottomLevel": "road",
-      "desc": "使用者最新要求：第一組大階梯八階、歇腳平台、再八階；正面朝S05且梯腳對齊致理，補齊高斯側凹缺口。平台／梯深為模型近似。",
-      "bottomProfile": "sidewalk",
-      "landingSidewalls": false,
-      "levelRestLanding": true
-    },
-    {
-      "id": "zhili-upper",
-      "line": [
-        [
-          -125,
-          -222
-        ],
-        [
-          -114.2,
-          -226
-        ]
-      ],
-      "width": 4.5,
-      "topWidth": 4.5,
-      "steps": 8,
+      "steps": 15,
       "flights": 1,
       "landingFraction": 0,
-      "name": "致理一樓至教學平台小階梯",
+      "name": "S05至致理一樓主階梯（依圖面）",
+      "topLevel": "zhili-ground",
+      "bottomLevel": "road",
+      "desc": "致理1F圖面S05側主階梯，寬8.6m、單跑；階數由S05人行道至1F高差約2.6–2.8m推算為15階。",
+      "bottomProfile": "sidewalk",
+      "landingSidewalls": false,
+      "levelRestLanding": false
+    },
+    {
+      "id": "zhili-ji",
+      "name": "己梯（致理1F→2F中央廣場，依圖面）",
+      "line": [
+        [
+          -126.747459,
+          -247.13591
+        ],
+        [
+          -120.531379,
+          -249.354096
+        ]
+      ],
+      "width": 2.3,
+      "topWidth": 2.3,
+      "steps": 22,
+      "flights": 1,
+      "landingFraction": 0,
       "topLevel": "teaching-courtyard",
       "bottomLevel": "zhili-ground",
-      "desc": "2026-11-16使用者要求：兩層各八階，縮短梯跑並對齊致理，退開並補齊人行道；尺寸與立面定位為模型近似。"
+      "desc": "致理1F／2F圖面己梯：開放直跑，寬2.3m。"
+    },
+    {
+      "id": "gauss-west",
+      "name": "高斯西側寬樓梯（高斯1F→下層廣場，依圖面）",
+      "line": [
+        [
+          -127.538049,
+          -195.19905
+        ],
+        [
+          -121.321969,
+          -197.417236
+        ]
+      ],
+      "width": 3.4,
+      "topWidth": 3.4,
+      "steps": 22,
+      "flights": 1,
+      "landingFraction": 0,
+      "topLevel": "zhili-ground",
+      "bottomLevel": "gauss-ground",
+      "desc": "物理1F圖面西側庭院W梯，寬3.4m。"
     }
   ],
   "courtyardStairs": [],
@@ -127,7 +149,7 @@
     }
   ],
   "compactAccess": {
-    "reference": "2026-11-16最新要求：第一組大階梯8階＋歇腳平台＋8階，補平人行道凹口；上方小梯維持8階，不恢復撤回B1或下沉人行道。",
+    "reference": "2026-11-18使用者要求完全照平面圖：S05側主階梯改依致理1F圖面（單跑15階、寬8.6m，位於致理南端前方）；原8＋平台＋8大階梯與上方8階小梯因高斯依圖面北移而移除（上方小梯不在圖面上，上下層連接待討論）。",
     "building": "zhili",
     "frontEdge": 1,
     "northClearance": 0.15,
@@ -139,7 +161,7 @@
     "frontApronReach": 3.5,
     "infillId": "teaching-stair-front-infill",
     "note": "兩段各八階及歇腳平台為使用者要求；每段2.56m、歇腳平台1.6m（總6.72m）與補磚定位為模型近似。",
-    "gapBackInset": 6.5,
+    "gapBackInset": 4.0,
     "gapBuilding": "gauss",
     "gapCorner": 0,
     "frontLine": [
@@ -152,7 +174,19 @@
         -236.61336
       ]
     ],
-    "frontLineReference": "致理外殼改為平面圖塔樓後，便利商店階梯固定在原致理frontEdge=1（北→南）線段，不隨新外殼移動。"
+    "frontLineReference": "致理外殼改為平面圖塔樓後，便利商店階梯固定在原致理frontEdge=1（北→南）線段，不隨新外殼移動。",
+    "drawingStair": {
+      "u": [
+        -5.0,
+        -0.8
+      ],
+      "v": [
+        -13.91,
+        -5.31
+      ],
+      "landingBack": 3.0,
+      "reference": "致理1F圖面主階梯：圖面x 7.9–16.5、y 61.6–65.8（寬8.6m，S05人行道上到1F ±0鋪面，約15階）。座標為compactAccess框架（u向外、v沿S05向南，原點＝原致理東南角）。"
+    }
   },
   "beforeRestLanding": {
     "stairs": [
@@ -263,5 +297,60 @@
       }
     ],
     "reference": "使用者2026-11-17要求去掉中央廣場階梯，只保留便利商店處階梯。"
-  }
+  },
+  "removedTeachingStairs": [
+    {
+      "removed": "2026-11-18",
+      "reason": "高斯依致理圖面北移後位於高斯1F範圍內；主階梯改依致理圖面，上下層連接待與使用者討論",
+      "stairs": [
+        {
+          "id": "zhili-lower",
+          "line": [
+            [
+              -111.5,
+              -223.5
+            ],
+            [
+              -98.6,
+              -228.2
+            ]
+          ],
+          "width": 12,
+          "topWidth": 12,
+          "steps": 16,
+          "flights": 2,
+          "landingFraction": 0.2380952380952381,
+          "name": "S05至致理一樓大階梯",
+          "topLevel": "zhili-ground",
+          "bottomLevel": "road",
+          "desc": "使用者最新要求：第一組大階梯八階、歇腳平台、再八階；正面朝S05且梯腳對齊致理，補齊高斯側凹缺口。平台／梯深為模型近似。",
+          "bottomProfile": "sidewalk",
+          "landingSidewalls": false,
+          "levelRestLanding": true
+        },
+        {
+          "id": "zhili-upper",
+          "line": [
+            [
+              -125,
+              -222
+            ],
+            [
+              -114.2,
+              -226
+            ]
+          ],
+          "width": 4.5,
+          "topWidth": 4.5,
+          "steps": 8,
+          "flights": 1,
+          "landingFraction": 0,
+          "name": "致理一樓至教學平台小階梯",
+          "topLevel": "teaching-courtyard",
+          "bottomLevel": "zhili-ground",
+          "desc": "2026-11-16使用者要求：兩層各八階，縮短梯跑並對齊致理，退開並補齊人行道；尺寸與立面定位為模型近似。"
+        }
+      ]
+    }
+  ]
 }
