@@ -12,7 +12,7 @@ other baths are mapped by bounding box, the right wing is mirrored (x -> 1800-x)
 Private baths (user labels, 2026-11-18): 201 sink / seat toilet / shower head;
 206 sink, urinal, squat stall, shower stall (door not built), pipe shaft (closed,
 its vent window on the 207 side); 207 sink, urinal, shower stall, squat stall;
-212 shower head, sink, seat toilet. Every 2x2 cabinet above a urinal is open
+212 shower head, sink, seat toilet (spread out, user request). Every 2x2 cabinet above a urinal is open
 (no doors). Coordinates and door widths are model approximations of a low-resolution scan.
 """
 import json, math
@@ -93,8 +93,10 @@ def private():
   'cabinets':[{'at':[617,583.3],'back':[0,1]}],
   'stalls':[{'kind':'shower','polygon':[[652,546],[679,546],[679,566],[652,566]],'door':[[652,548],[652,548+STALL]]},
    {'kind':'squat','polygon':[[652,566],[679,566],[679,588],[652,588]],'door':[[652,568],[652,568+STALL]]}],'vents':[]},
+ # 212: order from the drawing (shower head, sink, seat) but spread out at the user's request:
+ # ~0.9m shower zone at the left corner, ~0.5m between sink and toilet, ~0.85m to the door wall.
  'p212':{'frame':[642,636,714,670],'doors':[{'at':[714,653],'width':20}],
-  'fixtures':[{'kind':'showerhead','at':[648,638.2],'back':[0,-1]},{'kind':'sink','at':[659,641.6],'back':[0,-1]},{'kind':'seat','at':[676,644.1],'back':[0,-1]}],
+  'fixtures':[{'kind':'showerhead','at':[648,638.2],'back':[0,-1]},{'kind':'sink','at':[668,641.6],'back':[0,-1]},{'kind':'seat','at':[690.2,644.1],'back':[0,-1]}],
   'cabinets':[],'stalls':[],'vents':[]}}
 templates={'outer':outer(),'inner':inner(),**private()}
 # Left-wing bath -> template; right-wing counterparts are mirrors of these.
