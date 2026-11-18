@@ -6,7 +6,7 @@ export function unscaledRenderSurface(world,scale,pivot,ground){
  const ring=r=>r.map(point),regions=r=>r.map(region=>region.map(ring));
  return{base:ground+(world.base-ground)/scale,floors:world.floors.map(f=>({...f,height:f.height/scale,level:ground+(f.level-ground)/scale,
   regions:regions(f.regions),floorTriangles:f.floorTriangles.map(ring),roofTriangles:f.roofTriangles.map(ring),walls:f.walls.map(ring),windows:f.windows.map(ring),entrances:f.entrances.map(ring),
-  doors:f.doors.map(d=>({...d,line:ring(d.line)})),partitions:(f.partitions||[]).map(ring),stallDoors:(f.stallDoors||[]).map(d=>({...d,line:ring(d.line)})),cabinets:(f.cabinets||[]).map(c=>({...c,center:point(c.center)})),vents:(f.vents||[]).map(ring),spaces:f.spaces.map(s=>({...s,center:point(s.center),ring:ring(s.ring),triangles:s.triangles.map(ring),...(s.door?{door:ring(s.door)}:{}),...(s.fixtures?{fixtures:s.fixtures.map(v=>({...v,center:point(v.center)}))}:{})})),
+  doors:f.doors.map(d=>({...d,line:ring(d.line)})),partitions:(f.partitions||[]).map(ring),cabinets:(f.cabinets||[]).map(c=>({...c,center:point(c.center)})),vents:(f.vents||[]).map(ring),spaces:f.spaces.map(s=>({...s,center:point(s.center),ring:ring(s.ring),triangles:s.triangles.map(ring),...(s.door?{door:ring(s.door)}:{}),...(s.fixtures?{fixtures:s.fixtures.map(v=>({...v,center:point(v.center)}))}:{})})),
   stairs:f.stairs.map(s=>({...s,route:ring(s.route),bounds:ring(s.bounds),treads:s.treads.map(t=>({...t,height:t.height/scale,ring:ring(t.ring)}))}))}))};
 }
 // The compiled plan drives both meshes and walking. No terrain/road source is changed here.
@@ -35,9 +35,8 @@ export function addJiyuanInterior(THREE,parent,campus,terrain,data){
   }
   for(const [a,b]of f.entrances){segment(a,b,f.level+2.24,.6,'frame',.22,f.floor);for(const p of[a,b])box(.10,2.24,.24,p[0],f.level+1.12,p[1],'wood',0,f.floor);}
   for(const [a,b]of f.windows){segment(a,b,f.level,1,'wall',.18,f.floor);segment(a,b,f.level+2.15,.69,'wall',.18,f.floor);segment(a,b,f.level+1,1.15,'glass',.05,f.floor);for(const p of[a,b])box(.06,1.15,.22,p[0],f.level+1.575,p[1],'frame',0,f.floor);segment(a,b,f.level+1,.055,'frame',.24,f.floor);segment(a,b,f.level+2.12,.055,'frame',.24,f.floor);}
-  // Shared-bath stalls: 1.9m panels lifted 0.12m, leaves left open, closed exhaust vent, 2x2 cabinets above urinals.
+  // Shared-bath stalls: 1.9m panels lifted 0.12m with open doorways (no leaves yet), closed exhaust vent, 2x2 cabinets above urinals.
   for(const[a,b]of f.partitions)segment(a,b,f.level+.12,1.9,'partition',.04,f.floor);
-  for(const d of f.stallDoors){const[a,b]=d.line;segment(a,b,f.level+.12,1.9,'partition',.035,f.floor);box(.05,.05,.05,a[0],f.level+1.05,a[1],'steel',0,f.floor);}
   for(const[a,b]of f.vents){segment(a,b,f.level+1.86,.42,'glass',.19,f.floor);for(const y of[1.84,2.3])segment(a,b,f.level+y,.04,'frame',.21,f.floor);for(const p of[a,b])box(.05,.5,.21,p[0],f.level+2.07,p[1],'frame',Math.atan2(a[1]-b[1],b[0]-a[0]),f.floor);}
   for(const c of f.cabinets){const[x,z]=c.center,a=c.angle,put=(w,h,d,dx,y,dz,key)=>{const u=dx*Math.cos(a)+dz*Math.sin(a),v=-dx*Math.sin(a)+dz*Math.cos(a);box(w,h,d,x+u,f.level+y,z+v,key,a,f.floor);};
    put(.62,.62,.28,0,1.72,.0,'cabinet');for(const i of[-1,1])for(const j of[-1,1]){put(.29,.29,.02,i*.153,1.72+j*.153,-.15,'cabinet');put(.04,.04,.02,i*.153-i*.1,1.72+j*.153,-.165,'dark');}}

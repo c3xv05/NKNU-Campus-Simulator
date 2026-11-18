@@ -51,9 +51,10 @@ def outer():
    *[{'kind':'shower','polygon':s,'door':mid(s[2],s[3],STALL)} for s in showers]],
   'vents':[{'line':[[335,815.5],[335,823.5]]}]}
 def inner():
- p0,p1=[390,851],[322,919];inward=norm([p1[1]-p0[1],-(p1[0]-p0[0])])
+ # Corridor wall follows the original hatched diagonal (moved out 11 units on 2026-11-18).
+ p0,p1=[374.44,851],[322,903.44];inward=norm([p1[1]-p0[1],-(p1[0]-p0[0])])
  if inward[0]<0:inward=[-inward[0],-inward[1]]
- showers=[strip(p0,p1,26,48,16,inward),strip(p0,p1,48,70,16,inward)]
+ showers=[strip(p0,p1,21,43,18,inward),strip(p0,p1,43,65,18,inward)]
  back=norm([-inward[0],-inward[1]])
  return {'frame':[322,851,412,943],
   'doors':[{'at':[379,943],'width':20},{'at':[412,904],'width':20}],
@@ -64,10 +65,10 @@ def inner():
    *[{'kind':'shower','at':[sum(v[0] for v in s)/4,sum(v[1] for v in s)/4],'back':back} for s in showers]],
   'cabinets':[{'at':[407.3,886],'back':[1,0]},{'at':[360,938.3],'back':[0,1]}],
   'stalls':[
-   {'kind':'squat','polygon':[[390,851],[412,851],[412,878],[385,878],[385,856]],'door':[[388,878],[388+STALL,878]]},
-   {'kind':'squat','polygon':[[322,919],[328,913],[345,913],[345,943],[322,943]],'door':[[345,914],[345,914+STALL]]},
+   {'kind':'squat','polygon':[[385,851],[412,851],[412,878],[385,878]],'door':[[388,878],[388+STALL,878]]},
+   {'kind':'squat','polygon':[[322,913],[345,913],[345,943],[322,943]],'door':[[345,914],[345,914+STALL]]},
    *[{'kind':'shower','polygon':s,'door':mid(s[2],s[3],STALL)} for s in showers]],
-  'vents':[{'line':[at_t(p0,p1,85.5),at_t(p0,p1,93.5)]}]}
+  'vents':[{'line':[at_t(p0,p1,65.5),at_t(p0,p1,73.5)]}]}
 templates={'outer':outer(),'inner':inner()}
 # Left-wing bath -> template; right-wing counterparts are mirrors of these.
 assign={'left-shared-202-203':'outer','left-shared-204-205':'outer','left-shared-208-209':'inner','left-shared-210-211':'inner'}

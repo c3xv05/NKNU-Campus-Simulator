@@ -54,8 +54,12 @@ for f in data['floors']:
  for r in c['roads']:assert footprint.intersection(LineString(r['line']).buffer(r['width']/2)).area<1e-6,('road overlap',f['floor'],r['osm'])
 walkdata=json.loads((root/'data/sidewalk-plan.js').read_text().split('=',1)[1].strip().rstrip(';'));walk=unary_union([Polygon(r[0],r[1:])for r in walkdata['regions']]);entry=Polygon(next(p for p in c['pedestrianLinks']if p['id']=='P05')['ring'])
 for f in data['floors']:assert unary_union([Polygon(r[0],r[1:])for r in f['regions']]).intersection(walk.difference(entry.buffer(.01))).area<1e-5
-clearances={'central':90*plan['placement']['scale']-.15*1.1,'upper-wing':48*plan['placement']['scale']-.15*1.1,'diagonal':math.hypot(40.75,40.75)*plan['placement']['scale']-.15*1.1}
-assert min(clearances.values())>2
+# Diagonal: measured between the facing shared-bath walls. The inner bath wall follows the original
+# drawing (2026-11-18 user-approved), giving about 1.83-1.97m clear (1.1x) instead of the former widened 2.48m.
+baths={b['id']:Polygon(b['polygon']) for b in plan['bathrooms']}
+diagonal=min(baths[side+'-shared-'+a].boundary.distance(baths[side+'-shared-'+b].boundary) for side in ['left','right'] for a,b in [('202-203','208-209'),('204-205','210-211')])
+clearances={'central':90*plan['placement']['scale']-.15*1.1,'upper-wing':48*plan['placement']['scale']-.15*1.1,'diagonal':diagonal*plan['placement']['scale']-.15*1.1}
+assert clearances['central']>2 and clearances['upper-wing']>2 and clearances['diagonal']>1.8,clearances
 # A stair must join the real corridor, not merely be walkable between two isolated points.
 place=plan['placement'];cs=math.cos(place['angle']);sn=math.sin(place['angle'])
 def pixel(p):

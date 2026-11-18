@@ -99,12 +99,12 @@ for floor in range(5):
   for a,b in zip(line.coords,list(line.coords)[1:]):
    if math.dist(a,b)>1:segments.append([world(a),world(b)])
  # Room to shared bathroom openings must cut the room-side wall too, not just the bath side.
- rec={'floor':floor+1,'height':floor*floor_height,'corridorRoutes':[[world(p) for p in route] for route in plan['corridorRoutes']],'corridorRegions':[rings(p) for p in polygons(core.difference(unary_union([s['polygon'] for s in spaces])))],'regions':[rings(p) for p in polygons(footprint)],'roofTriangles':triangles(footprint.difference(Polygon(plan['standardTerrace']['polygon'])) if floor else footprint),'windows':[[world(p) for p in w.coords] for w in windows],'surfaceRegions':[rings(p) for p in polygons(floor_surface)],'floorTriangles':triangles(floor_surface),'lowWallIndices':[i for i,segment in enumerate(segments) if floor and boundary_segment(segment,Polygon(plan['standardTerrace']['polygon'])) and not boundary_segment(segment,Polygon(plan['publicSpaces'][1]['polygon']))],'walls':segments,'exteriorWallIndices':[i for i,segment in enumerate(segments) if boundary_segment(segment,footprint)],'spaces':[],'doors':[],'entrances':[[world(p) for p in e.coords] for e in exits],'stairs':[],'partitions':[],'stallDoors':[],'cabinets':[],'vents':[]}
+ rec={'floor':floor+1,'height':floor*floor_height,'corridorRoutes':[[world(p) for p in route] for route in plan['corridorRoutes']],'corridorRegions':[rings(p) for p in polygons(core.difference(unary_union([s['polygon'] for s in spaces])))],'regions':[rings(p) for p in polygons(footprint)],'roofTriangles':triangles(footprint.difference(Polygon(plan['standardTerrace']['polygon'])) if floor else footprint),'windows':[[world(p) for p in w.coords] for w in windows],'surfaceRegions':[rings(p) for p in polygons(floor_surface)],'floorTriangles':triangles(floor_surface),'lowWallIndices':[i for i,segment in enumerate(segments) if floor and boundary_segment(segment,Polygon(plan['standardTerrace']['polygon'])) and not boundary_segment(segment,Polygon(plan['publicSpaces'][1]['polygon']))],'walls':segments,'exteriorWallIndices':[i for i,segment in enumerate(segments) if boundary_segment(segment,footprint)],'spaces':[],'doors':[],'entrances':[[world(p) for p in e.coords] for e in exits],'stairs':[],'partitions':[],'cabinets':[],'vents':[]}
  for s in spaces:
   center=s['polygon'].representative_point();r={k:v for k,v in s.items() if k not in ['polygon','door','layout']};r.update(ring=rings(s['polygon'])[0],center=world([center.x,center.y]),triangles=triangles(s['polygon']))
   if 'door' in s:r['door']=[world(v) for v in s['door'].coords]
   if s['kind']=='bathroom' and s.get('layout'):
-   # User-confirmed shared layout: fixed fixtures, stall partitions, wall cabinets and a closed vent.
+   # User-confirmed shared layout: fixed fixtures, stall partitions (open, no doors for now), wall cabinets and a closed vent.
    layout=s['layout'];poly=s['polygon'];bathdoors=[d['line'] for d in doors if d['kind']=='bathroom' and d['name']==s['id']]
    r['fixtures']=[{'kind':f['kind'],'center':world(f['at']),'angle':heading(f['back'])} for f in layout['fixtures']]
    assert sorted(f['kind'] for f in r['fixtures'])==sorted(['sink','urinal','squat','shower']*s['sets']),s['id']
@@ -117,11 +117,6 @@ for floor in range(5):
      edge=LineString([a,b])
      if poly.boundary.buffer(.6).covers(edge):continue  # existing bath wall
      lines.append(edge)
-    # Door leaf stands open about 75 degrees into the stall from the hinge end.
-    (ax,ay),(bx,by)=stall['door'];l=math.dist((ax,ay),(bx,by));ux,uy=(bx-ax)/l,(by-ay)/l;c=sp.centroid;nx,ny=-uy,ux
-    if (c.x-ax)*nx+(c.y-ay)*ny<0:nx,ny=-nx,-ny
-    ang=math.radians(75);leaf=[(ax,ay),(ax+(ux*math.cos(ang)+nx*math.sin(ang))*l*.92,ay+(uy*math.cos(ang)+ny*math.sin(ang))*l*.92)]
-    rec['stallDoors'].append({'kind':stall['kind'],'line':[world(v) for v in leaf]})
    walls_cut=unary_union(lines).difference(unary_union([o.buffer(.3,cap_style='flat') for o in openings]))
    for line in ([walls_cut] if walls_cut.geom_type=='LineString' else [g for g in getattr(walls_cut,'geoms',[]) if g.geom_type=='LineString']):
     for a,b in zip(line.coords,list(line.coords)[1:]):
