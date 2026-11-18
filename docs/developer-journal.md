@@ -1,5 +1,9 @@
 # 開發者紀錄與後續討論入口
 
+## 2026-11-18：霽遠樓一樓花台、會客室內縮、兩端洗衣間弧牆
+
+plan.json新增groundPlanters與semicircle.groundPolygon；產生器floor0改用groundPolygon並輸出planters（世界座標）。renderer以ExtrudeGeometry做花台（基礎下1.16到+1.0，土面與灌木instanced），surface.blocked在樓層邊界判斷前先測花台。洗衣間多邊形改為1/4圓弧。jiyuan-interior.mjs的1.1倍形狀比對改用2F半圓（1F刻意內縮），並新增花台碰撞檢查。
+
 ## 2026-11-18：霽遠樓獨立衛浴依原圖、櫃子改無門
 
 模板腳本改名scripts/build-jiyuan-bath-layouts.py，新增四間獨立衛浴模板（右翼鏡像）。新設備種類seat（坐式馬桶）、showerhead（壁掛蓮蓬頭＋落水頭）；stall種類shaft為封閉全高管道間，輸出shaftWalls（渲染＋碰撞），其他隔間與管道間共邊時不重畫。壁掛櫃改為無門2×2開放格。產生器與幾何測試的設備檢查改為：共用浴室四種各2；獨立浴室洗手台1、蹲／坐式馬桶1、淋浴／蓮蓬頭1。

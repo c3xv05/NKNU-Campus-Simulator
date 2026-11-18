@@ -24,6 +24,8 @@ export function createJiyuanSurface(campus,terrain){
   return null;
  }
  function blocked(x,z,r,y,riding=false){
+  // Ground planters (about 1m, x1.1) lie outside the floor bounds, so test them first.
+  const g=floors[0];if(y<g.level+1.0*scale&&y>g.level-1.5)for(const ring of g.planters||[])if(ringDistance(x,z,ring)<r)return true;
   for(const f of floors){if(!near(f,x,z)||y<f.level-.5||y>f.level+2.9*scale)continue;
    if(riding&&inside([x,z],f.regions))return true;
    for(const[a,b]of [...f.walls,...f.windows])if(segmentDistance(x,z,a,b)<r+.075*scale)return true;
