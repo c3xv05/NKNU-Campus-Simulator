@@ -1,5 +1,11 @@
 # 開發者紀錄與後續討論入口
 
+## 2026-11-18：霽遠樓共用浴室固定配置與內側型斜牆更正
+
+共用浴室改由使用者標註的兩個模板產生（scripts/build-jiyuan-shared-baths.py → plan.json layout → build-jiyuan-interior.py），輸出隔間板、壁掛櫃、排風窗到interior.json每層的partitions／cabinets／vents；renderer.js繪製，surface.js把隔間板納入碰撞。208/209型斜牆依原圖外移0.51m（1.1倍後），斜向走廊淨寬約1.83～1.97m；隔間暫不做門。
+
+第一人稱：index.html的view狀態（first／indoor／auto），frame中eye模式把鏡頭直接放在player+1.6m並以yaw／pitch決定視線、隱藏avatar；updateIndoorView用霽遠與致理surface的contains判斷室內並自動切換。
+
 ## 2026-11-18：平板介面比照手機
 
 觸控 HUD 判定由「手機尺寸」放寬為所有 `(pointer:coarse)` 裝置，平板同樣使用 ☰ 面板、右下騎車鍵與小地圖精簡；平板另行放大小地圖、標題與面板寬度。電腦版不變。
