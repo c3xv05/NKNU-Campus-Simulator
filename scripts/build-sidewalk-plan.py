@@ -13,6 +13,18 @@ shape=unary_union([set_precision(Polygon(p),.001) for p in polygons if Polygon(p
 c=json.loads((root/'data/campus.json').read_text())
 for s in [c['bioConnection']['stairs']]+c['levelLink'].get('stairs',[])+c['courtyard'].get('stairs',[]):shape=shape.difference(Polygon(s['ring']))
 shape=finish_sidewalks(shape,c)
+# Drawing-placed shells (Gauss 2026-11-18) can sit inside the former facade line: pave the strip between the
+# new S05 facade (edge 0) and the existing walkway so the paving still meets the wall.
+from shapely.geometry import LineString
+from sidewalk_finishing import motor_shape
+for b in c['places']+c['buildings']:
+ meta=json.loads((root/'buildings/gauss/building.json').read_text())['geometry'] if b.get('osm')==444867692 else None
+ if not meta or 'drawingFootprint' not in meta:continue
+ r=b['ring'];strip=LineString([r[0],r[1]]).buffer(-3.0,single_sided=True,cap_style=2)
+ others=unary_union([Polygon(a['ring']).buffer(.015,join_style=2) for a in c['places']+c['buildings'] if a.get('height')])
+ fill=strip.difference(motor_shape(fillets=True)).difference(others)
+ for st in [c['bioConnection']['stairs']]+c['levelLink'].get('stairs',[]):fill=fill.difference(Polygon(st['ring']))
+ shape=unary_union([shape,fill]).buffer(0)
 if c.get('huanyuAccess'):
  for a in [c['huanyuAccess'],c['huanyuAccess']['ramp']]:shape=shape.difference(Polygon(a['ring']))
 for region in [r for a in c.get('campusTransitions',[]) for r in a['regions']]+c['bioConnection'].get('corridor',{}).get('regions',[]):shape=shape.difference(Polygon(region[0],region[1:]))
