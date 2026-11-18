@@ -43,7 +43,7 @@ zplan=json.loads((root/'buildings/zhili/plan.json').read_text())['site']
 upper=unary_union([*[Polygon(r).buffer(0) for r in zsite['plaza']],zw(zplan['walkway2F']['ring']),zw(hplan['chemPlaza']['ring']),affinity.translate(zw(hplan['deck2F']['ring']),*hplan['deck2F'].get('gameOffset',[0,0]))]).buffer(.6,join_style=2).buffer(-.6,join_style=2)
 upper=upper.difference(buildings).difference(gauss1F.buffer(.3,join_style=2)).difference(gaussOld)
 # Huanyu's 2F through-passage (user 2026-11-13) must still land on the upper plaza: a passage-width link from its
-# plaza end to the nearest drawn upper piece (pending user confirmation, 2026-11-18).
+# plaza end to the nearest drawn upper piece (user confirmed 2026-11-18).
 # The drawn Huanyu 2F balcony strip along its east face (the long arm of the L) lies inside the game's Huanyu outline,
 # so it is laid just outside that face with the existing Huanyu walk width, joining the 化學系廣場 / podium roof.
 huanyuArm=shape.intersection(world_polygon(box(-1000,-1000,inner_u,1000))).difference(buildings).difference(gauss1F.buffer(.3,join_style=2)).difference(gaussOld)
