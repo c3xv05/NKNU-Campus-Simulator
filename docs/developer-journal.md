@@ -699,3 +699,7 @@ plan.json保存corridorSide、groundFlight及groundExit，build-building-catalog
 從最新main 0072855建立獨立fix/foresight-inward-turns worktree；接續最新Issue #87（向陽路平行施工），本輪紀錄Issue #88，#85／PR86留歷史且由本筆更正。plan.json移除groundFlight／groundExit並明列exteriorExit=false；產生器取消一樓特殊直跑／單梯道孔與兩端外門。來源README、SOURCES與AGENTS已同步，明確禁止重建回舊門洞。私人／共用衛浴、房內入口與走廊、XYZ1.1倍、3.3m層高、geometry.ring／平台錨點及其他區域保留，不擅填床桌。沒有重建道路／鋪面／地形。
 
 驗證包含一至二樓的半層平台／兩梯跑、每層梯口到上下層內側走廊雙向通行、中央大門可進出、左右舊門位置連續封牆與碰撞／渲染射線，以及原房內衛浴／走廊／地形與產物重建一致。完整結果與發布核對回寫Issue #88。
+
+## 2026-11-18：致理B1～2F依圖面重做（v2）
+
+依使用者批評（樓梯間未封閉、牆擋路、沒照圖、外觀用通用做法）重寫scripts/build-zhili-interior.py與buildings/zhili/interior.js：只做B1～2F可步行（3F以上依圖面窗位實心），1F用裙樓外框，B1用B1圖面∩廣場下層等範圍；牆改空間分界牆＋外牆帶，樓梯間全封閉並保留門外1.2m淨空；理學院階梯教室B1＋1F挑空、12階實心座位連通；東主入口門外低1.86m改戶外台階；2F出口以中央廣場上層高度判斷開放。build-teaching-courtyard.py讀interior.json的site：下層扣裙樓、上層併2F圖面廣場＋裙樓屋頂、裙樓內不放柱、裙樓邊不生擋土牆。測試zhili-interior、campus-plazas（北側人行廣場排除裙樓）、spatial-corrections（上層面積上限改1.25倍下層）同步更新。

@@ -314,7 +314,7 @@
     "frame": "#b9b9ae",
     "glass": "#36545b",
     "detailDistance": 145,
-    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。；最新使用者街景照片所示共用入口階梯，獨立定義於building-access，模型尺寸近似。；使用者確認三棟共同降低半層（模型1.8m），靠路外牆及轉角局部退縮。；2026-11-17起外殼改依使用者提供理學大樓平面圖四樓外牆（約49×63m），東立面沿原臨路線，北側依圖面路緣套合，尺寸為圖面推定。",
+    "reference": "使用者提供之照片；依牆色、構架、入口及招牌重建，尺寸為近似值。；最新使用者街景照片所示共用入口階梯，獨立定義於building-access，模型尺寸近似。；使用者確認三棟共同降低半層（模型1.8m），靠路外牆及轉角局部退縮。；2026-11-17起外殼改依使用者提供理學大樓平面圖四樓外牆（約49×63m），東立面沿原臨路線，北側依圖面路緣套合，尺寸為圖面推定。；2026-11-18起外牆、窗與入口改由平面圖生成（buildings/zhili/interior.js），取代通用外觀。",
     "frontMode": "main-road",
     "frontEdge": 0,
     "frontRoadIds": [
@@ -322,7 +322,8 @@
     ],
     "accessReference": "facilities/building-access/layout.json",
     "interiorFile": "./buildings/zhili/interior.json",
-    "interiorKind": "zhili"
+    "interiorKind": "zhili",
+    "customFacade": true
   },
   "frontageAlignment": {
     "sourceRing": [

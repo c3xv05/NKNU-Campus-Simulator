@@ -23,17 +23,22 @@ buildings=unary_union([Polygon(a['ring']).buffer(.01,join_style=2)for a in c['pl
 inner_u=max(uv(huanyu['ring'][i])[0]for i in layout['upperPlan']['huanyuEdges'])+layout['upperPlan']['huanyuWalkWidth']
 # An exact perpendicular corner replaces the former global-Z diagonal band.
 mask=unary_union([world_polygon(box(-1000,-1000,1000,front_v)),world_polygon(box(-1000,front_v,inner_u,1000))]);upper=shape.intersection(mask)
+# Zhili drawings (user 2026-11-18): the 1F podium is building, and the 2F central plaza follows the Zhili 2F drawing
+# (drawing plaza + podium roof) in addition to the existing Huanyu-side L arm.
+zsite=json.loads((root/'buildings/zhili/interior.json').read_text()).get('site') if (root/'buildings/zhili/interior.json').exists() else None
+podium=Polygon(zsite['groundOutline']).buffer(0) if zsite else Polygon()
+if zsite:upper=unary_union([upper,*[Polygon(r).buffer(0) for r in zsite['plaza']]]).difference(buildings)
 if court.get('stairs'):
  stair=court['stairs'][0];stair['line']=layout['centralStair']['line'];stair['width']=layout['centralStair']['width'];a,b=stair['line'];dx=b[0]-a[0];dz=b[1]-a[1];length=math.hypot(dx,dz);nx=-dz/length*stair['width']/2;nz=dx/length*stair['width']/2;stair['ring']=[[a[0]+nx,a[1]+nz],[b[0]+nx,b[1]+nz],[b[0]-nx,b[1]-nz],[a[0]-nx,a[1]-nz]]
 for s in c['levelLink']['stairs']+court.get('stairs',[]):upper=upper.difference(Polygon(s['ring']))
 # Revert the blanket fill; the corridor builder cuts the lower access along the existing path.
 ramp=LineString(court['ramp']).buffer(court['width']/2,cap_style=2);extension=Polygon(legacy[444867693]).buffer(0) if 444867693 in legacy else Polygon()
 # The former Zhili shell area beyond the drawing tower continues the lower plaza at Zhili 1F level.
-lowerShape=shape.union(extension).union(Polygon(c['teachingAccess']['lowerLanding'])).difference(buildings);lower=lowerShape.difference(Polygon(c['levelLink']['stairs'][0]['ring']))
+lowerShape=shape.union(extension).union(Polygon(c['teachingAccess']['lowerLanding'])).difference(buildings).difference(podium);lower=lowerShape.difference(Polygon(c['levelLink']['stairs'][0]['ring']))
 # Exposed rims of the extension get a solid base (drop side) or retaining wall (uphill side) at runtime.
 extensionRegions=[];extensionEdges=[]
 if not extension.is_empty:
- ext=extension.difference(buildings).intersection(lowerShape);closed=unary_union([lowerShape,buildings.buffer(.35,join_style=2),Polygon(c['levelLink']['ring']),Polygon(c['teachingAccess']['lowerLanding']),*[Polygon(s['ring']) for s in c['levelLink']['stairs']]])
+ ext=extension.difference(buildings).intersection(lowerShape);closed=unary_union([lowerShape,buildings.buffer(.35,join_style=2),podium.buffer(.35,join_style=2),Polygon(c['levelLink']['ring']),Polygon(c['teachingAccess']['lowerLanding']),*[Polygon(s['ring']) for s in c['levelLink']['stairs']]])
  for piece in polygons(ext):
   if piece.area<1:continue
   extensionRegions.append(coords(piece.exterior))
@@ -47,7 +52,7 @@ if not extension.is_empty:
     if Polygon(piece.exterior).contains(Point(mid[0]+nrm[0]*.3,mid[1]+nrm[1]*.3)):nrm=(-nrm[0],-nrm[1])
     if closed.contains(Point(mid[0]+nrm[0]*.3,mid[1]+nrm[1]*.3)):continue
     extensionEdges.append({'line':[[round(p0[0],7),round(p0[1],7)],[round(p1[0],7),round(p1[1],7)]],'outward':[round(nrm[0],7),round(nrm[1],7)]})
-court.update(name=layout['name'],ring=newring,floors=2,floorHeight=layout['floorHeight'],floorRegions={'lower':regions(lower),'upper':regions(upper)},floorTriangles={'lower':triangles(lower),'upper':triangles(upper)},footprints=triangles(lowerShape),pillars=[p for p in layout['pillars']if upper.contains(Point(p))],upperShape='L',huanyuWalkWidth=layout['upperPlan']['huanyuWalkWidth'],accessRampRing=coords(ramp.exterior),rampTargetFloor=1,exteriorAccess=True,interiorFillReverted=True,desc=layout['reference'],alignment={'origin':origin,'along':t,'outward':n,'innerCorner':at(inner_u,front_v),'storeEdge':[at(store_u,uv(rawring[5])[1]),at(store_u,front_v)],'huanyuCornerEdge':[at(corner_u,corner_v),huanyu['ring'][14]],'frontLine':[at(inner_u,front_v),at(store_u,front_v)]},edgeRepairs={'regions':regions(shape.symmetric_difference(original))},zhiliExtension={'regions':extensionRegions,'edges':extensionEdges,'reference':layout.get('zhiliExtension',{}).get('reference','')})
+court.update(name=layout['name'],ring=newring,floors=2,floorHeight=layout['floorHeight'],floorRegions={'lower':regions(lower),'upper':regions(upper)},floorTriangles={'lower':triangles(lower),'upper':triangles(upper)},footprints=triangles(lowerShape),pillars=[p for p in layout['pillars']if upper.contains(Point(p))and not podium.buffer(.5).contains(Point(p))],upperShape='L',huanyuWalkWidth=layout['upperPlan']['huanyuWalkWidth'],accessRampRing=coords(ramp.exterior),rampTargetFloor=1,exteriorAccess=True,interiorFillReverted=True,desc=layout['reference'],alignment={'origin':origin,'along':t,'outward':n,'innerCorner':at(inner_u,front_v),'storeEdge':[at(store_u,uv(rawring[5])[1]),at(store_u,front_v)],'huanyuCornerEdge':[at(corner_u,corner_v),huanyu['ring'][14]],'frontLine':[at(inner_u,front_v),at(store_u,front_v)]},edgeRepairs={'regions':regions(shape.symmetric_difference(original))},zhiliExtension={'regions':extensionRegions,'edges':extensionEdges,'reference':layout.get('zhiliExtension',{}).get('reference','')})
 (root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n')
 subprocess.run([sys.executable,str(root/'scripts/build-campus-corridors.py')],check=True)
 print('Built square S05-aligned L; reverted interior fill and restored lower access')
