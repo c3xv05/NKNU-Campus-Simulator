@@ -1,7 +1,7 @@
-// Phone-only HUD layout shared by both campuses. Tablets and desktops keep the
-// original layout: only coarse-pointer screens that are narrow (portrait phone)
-// or short (landscape phone) collapse the left tool column behind a ☰ button.
-export const PHONE_HUD_QUERY='(pointer:coarse) and (max-width:600px), (pointer:coarse) and (max-height:500px)';
+// Touch HUD layout shared by both campuses. Phones and tablets (coarse pointer)
+// collapse the left tool column behind a ☰ button; mouse/desktop keeps the
+// original layout. The body class stays `phone-hud`; tablet sizes are tuned in CSS.
+export const PHONE_HUD_QUERY='(pointer:coarse)';
 
 export function mountMobileHud({tools,touchRight,mobileControls=[],sheetItems=[],travelMenu}){
   const query=matchMedia(PHONE_HUD_QUERY);

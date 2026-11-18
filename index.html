@@ -14,7 +14,7 @@
 
 #aerialControls{background:#0d293ce8;padding:8px;border-radius:12px;font-size:12px}#aerialToggle{width:100%;min-height:44px;padding:8px;font-size:13px}#aerialHeight{width:100%;min-height:32px}#aerialControls p{margin:5px 0;line-height:1.5}
 #hudMenuButton,.phone-guide{display:none}
-@media(pointer:coarse) and (max-width:600px),(pointer:coarse) and (max-height:500px){.wide-guide{display:none}.phone-guide{display:inline}#panel #notice{font-size:11px;line-height:1.6}#panel p{margin:10px 0}}
+@media(pointer:coarse){.wide-guide{display:none}.phone-guide{display:inline}#panel #notice{font-size:11px;line-height:1.6}#panel p{margin:10px 0}}
 body.phone-hud #hudMenuButton{display:grid;place-items:center;position:absolute;top:max(10px,env(safe-area-inset-top));left:max(10px,env(safe-area-inset-left));width:46px;height:46px;padding:0;border-radius:13px;background:#0d2238e6;color:#fff;border:1px solid #ffffff44;font-size:22px;z-index:5}body.phone-hud.hud-open #hudMenuButton{background:#2dd4bf;color:#062e32}
 body.phone-hud #top{left:calc(max(10px,env(safe-area-inset-left)) + 54px);top:max(10px,env(safe-area-inset-top));padding:6px 11px;min-height:46px;max-width:calc(100vw - 190px)}body.phone-hud #top h1{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}body.phone-hud #top small{display:none}body.phone-hud #progress{font-size:11px;margin-top:2px}
 body.phone-hud #tools{display:none}body.phone-hud.hud-open #tools{display:grid;z-index:6;top:calc(max(10px,env(safe-area-inset-top)) + 54px);left:max(10px,env(safe-area-inset-left));width:min(260px,calc(100vw - 20px));max-height:calc(100dvh - max(10px,env(safe-area-inset-top)) - 66px);background:#0b1f2ef2;border:1px solid #ffffff44;border-radius:16px;padding:10px;box-shadow:0 12px 40px #0009;gap:8px}body.phone-hud #travelMenu{max-height:none}body.phone-hud #tools .campus-switcher{margin:0}
@@ -22,6 +22,7 @@ body.phone-hud #mapbox{padding:5px;top:max(10px,env(safe-area-inset-top));right:
 body.phone-hud #info{bottom:calc(max(18px,env(safe-area-inset-bottom)) + 182px);font-size:13px;max-width:calc(100vw - 32px);padding:8px 14px}
 body.phone-hud #hudThumbSlot{grid-column:span 2;display:grid;gap:4px;justify-items:stretch}body.phone-hud #rideToggle{min-height:46px;padding:6px;font-size:13px}body.phone-hud #speed{font-size:11px;background:#102d3ccc;padding:3px 8px;border-radius:8px;justify-self:end}
 @media(max-height:500px){body.phone-hud #info{bottom:max(14px,env(safe-area-inset-bottom));max-width:42vw}body.phone-hud #map{width:72px;height:72px}body.phone-hud #top{max-width:42vw}}
+@media(min-width:601px) and (min-height:501px){body.phone-hud #map{width:130px;height:130px}body.phone-hud #top{max-width:380px}body.phone-hud #top h1{font-size:15px}body.phone-hud #progress{font-size:12px}body.phone-hud.hud-open #tools{width:300px}body.phone-hud #info{font-size:14px;max-width:min(520px,calc(100vw - 340px))}}
 </style></head>
 <body>
 <div id="scene"></div>
