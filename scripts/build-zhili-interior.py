@@ -14,7 +14,7 @@ approximations read from the drawings, not survey data.
 import json
 from pathlib import Path
 import numpy as np, cv2
-from shapely.geometry import Polygon, box
+from shapely.geometry import Polygon, box, Point, LineString
 from shapely.ops import unary_union
 from shapely import constrained_delaunay_triangles
 import sys; sys.path.insert(0, str(Path(__file__).resolve().parent)); from furnish import furnish_floor
@@ -56,7 +56,7 @@ B1_OUTLINE = B1_OUTLINE.simplify(.05)
 OUTLINE = {'B': B1_OUTLINE, '1': OUTLINE_1F, '2': TOWER, **{k: TOWER for k in ALL_FLOORS[3:]}}
 # 理學院階梯教室 (user): one double-height hall over B1 and 1F; stage at B1 level, seating tiers rise to the 1F lobby.
 RAKE = {'rect': [6.5, 20.9, 22.8, 40.1], 'tiers': 12}
-HALL_OPEN_1F = [1.3, 20.7, 22.8, 40.3]   # no 1F slab or partitions here (stage void + seating)
+HALL_OPEN_1F = [6.6, 20.7, 22.8, 40.3]   # no 1F slab or partitions over the seating; the stage void is the plan void (挑空). The current 1F sheet (2026-11-19) shows 演講廳空調機房 and 118 全家超商A區 as 1F rooms west of it.
 HALL_CLEAR_B1 = [6.4, 20.8, 22.8, 40.2]  # seating volume on B1 (B05 rows, B04 under the rake)
 FREE = {'classroom', 'office', 'library', 'hall', 'corridor', 'toilet', 'stair', 'service', 'mech', 'balcony', 'plaza', 'unknown', 'garage'}
 OPEN_TO = {'corridor', 'plaza', 'garage'}
@@ -65,11 +65,12 @@ WALL_BAND = .25
 # Stair cores: switchback entrance end and the door read from the drawings (side, position along it).
 STAIR = {'甲梯': {'entrance': 'y1', 'door': ('y1', .5, 1.6)}, '乙梯': {'entrance': 'x0', 'door': ('x0', .5, 1.4)},
          '丙梯': {'entrance': 'x0', 'door': ('x0', .5, 1.4)}, '丁梯': {'entrance': 'y1', 'door': ('x0', .82, 1.1)}}
-# Interior doors whose drawn swing arcs would otherwise survive as wall fragments (drawing metres).
-EXTRA_DOORS = {'B': [[7.0, 40.2, 9.1, 41.3]]}
 # 己梯 (user 2026-11-18 "己梯要蓋"): open straight stair from the 1F ±0 paving (y55.3) up to the 2F plaza (y48.7);
 # the 2F floor is open over it and its top opens onto the plaza.
 OPEN_2F = [19.0, 46.3, 21.3, 55.4]     # walls cleared (top landing opens onto the plaza)
+# Open (semi-outdoor) outline edges, no wall (user 2026-11-19): 2F west of 己梯 between the two columns opens onto
+# the upper plaza walkway.
+OPEN_EDGES = {'2': [[16.2, 46.85, 16.9, 55.05]]}
 HOLE_2F = [19.0, 48.7, 21.3, 55.4]     # 2F slab open over the flight  # B05 演講廳 double door to the south 門廳
 # Entrances on the 1F outline (drawing metres): north lobby, corridor south end, east main lobby, two west-lobby doors.
 MANUAL_EXITS = {'1': [[[64.4, 26.6], [64.4, 29.4]], [[26.7, 55.4], [26.7, 57.5]], [[38.4, 66.6], [42.4, 66.6]],
@@ -135,6 +136,85 @@ def stair_layout(rect, entrance):
     return treads, r(land, L, 0, Wd), run, land, r(land, L - land, Wd / 2 - .06, Wd / 2 + .06)
 
 plans = {f['key']: f for f in plan['floors']}
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location('zhili_walls', root / 'scripts/extract-zhili-walls.py'); EXTRACT = _ilu.module_from_spec(_spec); _spec.loader.exec_module(EXTRACT)
+def line_raster(label):
+    """Every drawn line of this floor's PDF on the generator grid (needs PyMuPDF)."""
+    m = np.zeros((H, W), np.uint8)
+    for q in EXTRACT.segments(label):
+        cv2.line(m, tuple(to_px(q[:2])), tuple(to_px(q[2:])), 1, 1)
+    return m
+ROOMISH = {'classroom', 'office', 'service', 'mech', 'unknown', 'library'}
+def relabel_rooms(k, spaces, closed, WF, O):
+    """Rooms from the current sheet (user 2026-11-19, 1F): every region enclosed by the drawn walls and door leaves
+    that holds a room number in the sheet's text becomes a room named by that text; the old plan's rooms (not
+    corridors, halls, toilets, stairs) are replaced. Halls/corridors/toilets keep the plan's outlines."""
+    import re
+    m = closed.copy()
+    for d in WF['doors']: m |= poly_mask(LineString([d['hinge'], d['closed']]).buffer(.06, cap_style=2))
+    m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, disk(8))   # doorway gaps without a drawn leaf (<= 1.6 m) close a room too
+    n, lab_r, st, _ = cv2.connectedComponentsWithStats((O & (1 - m)).astype(np.uint8), 4)
+    words = {}
+    for w in WF['labels']:
+        px = to_px(w['at'])
+        if 0 <= px[0] < W and 0 <= px[1] < H and lab_r[px[1], px[0]] > 0: words.setdefault(int(lab_r[px[1], px[0]]), []).append(w)
+    keep_masks = np.zeros((H, W), np.uint8)
+    for s in spaces:
+        if s['type'] in ('hall', 'toilet', 'stair', 'elevator', 'void'): keep_masks |= s['mask']
+    rooms = []
+    isnum = lambda t: re.fullmatch(r'\d{3}(-\d)?', t)
+    pieces = []
+    for i, ws in words.items():
+        nums = [w for w in ws if isnum(w['text'])]
+        area = st[i, 4] * CELL * CELL; comp = (lab_r == i).astype(np.uint8)
+        if not nums and 3 <= area <= 400 and (keep_masks[comp > 0] > 0).mean() <= .5:   # 郵局, 全家超商 A–C 區, 營繕組儲藏室
+            pieces.append((comp, ws)); continue
+        if not nums:   # unnumbered label inside a leaking region: the old plan room under its first word
+            w0 = ws[0]; old = next((s for s in spaces if s['type'] in ROOMISH and s['mask'][to_px(w0['at'])[1], to_px(w0['at'])[0]]), None)
+            if old is not None:
+                piece = (old['mask'] & comp).astype(np.uint8); nn, pl = cv2.connectedComponents(piece, connectivity=4); j = pl[to_px(w0['at'])[1], to_px(w0['at'])[0]]
+                if j: pieces.append(((pl == j).astype(np.uint8), [w for w in ws if pl[to_px(w['at'])[1], to_px(w['at'])[0]] == j]))
+            continue
+        if len(nums) == 1 and 3 <= area <= 400 and (keep_masks[comp > 0] > 0).mean() <= .5:
+            pieces.append((comp, ws)); continue
+        # Region leaks into the corridor or holds several rooms: take the old plan room under each number, cut by the
+        # new walls, and give it the text lines below that number.
+        for nw in nums:
+            old = next((s for s in spaces if s['type'] in ROOMISH and s['mask'][to_px(nw['at'])[1], to_px(nw['at'])[0]]), None)
+            if old is None: continue
+            piece = (old['mask'] & comp).astype(np.uint8)
+            nn, pl = cv2.connectedComponents(piece, connectivity=4); px = to_px(nw['at'])
+            j = pl[px[1], px[0]]
+            if j == 0: continue
+            mine = [w for w in ws if pl[to_px(w['at'])[1], to_px(w['at'])[0]] == j and (not isnum(w['text']) or w is nw)]
+            pieces.append(((pl == j).astype(np.uint8), mine))
+    for comp, ws in pieces:
+        ws = sorted(ws, key=lambda w: (round(w['at'][1], 0), w['at'][0]))
+        num = next((w['text'] for w in ws if isnum(w['text'])), None)
+        text = ''.join(w['text'] for w in ws if w['text'] != num)   # the sheet breaks names over lines (鋼琴練／習教室)
+        kind = 'classroom' if '教室' in text or '研討室' in text else 'office'
+        cs, _ = cv2.findContours(comp, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE); c = max(cs, key=cv2.contourArea)
+        poly = [[round(ox + x * CELL, 3), round(oy + y * CELL, 3)] for x, y in c.reshape(-1, 2)]
+        ys, xs = np.nonzero(comp)
+        rooms.append({'name': f'{num} {text}' if num else text, 'num': num, 'type': kind, 'mask': comp, 'polys': [poly],
+                      'anchor': [round(ox + xs.mean() * CELL, 3), round(oy + ys.mean() * CELL, 3)], 'source': 'current-sheet'})
+    print(f'  {LABEL[k]} rooms from the current sheet:', ', '.join(r['name'] for r in rooms))
+    return [s for s in spaces if s['type'] not in ROOMISH] + rooms
+def fit_hall(rect, ink):
+    """Fit a stair hall rect to this floor's drawn walls: march outward from inside the hall to the first wall on each
+    side; a side with no wall nearby keeps the given edge."""
+    x0, y0, x1, y1 = rect; out = list(rect); m = ink.copy()
+    m[rect_mask([x0 + .45, y0 + .45, x1 - .45, y1 - .45]) > 0] = 0   # ignore the drawn divider / treads
+    for i, (axis, sgn) in enumerate([(0, -1), (1, -1), (0, 1), (1, 1)]):
+        hits = []
+        for t in np.linspace(.25, .75, 7):
+            p = [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t]; p[axis] = rect[i] - sgn * .45
+            for step in range(0, 12):
+                q = list(p); q[axis] = p[axis] + sgn * step * CELL; px = to_px(q)
+                if 0 <= px[0] < W and 0 <= px[1] < H and m[px[1], px[0]]: hits.append(q[axis] - sgn * CELL / 2); break
+        if len(hits) >= 4: out[i] = round(float(np.median(hits)), 3)
+    return out
+WALLS = json.loads((root / 'buildings/zhili/walls.json').read_text())['floors']
 TYPICAL = {}
 for s in plans['4']['spaces']:
     if s['type'] == 'stair' and s['name'] in STAIR:
@@ -209,42 +289,43 @@ for k in ALL_FLOORS:
     lab = np.zeros((H, W), np.int32)
     for i, sp in enumerate(spaces, 1):
         if sp['type'] in FREE: lab[sp['mask'] > 0] = i
-    k3 = np.ones((3, 3), np.uint8)
-    hi = cv2.dilate(lab.astype(np.float32), k3); lo = -cv2.dilate(-np.where(lab > 0, lab, 10 ** 6).astype(np.float32), k3)
-    open_ids = [i for i, sp in enumerate(spaces, 1) if sp['type'] in OPEN_TO] or [-1]
-    interface = ((lab > 0) & (hi != lo) & (lo < 10 ** 6)).astype(np.uint8)
-    interface[np.isin(hi, open_ids) & np.isin(lo, open_ids)] = 0
-    gap = O & (1 - free) & (1 - void)
-    thick = cv2.morphologyEx(gap, cv2.MORPH_OPEN, disk(4))
-    walls = ((gap & (1 - cv2.dilate(thick, disk(1)))) | band | solid | interface) & O
-    corr_mask = np.zeros((H, W), np.uint8)
-    for s in spaces:
-        if s['type'] in OPEN_TO: corr_mask |= s['mask']
+    # Walls and doors read straight from the drawing's line work (scripts/extract-zhili-walls.py -> walls.json):
+    # every drawn double line is a wall, every swing arc is a door, gaps without a leaf stay open (user 2026-11-19).
+    WF = WALLS[LABEL[k]]
+    ink = np.zeros((H, W), np.uint8)
+    for ring, holes in zip(WF['walls'], WF['wallHoles']):
+        if len(ring) > 2: ink |= poly_mask(Polygon(ring, [h for h in holes if len(h) > 2]).buffer(.02, join_style=2))
+    ink &= O
+    walls = (ink | band | solid) & O
     doors = np.zeros((H, W), np.uint8); door_list = []
-    def carve(cand, width, name, kind, target):
-        n, cl, st, _ = cv2.connectedComponentsWithStats(cand.astype(np.uint8), 8)
-        if n < 2: return False
-        i = 1 + int(np.argmax(st[1:, 4])); comp = cl == i
-        ys, xs = np.nonzero(comp); horiz = (xs.max() - xs.min()) >= (ys.max() - ys.min())
-        length = ((xs.max() - xs.min()) if horiz else (ys.max() - ys.min())) * CELL
-        if length < .7: return False
-        w = min(width, length - .2); cx, cy = (xs.min() + xs.max()) / 2, (ys.min() + ys.max()) / 2; half = w / 2 / CELL
-        sel = comp & ((np.abs(xs_grid - cx) <= half) if horiz else (np.abs(ys_grid - cy) <= half))
-        sel = cv2.dilate(sel.astype(np.uint8), np.ones((5, 1) if horiz else (1, 5), np.uint8)) & walls & (1 - solid) & (1 - band)
-        doors[sel > 0] = 1
-        p = [ox + cx * CELL, oy + cy * CELL]; d = [w / 2, 0] if horiz else [0, w / 2]
-        door_list.append({'name': name, 'kind': kind, 'to': target, 'line': [world([p[0] - d[0], p[1] - d[1]]), world([p[0] + d[0], p[1] + d[1]])]})
-        return True
-    for s in spaces:
-        if s['type'] in OPEN_TO or s['type'] in ('elevator', 'void', 'stair'): continue
-        width = 1.0 if s['type'] in ('toilet', 'service', 'mech') else 1.2
-        cand = walls & near(s['mask'], .4) & (1 - band) & (1 - solid)
-        label = str(s['num']) if s.get('num') is not None else s['name']
-        if carve(cand & near(corr_mask, .4), width, label, s['type'], 'corridor'): continue
-        others = np.zeros((H, W), np.uint8)
-        for t in spaces:
-            if t is not s and t['type'] in FREE: others |= t['mask']
-        carve(cand & near(others, .4), width, label, s['type'], 'room')
+    if WF.get('labels'):
+        spaces = relabel_rooms(k, spaces, ink | band | solid, WF, O)
+    space_polys = [(sp, unary_union([Polygon(q).buffer(0) for q in sp['polys'] if len(q) > 2])) for sp in spaces if sp['type'] in FREE]
+    def space_at(q):   # smallest plan space containing q (the corridor polygon wraps around the rooms)
+        hits = [(g.area, i) for i, (sp, g) in enumerate(space_polys) if g.buffer(.15).contains(Point(*q))]
+        return space_polys[min(hits)[1]][0] if hits else None
+    toilet_polys = [g for sp, g in space_polys if sp['type'] == 'toilet']; toilet_doors = []
+    for d in WF['doors']:
+        h, c, o = np.array(d['hinge']), np.array(d['closed']), np.array(d['open'])
+        mid = (h + c) / 2; nrm = (o - h) / max(np.hypot(*(o - h)), 1e-6)
+        def side(sg):   # first room met walking 0.6–1.6 m into that side (plan outlines stop short of some walls)
+            hits = [space_at(mid + sg * nrm * t) for t in (.6, 1.0, 1.6)]
+            return next((sp for sp in hits if sp and sp['type'] not in OPEN_TO), None) or next((sp for sp in hits if sp), None)
+        sides = [side(1), side(-1)]
+        # User 2026-11-19: toilets are not built for now — their doors are walled up and the rooms sealed below.
+        if any(sp and sp['type'] == 'toilet' for sp in sides) or (not any(sides) and any(g.buffer(1.0).contains(Point(*mid)) for g in toilet_polys)):
+            toilet_doors.append((h, c)); continue
+        room = next((sp for sp in sides if sp and sp['type'] not in OPEN_TO), None) or next((sp for sp in sides if sp), None)
+        if room is None or not Pk.buffer(.3).contains(Point(*mid)): continue
+        other = next((sp for sp in sides if sp is not room), None)
+        # Opening: the full chord from hinge to the closed-leaf end, through the wall thickness (raster rounding of the
+        # jambs must not narrow it).
+        u_ = (c - h) / max(np.hypot(*(c - h)), 1e-6)   # 8 cm past each end: rasterised jambs must not pinch a 0.8 m leaf
+        doors |= poly_mask(LineString([h - u_ * .08, c + u_ * .08]).buffer(.2, cap_style=2))
+        label = str(room['num']) if room.get('num') is not None else room['name']
+        door_list.append({'name': label, 'kind': room['type'], 'to': (other['type'] if other else 'outside'), 'double': d.get('double', False),
+                          'line': [world(list(h)), world(list(c))], 'drawing': [d['hinge'], d['closed']]})
+    walls &= 1 - (doors & (1 - solid) & (1 - band))
     # Stair halls: same rect on every floor, a 0.2 m wall all round, one door where the drawing puts it.
     prev = stairs_by_floor.get(ORDER[ORDER.index(k) - 1], []) if k != ORDER[0] else []
     stairs = []
@@ -253,24 +334,25 @@ for k in ALL_FLOORS:
         for s in spaces:
             if s['type'] != 'stair' or s['name'] not in upper or s['name'] not in STAIR: continue
             ys, xs = np.nonzero(s['mask']); rect = cell_rect(xs.min(), ys.min(), xs.max(), ys.max())
-            if k != 'B': rect = TYPICAL[s['name']]
+            if k != 'B': rect = fit_hall(TYPICAL[s['name']], ink)
             treads, hole, run, land, divider = stair_layout(rect, STAIR[s['name']]['entrance'])
             stairs.append({'id': s['name'], 'rect': rect, 'entrance': STAIR[s['name']]['entrance'], 'treads': treads, 'hole': hole, 'divider': divider, 'run': round(run, 3), 'landing': round(land, 3)})
     halls = {st['id']: st['rect'] for st in prev + stairs if st['id'] in STAIR}
-    for sid, (x0, y0, x1, y1) in halls.items():
-        inside = rect_mask([x0, y0, x1, y1]); ring = rect_mask([x0 - .2, y0 - .2, x1 + .2, y1 + .2]) & (1 - inside) & O
-        walls[inside > 0] = 0; doors[inside > 0] = 0; walls |= ring
-        side, pos, width = STAIR[sid]['door']
-        if side in ('x0', 'x1'):
-            xx = x0 - .2 if side == 'x0' else x1; c = y0 + (y1 - y0) * pos; c = min(max(c, y0 + width / 2), y1 - width / 2); r = [xx - .05, c - width / 2, xx + .25, c + width / 2]
-        else:
-            yy = y0 - .2 if side == 'y0' else y1; c = x0 + (x1 - x0) * pos; c = min(max(c, x0 + width / 2), x1 - width / 2); r = [c - width / 2, yy - .05, c + width / 2, yy + .25]
-        doors |= rect_mask(r) & walls & (1 - band)
-        # Keep a clear 1.2 m approach outside the stair door (drawing door swings / leftover partition pieces).
-        ap = {'x0': [r[0] - 1.2, r[1] - .15, r[0], r[3] + .15], 'x1': [r[2], r[1] - .15, r[2] + 1.2, r[3] + .15],
-              'y0': [r[0] - .15, r[1] - 1.2, r[2] + .15, r[1]], 'y1': [r[0] - .15, r[3], r[2] + .15, r[3] + 1.2]}[side]
-        walls &= 1 - (rect_mask(ap) & (1 - band) & (1 - ring))
-        door_list.append({'name': sid, 'kind': 'stair', 'to': 'corridor', 'line': [world([r[0], r[1]]), world([r[2], r[3]])]})
+    lines = line_raster(LABEL[k])
+    for sid, hr in halls.items():
+        # Treads and the divider are generated. The hall's walls follow this floor's drawing (user 2026-11-19: 2F
+        # halls were offset and 乙梯 lost its walls): the rect is fitted to the drawn walls, and every side except
+        # the door side gets a wall wherever the drawing has a line along it; drawn doors stay open.
+        x0, y0, x1, y1 = hr if sid in [st['id'] for st in stairs] else fit_hall(hr, ink)
+        inside = rect_mask([x0, y0, x1, y1]); walls[inside > 0] = 0; doors[inside > 0] = 0
+        for side, r in {'x0': [x0 - .2, y0 - .2, x0, y1 + .2], 'x1': [x1, y0 - .2, x1 + .2, y1 + .2],
+                        'y0': [x0 - .2, y0 - .2, x1 + .2, y0], 'y1': [x0 - .2, y1, x1 + .2, y1 + .2]}.items():
+            if side == STAIR[sid]['door'][0]: continue
+            band_r = rect_mask([r[0] - .3, r[1] - .3, r[2] + .3, r[3] + .3]) & (1 - inside)
+            along = (r[2] - r[0]) > (r[3] - r[1])
+            cover = (band_r & lines).any(axis=0 if along else 1)
+            span = (band_r.any(axis=0) if along else band_r.any(axis=1))
+            if span.sum() and cover[span > 0].mean() >= .6: walls |= rect_mask(r) & O & (1 - doors)
     if k == '1': walls &= 1 - rect_mask(HALL_OPEN_1F); doors &= 1 - rect_mask(HALL_OPEN_1F)
     if k == 'B':
         walls &= 1 - rect_mask(HALL_CLEAR_B1); doors &= 1 - rect_mask(HALL_CLEAR_B1)
@@ -289,10 +371,43 @@ for k in ALL_FLOORS:
             q = [p[0] + (0 if horiz else sgn * .8), p[1] + (sgn * .8 if horiz else 0)]
             if not Pk.buffer(-.01).contains(Polygon([(q[0] - .01, q[1] - .01), (q[0] + .01, q[1] - .01), (q[0], q[1] + .01)])): probe = q
         exits.append({'manual': True, 'rect': rects(sel), 'line': [world(a0), world(a1)], 'outside': world(probe), 'inside': world([2 * p[0] - probe[0], 2 * p[1] - probe[1]])})
+    # Drawn exterior doors (swing arcs on the outline) not covered above: open when level with the ground
+    # outside, otherwise glazed (runtime).
+    manual_mid = [((a0[0] + a1[0]) / 2, (a0[1] + a1[1]) / 2) for a0, a1 in MANUAL_EXITS.get(k, [])]
+    for d in WF['doors']:
+        h, c = np.array(d['hinge']), np.array(d['closed']); mid = (h + c) / 2
+        if d['r'] < .7 or Pk.exterior.distance(Point(*mid)) > .45 or any(np.hypot(mid[0] - q[0], mid[1] - q[1]) < 1.6 for q in manual_mid): continue
+        u = (c - h) / max(np.hypot(*(c - h)), 1e-6); nrm = np.array([-u[1], u[0]])
+        out_p = mid + nrm * .8
+        if Pk.buffer(-.01).contains(Point(*out_p)): out_p = mid - nrm * .8
+        if Pk.buffer(-.01).contains(Point(*out_p)): continue
+        strip = LineString([h, c]).buffer(.45, cap_style=2)
+        sel = poly_mask(strip) & (band | walls)
+        if sel.sum() < 3: continue
+        exits.append({'manual': False, 'drawn': True, 'rect': rects(sel), 'line': [world(list(h)), world(list(c))], 'outside': world(list(out_p)), 'inside': world(list(2 * mid - out_p))})
+        manual_mid.append(tuple(mid))
     if k == '2': walls &= 1 - rect_mask(OPEN_2F); doors &= 1 - rect_mask(OPEN_2F)
-    for r in EXTRA_DOORS.get(k, []):
-        doors |= rect_mask(r) & walls & (1 - band); walls &= 1 - (rect_mask(r) & (1 - band)); walls |= doors
-    doors &= walls
+    # Seal the toilets (not built yet): wall up their doors, then clear the partitions and fixtures inside each
+    # closed toilet room so it reads as one empty, unreachable room.
+    sealed = np.zeros((H, W), np.uint8)
+    for h, c in toilet_doors:
+        shut = poly_mask(LineString([h, c]).buffer(.1, cap_style=2)); walls |= shut & O; doors &= 1 - shut
+    tmask = np.zeros((H, W), np.uint8)
+    for g in toilet_polys: tmask |= poly_mask(g)
+    zone = cv2.dilate(tmask, disk(6))
+    n_t, lab_t, st_t, _ = cv2.connectedComponentsWithStats((O & (1 - walls) & (1 - band)).astype(np.uint8), 4)
+    for i in range(1, n_t):
+        comp = lab_t == i
+        if st_t[i, 4] * CELL * CELL < 20 and (zone[comp] > 0).mean() > .3: sealed[comp] = 1
+    if sealed.any():
+        room_t = cv2.morphologyEx(sealed, cv2.MORPH_CLOSE, disk(9)) & O
+        cs_t, _ = cv2.findContours(room_t, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE); room_t = np.zeros_like(room_t)
+        cv2.drawContours(room_t, cs_t, -1, 1, -1); room_t &= O
+        core = cv2.erode(room_t, np.ones((3, 3), np.uint8))
+        walls &= 1 - (core & (1 - solid)); walls |= room_t & (1 - core); doors &= 1 - room_t
+        near_t = cv2.dilate(room_t, disk(8))
+        exits = [e for e in exits if not any(near_t[to_px(drawing(q))[1], to_px(drawing(q))[0]] for q in [e['inside']]) or e.get('manual')]
+    doors &= 1 - walls   # lintel strips over drawn door openings
     walls_final = walls & (1 - doors)
     for e in exits:
         for r in e['rect']: walls_final &= 1 - rect_mask(r)
@@ -310,6 +425,11 @@ for k in ALL_FLOORS:
         if cut.sum() < 5: continue
         walls_final &= 1 - cut; rr = rects(cut); sills += [dict(rect=q, top=w['sill']) for q in rr]; heads += [dict(rect=q, bottom=w['head']) for q in rr]
         glass.append({'a': a, 'b': b, 'normal': w['normal'], 'sill': w['sill'], 'head': w['head']})
+    for r in OPEN_EDGES.get(k, []):
+        walls_final &= 1 - rect_mask(r)
+        hit = lambda q: q[0] < r[2] and q[2] > r[0] and q[1] < r[3] and q[3] > r[1]
+        sills = [s for s in sills if not hit(s['rect'])]; heads = [s for s in heads if not hit(s['rect'])]
+        glass = [g for g in glass if not hit([min(g['a'][0], g['b'][0]), min(g['a'][1], g['b'][1]), max(g['a'][0], g['b'][0]), max(g['a'][1], g['b'][1])])]
     # Furniture from room names (scripts/furnish.py); 1.3 m kept clear around doors, exits and stair halls.
     keep = doors.copy()
     for dr in door_list:   # authoritative door positions (world) -> drawing
@@ -354,8 +474,20 @@ for i, fl in enumerate(floors_out):
     slab = slab.buffer(0); parts = [slab] if slab.geom_type == 'Polygon' else list(slab.geoms)
     fl['slab'] = [[ring_coords(p), *[[[round(x, 3), round(y, 3)] for x, y in h.coords][:-1] for h in p.interiors]] for p in parts if p.area > .5]
     fl['slabTriangles'] = [[world(q) for q in list(t.exterior.coords)[:-1]] for p in parts for t in constrained_delaunay_triangles(p).geoms if t.area > 1e-6]
+    # Suspended T-bar ceiling (user 2026-11-19): over the floor, open over stair halls (this floor's flights and the
+    # ones arriving from below), the 己梯 opening and the double-height lecture hall.
+    ceil = slab
+    for st in stairs_by_floor[fl['key']] + (stairs_by_floor[ORDER[i - 1]] if i > 0 else []):
+        ceil = ceil.difference(box(*st['rect']).buffer(.05, join_style=2))
+        if st.get('tiers'): ceil = ceil.difference(box(*HALL_OPEN_1F))
+    for r in fl['openAreas']: ceil = ceil.difference(box(*r))
+    ceil = ceil.buffer(0); cparts = [ceil] if ceil.geom_type == 'Polygon' else [g for g in ceil.geoms if g.geom_type == 'Polygon']
+    fl['ceilingTriangles'] = [[world(q) for q in list(t.exterior.coords)[:-1]] for p in cparts if p.area > .5 for t in constrained_delaunay_triangles(p).geoms if t.area > 1e-6]
 top = OUTLINE[ORDER[-1]]
-out = {'version': 2, 'building': 444867693, 'floorHeight': FLOOR_H, 'slab': SLAB, 'transform': T, 'outline': ring_coords(unary_union([OUTLINE[k] for k in ORDER])),
+out = {'version': 2, 'building': 444867693, 'floorHeight': FLOOR_H, 'slab': SLAB, 'transform': T,
+       # Interior finish (user 2026-11-19): square floor tiles, off-white walls, black skirting, light-steel (T-bar)
+       # suspended ceiling with recessed lights.
+       'finish': {'tile': .6, 'wall': '#efe9da', 'skirting': '#1c1c1e', 'skirtingHeight': .1, 'ceilingHeight': 3.0, 'ceilingPanel': .6}, 'outline': ring_coords(unary_union([OUTLINE[k] for k in ORDER])),
        'towerOutline': ring_coords(TOWER), 'podiumRoofLevel': LEVEL['2'],
        'source': {'plan': 'buildings/zhili/plan.json', 'basis': '使用者確認的平面圖判讀；各層外框依圖面（1F含裙樓與北側門廳），牆為房間分區交界與0.25m外牆，梯間四周封牆、門依圖面方位，外牆依房間開窗；門窗尺寸為模型近似。空房間。',
                   'scope': '使用者2026-11-18：先做2樓以下（B1～2F可走），3F以上為實心量體但外牆窗依圖面；B1只含1F建物下方，室外鋪面下方的停車場待做。'},

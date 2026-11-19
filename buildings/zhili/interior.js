@@ -56,6 +56,26 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
    e.steps=[];for(let k=0;k<n-1;k++)e.steps.push({rect:rect(-(k+1)*.3,-k*.3),height:-(k+1)*h,bottom:rise-.4});e.open=true;}}
  const group=new THREE.Group();group.name=key+'-interior';parent.add(group);const blockers=[],props=new THREE.Group();props.name=key+'-interior-details';group.add(props);
  const mats={};for(const[k,c]of Object.entries({outer:0xa7644e,trim:0xbdbcb1,inner:0xece6d6,floor:0xd3cfc4,ceiling:0xe9e7df,frame:0x8f938c,tread:0xc9c5b8,glass:0x6f98a3,steel:0x7f898b,wood:0xa87c50,metal:0x8f979c,fabric:0x4f6f98,board:0x2e4a3c,white:0xeeeeea,dark:0x3b3d40,screen:0xe6e8ea,green:0x2f6d4a}))mats[k]=new THREE.MeshStandardMaterial({color:c,roughness:.88,side:THREE.DoubleSide,...(k==='glass'?{transparent:true,opacity:.5,roughness:.3}:{}),...(['inner','floor','ceiling','tread','wood','metal','fabric','board','white','dark','screen','green'].includes(k)?{emissive:c,emissiveIntensity:.32}:{})});
+ // Interior finish (Zhili, user 2026-11-19): square floor tiles, off-white walls, black skirting, T-bar ceiling with recessed lights.
+ const fin=data.finish,surf={};
+ if(fin){mats.inner.color.set(fin.wall);mats.inner.emissive.set(fin.wall);mats.inner.emissiveIntensity=.5;mats.skirting=new THREE.MeshStandardMaterial({color:fin.skirting,roughness:.6});
+  const canvasTex=(size,draw)=>{const c=document.createElement('canvas');c.width=c.height=size;draw(c.getContext('2d'),size);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;return t;};
+  // 2×2 floor tiles per texture repeat, slight shade variation, grey grout.
+  const tiles=canvasTex(256,(g,n)=>{const h=n/2,shades=['#d8d4cb','#d3cfc6','#d6d2c9','#d1cdc3'];for(let i=0;i<2;i++)for(let j=0;j<2;j++){g.fillStyle=shades[i*2+j];g.fillRect(i*h,j*h,h,h);}
+   for(let k=0;k<1400;k++){g.fillStyle=`rgba(120,110,95,${Math.random()*.08})`;g.fillRect(Math.random()*n,Math.random()*n,2,2);}g.fillStyle='#a9a398';for(const s of[0,h]){g.fillRect(s,0,3,n);g.fillRect(0,s,n,3);}});
+  tiles.colorSpace=THREE.SRGBColorSpace;
+  surf.floor=new THREE.MeshStandardMaterial({map:tiles,roughness:.45,emissive:0xffffff,emissiveMap:tiles,emissiveIntensity:.32});surf.floorRepeat=2*fin.tile;
+  // 4×4 ceiling panels per repeat (2.4 m): mineral-fibre boards on a grey T-bar grid, one 60×120 recessed light.
+  const P=4,draw=(lightOnly)=>(g,n)=>{const s=n/P;g.fillStyle=lightOnly?'#4a4a48':'#dcdbd3';g.fillRect(0,0,n,n);
+   if(!lightOnly)for(let k=0;k<2600;k++){g.fillStyle=`rgba(110,110,100,${Math.random()*.12})`;g.fillRect(Math.random()*n,Math.random()*n,1.5,1.5);}
+   g.fillStyle=lightOnly?'#ffffff':'#ffffff';g.fillRect(s+4,s+4,s-8,2*s-8);
+   if(!lightOnly){g.strokeStyle='#e4e6ea';g.lineWidth=2;for(let k=1;k<6;k++){const x=s+4+k*(s-8)/6;g.beginPath();g.moveTo(x,s+6);g.lineTo(x,3*s-6);g.stroke();}}
+   g.fillStyle=lightOnly?'#2c2c2a':'#a9aaa5';for(let k=0;k<=P;k++){g.fillRect(k*s-2,0,4,n);g.fillRect(0,k*s-2,n,4);}};
+  const ceilMap=canvasTex(512,draw(false));ceilMap.colorSpace=THREE.SRGBColorSpace;
+  surf.ceiling=new THREE.MeshBasicMaterial({map:ceilMap,side:THREE.DoubleSide});/* unlit: the hemisphere light tints a lit ceiling green */surf.ceilingRepeat=4*fin.ceilingPanel;}
+ // A flat surface over drawing-frame triangles with UVs aligned to the building grid (tiles and ceiling panels).
+ function surface(triangles,y,mat,repeat,name){const pos=[],uv=[];for(const t of triangles)for(const[x,z]of t){pos.push(x,y,z);const d=f.toDrawing(x,z);uv.push(d[0]/repeat,d[1]/repeat);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.computeVertexNormals();const m=new THREE.Mesh(g,mat);m.name=name;m.receiveShadow=true;group.add(m);return m;}
  const cube=new THREE.BoxGeometry(1,1,1),dummy=new THREE.Object3D(),batches=new Map();
  const isExterior=(r,ring)=>[[r[0]-.15,(r[1]+r[3])/2],[r[2]+.15,(r[1]+r[3])/2],[(r[0]+r[2])/2,r[1]-.15],[(r[0]+r[2])/2,r[3]+.15]].some(([x,y])=>ringDistance(x,y,ring)>0);
  function rectBox(r,y0,y1,key){if(y1-y0<=.001)return;const [x,z]=f.toWorld((r[0]+r[2])/2,(r[1]+r[3])/2);if(!batches.has(key))batches.set(key,[]);batches.get(key).push({w:r[2]-r[0],h:y1-y0,d:r[3]-r[1],x,y:(y0+y1)/2,z});}
@@ -64,12 +84,24 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
  // A window pane on an outline edge (drawing a→b with outward normal), plus head/sill trim and a mullion.
  function pane(w,y,out=0){const len=Math.hypot(w.b[0]-w.a[0],w.b[1]-w.a[1]),horiz=Math.abs(w.b[1]-w.a[1])<Math.abs(w.b[0]-w.a[0]),cx=(w.a[0]+w.b[0])/2+w.normal[0]*out,cy=(w.a[1]+w.b[1])/2+w.normal[1]*out,r=(along,across)=>horiz?[cx-along/2,cy-across/2,cx+along/2,cy+across/2]:[cx-across/2,cy-along/2,cx+across/2,cy+along/2];
   rectBox(r(len,.06),y+w.sill,y+w.head,'glass');rectBox(r(len+.2,.16),y+w.sill-.08,y+w.sill,'trim');rectBox(r(len+.2,.16),y+w.head,y+w.head+.1,'trim');rectBox(r(.07,.1),y+w.sill,y+w.head,'frame');}
+ // Walls: interior partitions off-white; exterior walls brick outside with an off-white inner half; black skirting
+ // along every indoor face when a finish is given.
+ function wall(r,y,ring,y0=y,top=y+H-SLAB,skirt=true){const out=p=>ringDistance(p[0],p[1],ring)>0,cx=(r[0]+r[2])/2,cy=(r[1]+r[3])/2;
+  const sides={x0:out([r[0]-.15,cy]),x1:out([r[2]+.15,cy]),y0:out([cx,r[1]-.15]),y1:out([cx,r[3]+.15])},n=Object.values(sides).filter(Boolean).length;
+  if(!fin){rectBox(r,y0,top,n?'outer':'inner');return;}
+  let inner=r;
+  if(n===1){const k=Object.keys(sides).find(q=>sides[q]),mx=(r[0]+r[2])/2,my=(r[1]+r[3])/2;
+   const o=k==='x0'?[r[0],r[1],mx,r[3]]:k==='x1'?[mx,r[1],r[2],r[3]]:k==='y0'?[r[0],r[1],r[2],my]:[r[0],my,r[2],r[3]];
+   inner=k==='x0'?[mx,r[1],r[2],r[3]]:k==='x1'?[r[0],r[1],mx,r[3]]:k==='y0'?[r[0],my,r[2],r[3]]:[r[0],r[1],r[2],my];rectBox(o,y0,top,'outer');}
+  else if(n>1){rectBox(r,y0,top,'outer');return;}
+  rectBox(inner,y0,top,'inner');const e=.012;if(skirt)rectBox([inner[0]-e,inner[1]-e,inner[2]+e,inner[3]+e],y,y+fin.skirtingHeight,'skirting');}
  let shell=null;
  for(const fl of data.floors){const y=base+fl.level;
   const s=slab(fl.slabTriangles,y,y-SLAB,'floor',key+'-floor-'+fl.label);shell??=s;
-  for(const w of fl.walls)rectBox(w,y,y+H-SLAB,isExterior(w,fl.outline)?'outer':'inner');
-  for(const w of fl.sills||[]){rectBox(w.rect,y,y+w.top,'outer');}
-  for(const w of fl.heads||[]){rectBox(w.rect,y+w.bottom,y+H-SLAB,'outer');}
+  if(fin){surface(fl.slabTriangles,y+.004,surf.floor,surf.floorRepeat,key+'-tiles-'+fl.label);if(fl.ceilingTriangles)surface(fl.ceilingTriangles,y+fin.ceilingHeight,surf.ceiling,surf.ceilingRepeat,key+'-ceiling-'+fl.label);}
+  for(const w of fl.walls)wall(w,y,fl.outline);
+  for(const w of fl.sills||[])wall(w.rect,y,fl.outline,y,y+w.top);
+  for(const w of fl.heads||[])wall(w.rect,y,fl.outline,y+w.bottom,y+H-SLAB,false);
   for(const w of fl.windows||[])pane(w,y,-.12);
   for(const l of fl.lintels)rectBox(l,y+2.25,y+H-SLAB,'inner');
   for(const e of fl.exits){for(const r of e.rect){rectBox(r,y+2.4,y+H-SLAB,'outer');if(!e.open){rectBox(r,y,y+.15,'outer');rectBox([r[0]+.08,r[1]+.08,r[2]-.08,r[3]-.08],y+.15,y+2.4,'glass');}}}

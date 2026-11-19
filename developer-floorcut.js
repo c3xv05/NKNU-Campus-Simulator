@@ -8,7 +8,7 @@ export function buildingFloors(THREE,scene,campus,terrain,osm){
  const plan=campus.planInteriors?.[osm];
  if(plan){
   const b=[...campus.places,...campus.buildings].find(a=>a.osm===osm),base=terrain.platformHeight(b),H=plan.floorHeight,slab=plan.slab||.2;
-  return{key:plan.key||'zhili',name:b?.name||'',floors:plan.floors.map(f=>({label:f.label,cut:base+f.level+H-slab-.01})),groups:[(plan.key||'zhili')+'-interior'],plaza:true};
+  return{key:plan.key||'zhili',name:b?.name||'',floors:plan.floors.map(f=>({label:f.label,cut:base+f.level+(plan.finish?.ceilingHeight?plan.finish.ceilingHeight-.05:H-slab-.01)})),groups:[(plan.key||'zhili')+'-interior'],plaza:true};
  }
  const j=campus.jiyuanInterior;
  if(j&&osm===j.building){
