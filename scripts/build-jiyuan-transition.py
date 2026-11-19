@@ -8,4 +8,9 @@ root=Path(__file__).resolve().parents[1];path=root/'facilities/jiyuan-access/lay
 for i,a in enumerate(parts):
  if a.area<.001:continue
  c['junctionFillets'].append({'id':f'jiyuan-north-round-{i}','ring':coords(a.exterior),'triangles':[coords(t.exterior)for t in constrained_delaunay_triangles(a).geoms if t.area>1e-9]})
+# Junction mouth between S20 and S22 below S07 is asphalt (orthophoto 2026-11-19), minus the island.
+if cfg.get('junctionMouth'):
+ mouth=Polygon(cfg['junctionMouth']['ring']).difference(Polygon(cfg['beforeNorthTransition']).buffer(.01))
+ for j,a in enumerate(list(mouth.geoms)if hasattr(mouth,'geoms')else[mouth]):
+  if a.area>.01:c['junctionFillets'].append({'id':f'jiyuan-north-round-mouth-{j}','ring':coords(a.exterior),'triangles':[coords(t.exterior)for t in constrained_delaunay_triangles(a).geoms if t.area>1e-9]})
 shape=Polygon(cfg['beforeNorthTransition']).difference(cut);cfg['sidewalk']['ring']=coords(shape.exterior);path.write_text(json.dumps(cfg,ensure_ascii=False,indent=2)+'\n');layout_path=root/'facilities/campus-plazas/layout.json';layout=json.loads(layout_path.read_text());layout['pedestrianAreas']=[cfg['sidewalk']if a['id']==cfg['sidewalk']['id']else a for a in layout['pedestrianAreas']];layout_path.write_text(json.dumps(layout,ensure_ascii=False,indent=2)+'\n');p.write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n');print('Rounded S20/S22 sidewalk tips at S07; asphalt infill',round(cut.area,3),'m²')
