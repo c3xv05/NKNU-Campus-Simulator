@@ -68,6 +68,9 @@ STAIR = {'甲梯': {'entrance': 'y1', 'door': ('y1', .5, 1.6)}, '乙梯': {'entr
 # 己梯 (user 2026-11-18 "己梯要蓋"): open straight stair from the 1F ±0 paving (y55.3) up to the 2F plaza (y48.7);
 # the 2F floor is open over it and its top opens onto the plaza.
 OPEN_2F = [19.0, 46.3, 21.3, 55.4]     # walls cleared (top landing opens onto the plaza)
+# Open (semi-outdoor) outline edges, no wall (user 2026-11-19): 2F west of 己梯 between the two columns opens onto
+# the upper plaza walkway.
+OPEN_EDGES = {'2': [[16.2, 46.85, 16.9, 55.05]]}
 HOLE_2F = [19.0, 48.7, 21.3, 55.4]     # 2F slab open over the flight  # B05 演講廳 double door to the south 門廳
 # Entrances on the 1F outline (drawing metres): north lobby, corridor south end, east main lobby, two west-lobby doors.
 MANUAL_EXITS = {'1': [[[64.4, 26.6], [64.4, 29.4]], [[26.7, 55.4], [26.7, 57.5]], [[38.4, 66.6], [42.4, 66.6]],
@@ -133,6 +136,28 @@ def stair_layout(rect, entrance):
     return treads, r(land, L, 0, Wd), run, land, r(land, L - land, Wd / 2 - .06, Wd / 2 + .06)
 
 plans = {f['key']: f for f in plan['floors']}
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location('zhili_walls', root / 'scripts/extract-zhili-walls.py'); EXTRACT = _ilu.module_from_spec(_spec); _spec.loader.exec_module(EXTRACT)
+def line_raster(label):
+    """Every drawn line of this floor's PDF on the generator grid (needs PyMuPDF)."""
+    m = np.zeros((H, W), np.uint8)
+    for q in EXTRACT.segments(label):
+        cv2.line(m, tuple(to_px(q[:2])), tuple(to_px(q[2:])), 1, 1)
+    return m
+def fit_hall(rect, ink):
+    """Fit a stair hall rect to this floor's drawn walls: march outward from inside the hall to the first wall on each
+    side; a side with no wall nearby keeps the given edge."""
+    x0, y0, x1, y1 = rect; out = list(rect); m = ink.copy()
+    m[rect_mask([x0 + .45, y0 + .45, x1 - .45, y1 - .45]) > 0] = 0   # ignore the drawn divider / treads
+    for i, (axis, sgn) in enumerate([(0, -1), (1, -1), (0, 1), (1, 1)]):
+        hits = []
+        for t in np.linspace(.25, .75, 7):
+            p = [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t]; p[axis] = rect[i] - sgn * .45
+            for step in range(0, 12):
+                q = list(p); q[axis] = p[axis] + sgn * step * CELL; px = to_px(q)
+                if 0 <= px[0] < W and 0 <= px[1] < H and m[px[1], px[0]]: hits.append(q[axis] - sgn * CELL / 2); break
+        if len(hits) >= 4: out[i] = round(float(np.median(hits)), 3)
+    return out
 WALLS = json.loads((root / 'buildings/zhili/walls.json').read_text())['floors']
 TYPICAL = {}
 for s in plans['4']['spaces']:
@@ -250,15 +275,25 @@ for k in ALL_FLOORS:
         for s in spaces:
             if s['type'] != 'stair' or s['name'] not in upper or s['name'] not in STAIR: continue
             ys, xs = np.nonzero(s['mask']); rect = cell_rect(xs.min(), ys.min(), xs.max(), ys.max())
-            if k != 'B': rect = TYPICAL[s['name']]
+            if k != 'B': rect = fit_hall(TYPICAL[s['name']], ink)
             treads, hole, run, land, divider = stair_layout(rect, STAIR[s['name']]['entrance'])
             stairs.append({'id': s['name'], 'rect': rect, 'entrance': STAIR[s['name']]['entrance'], 'treads': treads, 'hole': hole, 'divider': divider, 'run': round(run, 3), 'landing': round(land, 3)})
     halls = {st['id']: st['rect'] for st in prev + stairs if st['id'] in STAIR}
-    near_ink = cv2.dilate(ink, disk(3))
-    for sid, (x0, y0, x1, y1) in halls.items():
-        # Treads and the divider are generated; the hall walls and doors stay as drawn (ring kept only where ink is).
-        inside = rect_mask([x0, y0, x1, y1]); ring = rect_mask([x0 - .2, y0 - .2, x1 + .2, y1 + .2]) & (1 - inside) & O
-        walls[inside > 0] = 0; doors[inside > 0] = 0; walls |= ring & near_ink & (1 - doors)
+    lines = line_raster(LABEL[k])
+    for sid, hr in halls.items():
+        # Treads and the divider are generated. The hall's walls follow this floor's drawing (user 2026-11-19: 2F
+        # halls were offset and 乙梯 lost its walls): the rect is fitted to the drawn walls, and every side except
+        # the door side gets a wall wherever the drawing has a line along it; drawn doors stay open.
+        x0, y0, x1, y1 = hr if sid in [st['id'] for st in stairs] else fit_hall(hr, ink)
+        inside = rect_mask([x0, y0, x1, y1]); walls[inside > 0] = 0; doors[inside > 0] = 0
+        for side, r in {'x0': [x0 - .2, y0 - .2, x0, y1 + .2], 'x1': [x1, y0 - .2, x1 + .2, y1 + .2],
+                        'y0': [x0 - .2, y0 - .2, x1 + .2, y0], 'y1': [x0 - .2, y1, x1 + .2, y1 + .2]}.items():
+            if side == STAIR[sid]['door'][0]: continue
+            band_r = rect_mask([r[0] - .3, r[1] - .3, r[2] + .3, r[3] + .3]) & (1 - inside)
+            along = (r[2] - r[0]) > (r[3] - r[1])
+            cover = (band_r & lines).any(axis=0 if along else 1)
+            span = (band_r.any(axis=0) if along else band_r.any(axis=1))
+            if span.sum() and cover[span > 0].mean() >= .6: walls |= rect_mask(r) & O & (1 - doors)
     if k == '1': walls &= 1 - rect_mask(HALL_OPEN_1F); doors &= 1 - rect_mask(HALL_OPEN_1F)
     if k == 'B':
         walls &= 1 - rect_mask(HALL_CLEAR_B1); doors &= 1 - rect_mask(HALL_CLEAR_B1)
@@ -331,6 +366,11 @@ for k in ALL_FLOORS:
         if cut.sum() < 5: continue
         walls_final &= 1 - cut; rr = rects(cut); sills += [dict(rect=q, top=w['sill']) for q in rr]; heads += [dict(rect=q, bottom=w['head']) for q in rr]
         glass.append({'a': a, 'b': b, 'normal': w['normal'], 'sill': w['sill'], 'head': w['head']})
+    for r in OPEN_EDGES.get(k, []):
+        walls_final &= 1 - rect_mask(r)
+        hit = lambda q: q[0] < r[2] and q[2] > r[0] and q[1] < r[3] and q[3] > r[1]
+        sills = [s for s in sills if not hit(s['rect'])]; heads = [s for s in heads if not hit(s['rect'])]
+        glass = [g for g in glass if not hit([min(g['a'][0], g['b'][0]), min(g['a'][1], g['b'][1]), max(g['a'][0], g['b'][0]), max(g['a'][1], g['b'][1])])]
     # Furniture from room names (scripts/furnish.py); 1.3 m kept clear around doors, exits and stair halls.
     keep = doors.copy()
     for dr in door_list:   # authoritative door positions (world) -> drawing
