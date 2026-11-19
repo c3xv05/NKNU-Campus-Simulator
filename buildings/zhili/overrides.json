@@ -1,0 +1,3624 @@
+{
+ "version": 1,
+ "source": "致理牆門編輯器 https://claude.ai/artifact/STB5MGccpxR92gHTq64vbA（使用者手動標示，優先於自動判讀）",
+ "frame": "plan.json drawing metres",
+ "kinds": {
+  "wall": "沿線補牆（0.16m）",
+  "door": "沿線開門洞並加門楣",
+  "open": "沿線去除牆（含外牆），無門"
+ },
+ "edits": [
+  {
+   "id": "p4ss2bkkuqajn0gjlqqg",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    11.9,
+    40.75
+   ],
+   "b": [
+    26.75,
+    40.75
+   ]
+  },
+  {
+   "id": "173cieoe6y4im7im2lod",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    11.85,
+    40.25
+   ],
+   "b": [
+    26.75,
+    40.25
+   ]
+  },
+  {
+   "id": "rd6a84h95g8eb1ogf51x",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    26.85,
+    40.3
+   ],
+   "b": [
+    26.85,
+    40.75
+   ]
+  },
+  {
+   "id": "1f0zx2bnaxfi0adb0ve4",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    21.6,
+    20.95
+   ],
+   "b": [
+    21.6,
+    39.95
+   ]
+  },
+  {
+   "id": "qqqqvlxykonbg908z1sr",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    2.6,
+    61.2
+   ],
+   "b": [
+    2.6,
+    62.3
+   ]
+  },
+  {
+   "id": "oosm97ou5qkq0x0ec5o2",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    2.75,
+    62.2
+   ],
+   "b": [
+    7.35,
+    62.2
+   ]
+  },
+  {
+   "id": "mcq8fgo4q3ykk4vwepes",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    7.3,
+    61.35
+   ],
+   "b": [
+    7.3,
+    62.1
+   ]
+  },
+  {
+   "id": "6zif0di2237701sxg1v3",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    2,
+    60.7
+   ],
+   "b": [
+    7.05,
+    60.7
+   ]
+  },
+  {
+   "id": "ma60g8f0lvv352wa7o0h",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    2.05,
+    61.2
+   ],
+   "b": [
+    7.05,
+    61.2
+   ]
+  },
+  {
+   "id": "jcz6avszoxji9tgrjf1o",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    3.65,
+    60.25
+   ],
+   "b": [
+    6.7,
+    60.25
+   ]
+  },
+  {
+   "id": "063cgphrjpyp6691uoib",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    4.3,
+    59.9
+   ],
+   "b": [
+    4.9,
+    59.9
+   ]
+  },
+  {
+   "id": "qjwmgns8o72pjyl2yai3",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    6.2,
+    60.25
+   ],
+   "b": [
+    6.7,
+    60.25
+   ]
+  },
+  {
+   "id": "m8ykpejygaoyzflhgxpr",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    18.65,
+    54.6
+   ],
+   "b": [
+    18.65,
+    48.25
+   ]
+  },
+  {
+   "id": "g9oh253420uvdsu1vyhx",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    18.75,
+    48.2
+   ],
+   "b": [
+    21.65,
+    48.2
+   ]
+  },
+  {
+   "id": "5gf9015jquyv2gj6v2ok",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    21.9,
+    48.05
+   ],
+   "b": [
+    21.9,
+    54.65
+   ]
+  },
+  {
+   "id": "cjft73vm67wjjmrn4zbj",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    18.75,
+    54.55
+   ],
+   "b": [
+    18.75,
+    55.95
+   ]
+  },
+  {
+   "id": "6qzduc5bt7uqyyx24u3d",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    18.55,
+    55.75
+   ],
+   "b": [
+    21.9,
+    55.75
+   ]
+  },
+  {
+   "id": "4we45xr32be17wpugsg8",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    21.85,
+    54.5
+   ],
+   "b": [
+    21.85,
+    55.85
+   ]
+  },
+  {
+   "id": "238d5wy71n3fwoseh97m",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    17.3,
+    54.9
+   ],
+   "b": [
+    23.3,
+    54.9
+   ]
+  },
+  {
+   "id": "abw0756sibd8nkrv50ee",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    61.05,
+    55.1
+   ],
+   "b": [
+    65.55,
+    55.1
+   ]
+  },
+  {
+   "id": "f7yv5yu6ycui2engs4bm",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    60.4,
+    58.65
+   ],
+   "b": [
+    60.4,
+    61.7
+   ]
+  },
+  {
+   "id": "cfbnzsrzvp2t79a3nifw",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    60.4,
+    61.75
+   ],
+   "b": [
+    63.75,
+    61.75
+   ]
+  },
+  {
+   "id": "qi865b4v1ww8ngkry7j4",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    63.7,
+    58.9
+   ],
+   "b": [
+    63.7,
+    63.1
+   ]
+  },
+  {
+   "id": "63z47cd45lq2ehlsecuu",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    63.55,
+    63.15
+   ],
+   "b": [
+    63.55,
+    63.85
+   ]
+  },
+  {
+   "id": "v8qxloeusw62qvc5dhlg",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    59.5,
+    63.8
+   ],
+   "b": [
+    63.25,
+    63.8
+   ]
+  },
+  {
+   "id": "ru6yu8obcn2dyoc46h2h",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    59.15,
+    64.35
+   ],
+   "b": [
+    59.15,
+    66.65
+   ]
+  },
+  {
+   "id": "bjzu02gpdi3871j0aq28",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    59.2,
+    64.35
+   ],
+   "b": [
+    64.75,
+    64.35
+   ]
+  },
+  {
+   "id": "2t8hlewqp3nj0uan9wxy",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    64.65,
+    59
+   ],
+   "b": [
+    64.65,
+    64.25
+   ]
+  },
+  {
+   "id": "i42gfpkipxb907kr7ja0",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    47.6,
+    15.7
+   ],
+   "b": [
+    52.6,
+    15.7
+   ]
+  },
+  {
+   "id": "7nvxd64bp92dflv6m3n3",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    47.7,
+    20.5
+   ],
+   "b": [
+    53.2,
+    20.5
+   ]
+  },
+  {
+   "id": "wgqg652uk6q8q0zvpgnx",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    36.5,
+    27.35
+   ],
+   "b": [
+    36.5,
+    31.85
+   ]
+  },
+  {
+   "id": "khnz180o9215nqmbvwym",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    14.45,
+    17.2
+   ],
+   "b": [
+    14.45,
+    17.9
+   ]
+  },
+  {
+   "id": "cqboe7089fjtdeo2nyys",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    10.55,
+    20.05
+   ],
+   "b": [
+    15.85,
+    20.05
+   ]
+  },
+  {
+   "id": "ualfl9wnf419hpp7l3rl",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    6.15,
+    23.35
+   ],
+   "b": [
+    6.15,
+    26.15
+   ]
+  },
+  {
+   "id": "8zvgps3d52wpymx1q4tw",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    2.4,
+    24.6
+   ],
+   "b": [
+    5.05,
+    24.6
+   ]
+  },
+  {
+   "id": "0zpcho2r6aeb1o37nu1q",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    4.95,
+    24.6
+   ],
+   "b": [
+    6,
+    24.6
+   ]
+  },
+  {
+   "id": "xz7s4sbylg7ti4s83t2d",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    6.05,
+    23.65
+   ],
+   "b": [
+    6.05,
+    24.65
+   ]
+  },
+  {
+   "id": "sifztbubl3v48100mojl",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    5,
+    24.55
+   ],
+   "b": [
+    6.15,
+    24.55
+   ]
+  },
+  {
+   "id": "uomv07b69a5yhjl0zjsj",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    2.6,
+    36.45
+   ],
+   "b": [
+    4.95,
+    36.45
+   ]
+  },
+  {
+   "id": "c3t10clo31ywz51l470r",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    6.25,
+    34.8
+   ],
+   "b": [
+    6.25,
+    35.8
+   ]
+  },
+  {
+   "id": "8cnsx7k722eu4mxws9lp",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    6,
+    34.85
+   ],
+   "b": [
+    6,
+    35.95
+   ]
+  },
+  {
+   "id": "1kv1a8xcwnq3nxq7nsnf",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    5.1,
+    36.6
+   ],
+   "b": [
+    6.25,
+    36.6
+   ]
+  },
+  {
+   "id": "mzqtgvy6cfae9rhen0zv",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    6.4,
+    36.55
+   ],
+   "b": [
+    6.4,
+    37.8
+   ]
+  },
+  {
+   "id": "zdkpxkbdzmg5qqpk5gw0",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    6,
+    36.65
+   ],
+   "b": [
+    6,
+    37.75
+   ]
+  },
+  {
+   "id": "qwv68k4pkzds404jiogp",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    5.65,
+    36.65
+   ],
+   "b": [
+    5.65,
+    37.4
+   ]
+  },
+  {
+   "id": "ysp3hqnxmzmyq698852l",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    5.1,
+    36.65
+   ],
+   "b": [
+    5.1,
+    37.15
+   ]
+  },
+  {
+   "id": "ln3m762k2n0o218pgaid",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    6,
+    23.6
+   ],
+   "b": [
+    6,
+    24.65
+   ]
+  },
+  {
+   "id": "91u59tzrvnwe0rhj5kvd",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    5.65,
+    23.95
+   ],
+   "b": [
+    5.65,
+    24.8
+   ]
+  },
+  {
+   "id": "8bji6mpwj0djz3j5n1r2",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    5.3,
+    24
+   ],
+   "b": [
+    5.3,
+    24.7
+   ]
+  },
+  {
+   "id": "s82b6n9rdpjf597e8hzo",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    5.7,
+    25.6
+   ],
+   "b": [
+    5.7,
+    26.05
+   ]
+  },
+  {
+   "id": "re3xb5ntt7hn9i5dv09n",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    3.05,
+    41.6
+   ],
+   "b": [
+    3.05,
+    40.95
+   ]
+  },
+  {
+   "id": "jjf10i7sn6adrlru8cpq",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    3.75,
+    41.85
+   ],
+   "b": [
+    3.75,
+    40.9
+   ]
+  },
+  {
+   "id": "genzbsjpf100pumxt2gv",
+   "floor": "B1",
+   "kind": "open",
+   "a": [
+    3.1,
+    42.35
+   ],
+   "b": [
+    4.7,
+    42.35
+   ]
+  },
+  {
+   "id": "belo131e7lty92jhnr3r",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    2,
+    24.7
+   ],
+   "b": [
+    4.9,
+    24.7
+   ]
+  },
+  {
+   "id": "ijyzfk1ltbdaavgekorl",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    4.85,
+    24.85
+   ],
+   "b": [
+    4.85,
+    23.3
+   ]
+  },
+  {
+   "id": "p7xjzv7rt2zu8f9auymu",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    4.85,
+    24.95
+   ],
+   "b": [
+    6.45,
+    24.95
+   ]
+  },
+  {
+   "id": "jpmz6uhd0eelv48s6yol",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    6.5,
+    23.35
+   ],
+   "b": [
+    6.5,
+    24.95
+   ]
+  },
+  {
+   "id": "royd22lhdj64sh3w33vj",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    5.2,
+    24.65
+   ],
+   "b": [
+    6.55,
+    24.65
+   ]
+  },
+  {
+   "id": "1cqjmu4mhoyavuopqoc4",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    5.3,
+    24.4
+   ],
+   "b": [
+    6.35,
+    24.4
+   ]
+  },
+  {
+   "id": "v846vqepgw2222uz3byx",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    5.65,
+    24.05
+   ],
+   "b": [
+    6.35,
+    24.05
+   ]
+  },
+  {
+   "id": "f7627uhvp6mruk0j3g5b",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    6,
+    23.8
+   ],
+   "b": [
+    6.55,
+    23.8
+   ]
+  },
+  {
+   "id": "v61232glmpl2tfuct7ds",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    1.7,
+    36.35
+   ],
+   "b": [
+    5,
+    36.35
+   ]
+  },
+  {
+   "id": "p4rigc0vwkfgu22b0zi0",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    41.15,
+    7.1
+   ],
+   "b": [
+    41.15,
+    8.45
+   ]
+  },
+  {
+   "id": "p9d1p2z8tsojpmocmo96",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    41.25,
+    6.85
+   ],
+   "b": [
+    41.9,
+    6.85
+   ]
+  },
+  {
+   "id": "lopnhmih9wflo8lmyrmc",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    41.2,
+    8.55
+   ],
+   "b": [
+    42,
+    8.55
+   ]
+  },
+  {
+   "id": "d4i03cd10ixci98jtgcs",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    36.1,
+    4.95
+   ],
+   "b": [
+    40.8,
+    4.95
+   ]
+  },
+  {
+   "id": "n9hj4fa33mu5di68m4vc",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    36.05,
+    4.95
+   ],
+   "b": [
+    40.9,
+    4.95
+   ]
+  },
+  {
+   "id": "om68go9h3wsgg13zfb7c",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    36.6,
+    5.3
+   ],
+   "b": [
+    40.45,
+    5.3
+   ]
+  },
+  {
+   "id": "oecg0zu0mc2bmrx9r4jh",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    36.05,
+    4.65
+   ],
+   "b": [
+    41.2,
+    4.65
+   ]
+  },
+  {
+   "id": "5o6fyifdok32itc62ggq",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    41.5,
+    4.8
+   ],
+   "b": [
+    41.5,
+    5.45
+   ]
+  },
+  {
+   "id": "58a9a2g4h5w3xfqjw65f",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    41.75,
+    4.75
+   ],
+   "b": [
+    41.75,
+    5.6
+   ]
+  },
+  {
+   "id": "qusn7dfdh6y8h9aiysnf",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    35.85,
+    6.4
+   ],
+   "b": [
+    35.85,
+    10.1
+   ]
+  },
+  {
+   "id": "ym8cftu6cxs2gf6iscqq",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    35.95,
+    10.5
+   ],
+   "b": [
+    41.85,
+    10.5
+   ]
+  },
+  {
+   "id": "ks4e777174nn1555ci0h",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    36.4,
+    10.15
+   ],
+   "b": [
+    39.65,
+    10.15
+   ]
+  },
+  {
+   "id": "5hjnjr8fa5sd3ij3qbwh",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    44.25,
+    11.8
+   ],
+   "b": [
+    44.25,
+    19
+   ]
+  },
+  {
+   "id": "0o93i7zujdlxdg0ik6bc",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    42.9,
+    19.05
+   ],
+   "b": [
+    44,
+    19.05
+   ]
+  },
+  {
+   "id": "mys6y968qp0irwvi5lnl",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    34.05,
+    33.65
+   ],
+   "b": [
+    34.95,
+    33.65
+   ]
+  },
+  {
+   "id": "vsm4ijl01kpv8212pmgt",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    35.1,
+    33.7
+   ],
+   "b": [
+    35.1,
+    37.35
+   ]
+  },
+  {
+   "id": "66in2fonfuoymamytfma",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    33.65,
+    37.4
+   ],
+   "b": [
+    34.95,
+    37.4
+   ]
+  },
+  {
+   "id": "dip89rmanhbzd33qim6a",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    44.2,
+    64.55
+   ],
+   "b": [
+    44.2,
+    66.55
+   ]
+  },
+  {
+   "id": "v6icyk2l2ze7r07wjmjj",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    42.55,
+    66.55
+   ],
+   "b": [
+    44.1,
+    66.55
+   ]
+  },
+  {
+   "id": "gcupnysxdg2v102bo24s",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    36.5,
+    64.6
+   ],
+   "b": [
+    36.5,
+    66.55
+   ]
+  },
+  {
+   "id": "fsmnmslredm6l80dm6ih",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    36.6,
+    66.55
+   ],
+   "b": [
+    43.35,
+    66.55
+   ]
+  },
+  {
+   "id": "lb4yvqxc298tk910rj6e",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    36.5,
+    64.45
+   ],
+   "b": [
+    38.7,
+    64.45
+   ]
+  },
+  {
+   "id": "m9hj6gzkbag22vw0mrwa",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    38.75,
+    64.65
+   ],
+   "b": [
+    38.75,
+    65.15
+   ]
+  },
+  {
+   "id": "luw73mqnw4teyb0tvegc",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    36.75,
+    65.1
+   ],
+   "b": [
+    38.7,
+    65.1
+   ]
+  },
+  {
+   "id": "n09kyk1604nrx6umcir6",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    36.65,
+    64.8
+   ],
+   "b": [
+    38.55,
+    64.8
+   ]
+  },
+  {
+   "id": "ej1fzxgfjefpz2ehs29q",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    36.65,
+    66.1
+   ],
+   "b": [
+    37.7,
+    66.1
+   ]
+  },
+  {
+   "id": "pjqc2fueolm171ejb5qy",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    36.7,
+    66.3
+   ],
+   "b": [
+    37.75,
+    66.3
+   ]
+  },
+  {
+   "id": "9x38pfqzkstkq8e2zs38",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    42.05,
+    64.55
+   ],
+   "b": [
+    43.95,
+    64.55
+   ]
+  },
+  {
+   "id": "v3q8bo3sgxt9kvgfjqxp",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    43.9,
+    64.7
+   ],
+   "b": [
+    43.9,
+    66.5
+   ]
+  },
+  {
+   "id": "r3mx0qugjlgtb43tkrr4",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    42.45,
+    64.8
+   ],
+   "b": [
+    43.65,
+    64.8
+   ]
+  },
+  {
+   "id": "r5ra25j1w2rt7n6t47ne",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    42.6,
+    65.1
+   ],
+   "b": [
+    43.75,
+    65.1
+   ]
+  },
+  {
+   "id": "w992wki7zwbj936dx9n4",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    43.55,
+    65.35
+   ],
+   "b": [
+    43.55,
+    66.45
+   ]
+  },
+  {
+   "id": "x8r9mjhpbl5zo8dmripy",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    32.85,
+    66.2
+   ],
+   "b": [
+    34.9,
+    66.2
+   ]
+  },
+  {
+   "id": "wheiyed7xr0lguv84fdi",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    31.2,
+    66.1
+   ],
+   "b": [
+    31.9,
+    66.1
+   ]
+  },
+  {
+   "id": "p269zadgu3ndn0oqxxo0",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    31.25,
+    66.25
+   ],
+   "b": [
+    32,
+    66.25
+   ]
+  },
+  {
+   "id": "af1m7ssr808or1dm581s",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    28.3,
+    66.15
+   ],
+   "b": [
+    30.05,
+    66.15
+   ]
+  },
+  {
+   "id": "x9u10i01yd3dz1z4u42l",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    27.95,
+    66.25
+   ],
+   "b": [
+    30.15,
+    66.25
+   ]
+  },
+  {
+   "id": "3ebx17xsp7938wv3ox0b",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    36.6,
+    53.2
+   ],
+   "b": [
+    37.8,
+    53.2
+   ]
+  },
+  {
+   "id": "vccsw9mpxischaje62i0",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    38.05,
+    53.25
+   ],
+   "b": [
+    39,
+    53.25
+   ]
+  },
+  {
+   "id": "m51gp9wx7eyrbqqnrhtz",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    36.65,
+    54.5
+   ],
+   "b": [
+    36.65,
+    53.5
+   ]
+  },
+  {
+   "id": "2y8wbk159rhrnsdfwfgh",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    42.15,
+    48.2
+   ],
+   "b": [
+    44.05,
+    48.2
+   ]
+  },
+  {
+   "id": "wa3j13g37v2y4xrs3s1y",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    43.95,
+    47.75
+   ],
+   "b": [
+    43.95,
+    48.25
+   ]
+  },
+  {
+   "id": "0ozfkmx1n3tf367d72u4",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    26.1,
+    46.55
+   ],
+   "b": [
+    26.1,
+    54.75
+   ]
+  },
+  {
+   "id": "obq56qdcxk2p2b3oi1lf",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    22.4,
+    54.95
+   ],
+   "b": [
+    26.2,
+    54.95
+   ]
+  },
+  {
+   "id": "ht8251rp6xdb3cmlc9nu",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    25.75,
+    51.2
+   ],
+   "b": [
+    25.75,
+    54.85
+   ]
+  },
+  {
+   "id": "ihuji5rp2x921pe6uqka",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    25.55,
+    51.7
+   ],
+   "b": [
+    25.55,
+    54.8
+   ]
+  },
+  {
+   "id": "uuzgj6cx530udalka59c",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    22,
+    46.5
+   ],
+   "b": [
+    22,
+    54.7
+   ]
+  },
+  {
+   "id": "8y8fawytq0goth1ebx3t",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    22.15,
+    46.55
+   ],
+   "b": [
+    22.15,
+    54.8
+   ]
+  },
+  {
+   "id": "qpzpvdbrm8hbgchkcjc9",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    21.45,
+    48.3
+   ],
+   "b": [
+    21.45,
+    55.25
+   ]
+  },
+  {
+   "id": "1et8idkowcdw55tgeoqq",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    16.5,
+    55.2
+   ],
+   "b": [
+    23.25,
+    55.2
+   ]
+  },
+  {
+   "id": "2043s99i2599odjyrke4",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    18.65,
+    48.1
+   ],
+   "b": [
+    22.75,
+    48.1
+   ]
+  },
+  {
+   "id": "bykrvgddw32ru41b2fv2",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    23.85,
+    47.35
+   ],
+   "b": [
+    23.85,
+    54.9
+   ]
+  },
+  {
+   "id": "8g6l0e1g6bpdabgmb9jq",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    22.95,
+    48.2
+   ],
+   "b": [
+    23.7,
+    48.2
+   ]
+  },
+  {
+   "id": "v429rtqt8hoxsefkatuy",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    24,
+    46.45
+   ],
+   "b": [
+    24,
+    47.4
+   ]
+  },
+  {
+   "id": "pj7ypx135je2coygbqy4",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    16.4,
+    48.1
+   ],
+   "b": [
+    17.2,
+    48.1
+   ]
+  },
+  {
+   "id": "haibtij4soildgrhgtp7",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    17.55,
+    48.1
+   ],
+   "b": [
+    18.65,
+    48.1
+   ]
+  },
+  {
+   "id": "wn0ay9ldti8p2jjri1di",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    8.5,
+    45.45
+   ],
+   "b": [
+    8.5,
+    50.2
+   ]
+  },
+  {
+   "id": "6fjotuero6v6xi8yvnx9",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    8.45,
+    50.25
+   ],
+   "b": [
+    16.25,
+    50.25
+   ]
+  },
+  {
+   "id": "sf9m0jl99tgnxf1b3jen",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    16.2,
+    46.45
+   ],
+   "b": [
+    16.2,
+    50.2
+   ]
+  },
+  {
+   "id": "egj0z0njj8s0d831bre5",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    1.4,
+    52
+   ],
+   "b": [
+    7.4,
+    52
+   ]
+  },
+  {
+   "id": "yis3t4z1lrz8xzy2u3fx",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    7.55,
+    52.15
+   ],
+   "b": [
+    7.55,
+    57.45
+   ]
+  },
+  {
+   "id": "egnu1gwypnb12c1i5140",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    1.7,
+    41
+   ],
+   "b": [
+    5,
+    41
+   ]
+  },
+  {
+   "id": "z1dsp0kch7d6xornbdj8",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    5.35,
+    41.25
+   ],
+   "b": [
+    5.35,
+    42.4
+   ]
+  },
+  {
+   "id": "nk65yq3c83qzacgob5om",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    4.85,
+    41.3
+   ],
+   "b": [
+    4.85,
+    42.25
+   ]
+  },
+  {
+   "id": "jb673imbwua58ibt6n3m",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    3.25,
+    41.35
+   ],
+   "b": [
+    3.25,
+    42.1
+   ]
+  },
+  {
+   "id": "6hkzbmadkkv9gvkofdjz",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    2.7,
+    42.2
+   ],
+   "b": [
+    5.25,
+    42.2
+   ]
+  },
+  {
+   "id": "zze1m4dlsz5h7j221woi",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    2.9,
+    41.35
+   ],
+   "b": [
+    5.25,
+    41.35
+   ]
+  },
+  {
+   "id": "882pqde7omhf5ud5rshy",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    4.3,
+    41.5
+   ],
+   "b": [
+    4.3,
+    42.25
+   ]
+  },
+  {
+   "id": "xf35m8a3lcmzuvqoc2uj",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    1.6,
+    36.45
+   ],
+   "b": [
+    5,
+    36.45
+   ]
+  },
+  {
+   "id": "ujl0n2waeipcmrcj8pdh",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    6.75,
+    38.15
+   ],
+   "b": [
+    6.75,
+    40.2
+   ]
+  },
+  {
+   "id": "uc4037vrefkz967rrhcm",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    11.1,
+    40.6
+   ],
+   "b": [
+    12,
+    40.6
+   ]
+  },
+  {
+   "id": "t132h8uzp9ezh9k8lo4g",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    6.8,
+    40.2
+   ],
+   "b": [
+    22.8,
+    40.2
+   ]
+  },
+  {
+   "id": "8mdy2oxtmyw0r44gve37",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    16.2,
+    40.55
+   ],
+   "b": [
+    16.2,
+    41.45
+   ]
+  },
+  {
+   "id": "wfl3r28pa69vnkatlgp4",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    16.65,
+    41.1
+   ],
+   "b": [
+    16.65,
+    40.5
+   ]
+  },
+  {
+   "id": "wpmvodnq52pq44mt6t8r",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    20.7,
+    40.65
+   ],
+   "b": [
+    22.35,
+    40.65
+   ]
+  },
+  {
+   "id": "m1zzq57pjkxililefeg2",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    22.9,
+    39.85
+   ],
+   "b": [
+    23.6,
+    39.85
+   ]
+  },
+  {
+   "id": "o0bzul4a9i1u6zg16ipg",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    26.25,
+    40.15
+   ],
+   "b": [
+    27.05,
+    40.15
+   ]
+  },
+  {
+   "id": "79gu7azkabdqk9aa11xy",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    61.45,
+    59.6
+   ],
+   "b": [
+    61.45,
+    63.4
+   ]
+  },
+  {
+   "id": "hr78lkp2vbadse6nztye",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    61.6,
+    59.55
+   ],
+   "b": [
+    61.6,
+    63.55
+   ]
+  },
+  {
+   "id": "zzkeqpxxlrsw9vqagk98",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    62.45,
+    61.15
+   ],
+   "b": [
+    62.45,
+    62.2
+   ]
+  },
+  {
+   "id": "jygijizmce9cn0dx76n5",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    62.05,
+    61.15
+   ],
+   "b": [
+    62.05,
+    62.15
+   ]
+  },
+  {
+   "id": "vd4hwlfl04lyixac8naq",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    61.95,
+    59.35
+   ],
+   "b": [
+    61.95,
+    63.65
+   ]
+  },
+  {
+   "id": "0k2vhfjalkvd6r4hqacj",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    61.1,
+    61.55
+   ],
+   "b": [
+    61.1,
+    59.65
+   ]
+  },
+  {
+   "id": "2oj8sqz4kyvv4mrlyqia",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    60.3,
+    59.55
+   ],
+   "b": [
+    61.55,
+    59.55
+   ]
+  },
+  {
+   "id": "fwea5lk3mkd361l6rd98",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    60.95,
+    59.75
+   ],
+   "b": [
+    60.95,
+    60.45
+   ]
+  },
+  {
+   "id": "31yy4rv4jig5wcmufb0o",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59,
+    61
+   ],
+   "b": [
+    59,
+    62.4
+   ]
+  },
+  {
+   "id": "u1oqpqhe1f9fe9826fyp",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.4,
+    60.85
+   ],
+   "b": [
+    59.4,
+    63.55
+   ]
+  },
+  {
+   "id": "un5ppnq959zea3f0och4",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.1,
+    61.8
+   ],
+   "b": [
+    59.1,
+    63.6
+   ]
+  },
+  {
+   "id": "mtl7eyvat7eajwuvi78v",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    58.9,
+    62.2
+   ],
+   "b": [
+    58.9,
+    63.6
+   ]
+  },
+  {
+   "id": "wmw4q64qckcw3y7ao7ec",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.05,
+    63.6
+   ],
+   "b": [
+    60,
+    63.6
+   ]
+  },
+  {
+   "id": "7r4eugignoqrexx0hdf0",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.85,
+    62.25
+   ],
+   "b": [
+    59.85,
+    62.85
+   ]
+  },
+  {
+   "id": "jwx62dw2l82t3jv6ui0y",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    58.95,
+    58.95
+   ],
+   "b": [
+    58.95,
+    58.6
+   ]
+  },
+  {
+   "id": "pi9uxi8z9jdv81nu0skd",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    58.6,
+    59.1
+   ],
+   "b": [
+    58.6,
+    58.35
+   ]
+  },
+  {
+   "id": "s6snt83lk3gyb270f45l",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    58.6,
+    58.3
+   ],
+   "b": [
+    59.45,
+    58.3
+   ]
+  },
+  {
+   "id": "m6l3l64m8mq4sjeiwxzw",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    60.85,
+    58.9
+   ],
+   "b": [
+    63.7,
+    58.9
+   ]
+  },
+  {
+   "id": "cb1qdm57sblao62s7qpk",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    62.35,
+    61
+   ],
+   "b": [
+    62.35,
+    61.95
+   ]
+  },
+  {
+   "id": "qrdbufxb0in8q8jg2l3k",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    65.6,
+    55.85
+   ],
+   "b": [
+    65.6,
+    57.7
+   ]
+  },
+  {
+   "id": "m7ggyrbu270i72us8mjl",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    63.85,
+    59.1
+   ],
+   "b": [
+    63.85,
+    63.65
+   ]
+  },
+  {
+   "id": "58jv4oia9qav88qwgsew",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    64.6,
+    58.85
+   ],
+   "b": [
+    64.6,
+    63.9
+   ]
+  },
+  {
+   "id": "gs61tx9w9bgyvtu7anoo",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    63.55,
+    63.8
+   ],
+   "b": [
+    64.55,
+    63.8
+   ]
+  },
+  {
+   "id": "cb8srjdt7gf88gazc7vp",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    61.8,
+    58.35
+   ],
+   "b": [
+    65.5,
+    58.35
+   ]
+  },
+  {
+   "id": "dufc3ey0ry8qkqw6wpm7",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    64.5,
+    58.6
+   ],
+   "b": [
+    65.45,
+    58.6
+   ]
+  },
+  {
+   "id": "w1oflivbt13sfypml5w7",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    61.25,
+    20.5
+   ],
+   "b": [
+    61.25,
+    25.25
+   ]
+  },
+  {
+   "id": "erfvtvsqlnczg23hhc4i",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.65,
+    22.8
+   ],
+   "b": [
+    59.65,
+    26.5
+   ]
+  },
+  {
+   "id": "vslkkstql9ke1fy3uwdb",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.95,
+    22.75
+   ],
+   "b": [
+    59.95,
+    26.35
+   ]
+  },
+  {
+   "id": "kpuma4n9dr8qypt56j1d",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    60.15,
+    23
+   ],
+   "b": [
+    60.15,
+    26.25
+   ]
+  },
+  {
+   "id": "ejsa9dqt3lyc28s1mjp0",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.45,
+    22.7
+   ],
+   "b": [
+    59.45,
+    26.8
+   ]
+  },
+  {
+   "id": "ybhksf1b46tzygo8x5h7",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    61.25,
+    25.1
+   ],
+   "b": [
+    61.25,
+    26.15
+   ]
+  },
+  {
+   "id": "h4wj54v7jviyy11npfxf",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    61.55,
+    25.65
+   ],
+   "b": [
+    63.8,
+    25.65
+   ]
+  },
+  {
+   "id": "rwxpes6y54v4t8g5fh2h",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    61.25,
+    25.85
+   ],
+   "b": [
+    64.35,
+    25.85
+   ]
+  },
+  {
+   "id": "klhxcx0x0es9xrkvfa43",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    64.35,
+    25.9
+   ],
+   "b": [
+    64.35,
+    28.5
+   ]
+  },
+  {
+   "id": "5rcp8ckpuvbpq63aieoz",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    64.45,
+    28.5
+   ],
+   "b": [
+    64.45,
+    29.95
+   ]
+  },
+  {
+   "id": "h01u40nyq8p9b3aacqs6",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.4,
+    30.2
+   ],
+   "b": [
+    64.6,
+    30.2
+   ]
+  },
+  {
+   "id": "lovwyovj2olzpl0sc849",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.4,
+    29.9
+   ],
+   "b": [
+    64.6,
+    29.9
+   ]
+  },
+  {
+   "id": "bm7gble6l0pqdr6g2l23",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.35,
+    29.15
+   ],
+   "b": [
+    59.35,
+    30.15
+   ]
+  },
+  {
+   "id": "n7vswhoa6pnibmaa8og4",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.4,
+    29.2
+   ],
+   "b": [
+    62.25,
+    29.2
+   ]
+  },
+  {
+   "id": "w93eyftxo20odhaz1dzx",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    62.25,
+    29.1
+   ],
+   "b": [
+    62.25,
+    30.1
+   ]
+  },
+  {
+   "id": "90b048sebxghxcegt0pj",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    61.35,
+    29.25
+   ],
+   "b": [
+    61.35,
+    30.15
+   ]
+  },
+  {
+   "id": "63k87e8kwcq2rjn8yp11",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    61.8,
+    29.3
+   ],
+   "b": [
+    61.8,
+    30
+   ]
+  },
+  {
+   "id": "y0lsawn50x5i4y2bilmy",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    61.55,
+    29.3
+   ],
+   "b": [
+    61.55,
+    29.9
+   ]
+  },
+  {
+   "id": "4alio5fz3wak4raqzeb1",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    61.95,
+    29.35
+   ],
+   "b": [
+    61.95,
+    30.1
+   ]
+  },
+  {
+   "id": "hlsjczj25zpv4hticete",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.65,
+    29.45
+   ],
+   "b": [
+    60.3,
+    29.45
+   ]
+  },
+  {
+   "id": "5aa2ps034ssoamuz42ke",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.6,
+    29.6
+   ],
+   "b": [
+    60.35,
+    29.6
+   ]
+  },
+  {
+   "id": "cym42dkeoiazi1gleko1",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.4,
+    20.75
+   ],
+   "b": [
+    61.2,
+    20.75
+   ]
+  },
+  {
+   "id": "el90qd5kda2g8hs3gghs",
+   "floor": "1F",
+   "kind": "open",
+   "a": [
+    59.35,
+    20.45
+   ],
+   "b": [
+    61.5,
+    20.45
+   ]
+  },
+  {
+   "id": "il3hblu6mxawb8qn83tx",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    29.2,
+    15.55
+   ],
+   "b": [
+    29.75,
+    15.55
+   ]
+  },
+  {
+   "id": "ijqsqhblllaiv7wu5qe7",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    28.35,
+    15.7
+   ],
+   "b": [
+    28.9,
+    15.7
+   ]
+  },
+  {
+   "id": "cz8mxr6f72kxtqo8x1f2",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    30.1,
+    15.65
+   ],
+   "b": [
+    30.8,
+    15.65
+   ]
+  },
+  {
+   "id": "02gs016kq5vsi2ony4oy",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    30.9,
+    15.65
+   ],
+   "b": [
+    31.6,
+    15.65
+   ]
+  },
+  {
+   "id": "2ax11racjkw0mm4jyxa4",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    36.35,
+    4.85
+   ],
+   "b": [
+    41.65,
+    4.85
+   ]
+  },
+  {
+   "id": "nh3uz18a2oylhhmanf5h",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    36,
+    4.65
+   ],
+   "b": [
+    41.9,
+    4.65
+   ],
+   "note": "1"
+  },
+  {
+   "id": "ghow3wp7w7kzhyk0fu98",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    41.9,
+    4.65
+   ],
+   "b": [
+    41.9,
+    6.65
+   ]
+  },
+  {
+   "id": "w6hy6kg4b1i931piv0a3",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    41.75,
+    6.7
+   ],
+   "b": [
+    41.05,
+    6.7
+   ]
+  },
+  {
+   "id": "mmdsbzui3nl699v1m937",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    41.75,
+    6.85
+   ],
+   "b": [
+    41,
+    6.85
+   ]
+  },
+  {
+   "id": "zza1rgnv4zsrckgk78v7",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    41.15,
+    8.4
+   ],
+   "b": [
+    42.05,
+    8.4
+   ]
+  },
+  {
+   "id": "ynucvnlmjega3s2i6go9",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    41.55,
+    8.55
+   ],
+   "b": [
+    42,
+    8.55
+   ]
+  },
+  {
+   "id": "om0fpavegj7ctp3a429m",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    35.75,
+    8.75
+   ],
+   "b": [
+    35.75,
+    10.6
+   ]
+  },
+  {
+   "id": "sgbflamhoa8508gjaqnv",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    35.7,
+    10.6
+   ],
+   "b": [
+    41.75,
+    10.6
+   ]
+  },
+  {
+   "id": "tvuicbi8v8s86ac37pee",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    41.85,
+    8.5
+   ],
+   "b": [
+    41.85,
+    10.55
+   ]
+  },
+  {
+   "id": "qt86r0vgmv83v0x5kvkz",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    41.7,
+    10.3
+   ],
+   "b": [
+    36.15,
+    10.3
+   ]
+  },
+  {
+   "id": "czg8dzi1d91jtas7h3sf",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    35.95,
+    9.95
+   ],
+   "b": [
+    39.55,
+    9.95
+   ]
+  },
+  {
+   "id": "oclbw0hzw7e1gw4msn27",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    35.9,
+    10.25
+   ],
+   "b": [
+    39.25,
+    10.25
+   ]
+  },
+  {
+   "id": "4744meaxozgb3qzyiisx",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    36.25,
+    4.7
+   ],
+   "b": [
+    35.7,
+    4.7
+   ]
+  },
+  {
+   "id": "xr206kb2oz7i5e77xmsp",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    35.65,
+    4.55
+   ],
+   "b": [
+    35.65,
+    9.3
+   ]
+  },
+  {
+   "id": "ffen66zm3102sosdkgsr",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    36.05,
+    5.15
+   ],
+   "b": [
+    36.05,
+    8.35
+   ]
+  },
+  {
+   "id": "iye2gnpw3c2cq4nu70t1",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    35.8,
+    5.05
+   ],
+   "b": [
+    35.8,
+    8.1
+   ]
+  },
+  {
+   "id": "cbaw6u96uy5kzsn5g3sf",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    35.95,
+    4.85
+   ],
+   "b": [
+    41.4,
+    4.85
+   ]
+  },
+  {
+   "id": "16db338yuk3qkgfej7hs",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    36.05,
+    5
+   ],
+   "b": [
+    40.35,
+    5
+   ]
+  },
+  {
+   "id": "g5psdcwaj4wka3h721rf",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    37.05,
+    5.25
+   ],
+   "b": [
+    41.6,
+    5.25
+   ]
+  },
+  {
+   "id": "ruie486h83218oyqao0u",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    40.3,
+    4.95
+   ],
+   "b": [
+    41.7,
+    4.95
+   ]
+  },
+  {
+   "id": "rb6k34ex7iphbar2gcu1",
+   "floor": "2F",
+   "kind": "door",
+   "a": [
+    40.95,
+    6.8
+   ],
+   "b": [
+    42.05,
+    6.8
+   ]
+  },
+  {
+   "id": "wy5cgy40r5nzgux63twb",
+   "floor": "2F",
+   "kind": "door",
+   "a": [
+    41.05,
+    8.35
+   ],
+   "b": [
+    42.3,
+    8.35
+   ]
+  },
+  {
+   "id": "6ybm0mnizfpf24untnmv",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    47.8,
+    4.65
+   ],
+   "b": [
+    47.8,
+    10.45
+   ]
+  },
+  {
+   "id": "88yrilh5603obthapsjm",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    48.05,
+    4.65
+   ],
+   "b": [
+    48.05,
+    10.45
+   ]
+  },
+  {
+   "id": "da2cr8rr8x1pi2k5iz7t",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    31.8,
+    64.9
+   ],
+   "b": [
+    48.6,
+    64.9
+   ]
+  },
+  {
+   "id": "xmk3v1pof0dl40uxlt82",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    48.6,
+    64.5
+   ],
+   "b": [
+    48.6,
+    66.4
+   ]
+  },
+  {
+   "id": "xeyhkimt9tdtdjm2dz0u",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    48.65,
+    64.5
+   ],
+   "b": [
+    48.65,
+    66.45
+   ]
+  },
+  {
+   "id": "yfntvj5f0he2b77dgr4n",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    31.75,
+    64.45
+   ],
+   "b": [
+    48.5,
+    64.45
+   ]
+  },
+  {
+   "id": "uaa3662sppybz8s9rryy",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    31.9,
+    64.5
+   ],
+   "b": [
+    31.9,
+    65.15
+   ]
+  },
+  {
+   "id": "zr9ztzu3s9kkxj127y4t",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    31.7,
+    64.35
+   ],
+   "b": [
+    31.7,
+    65.25
+   ]
+  },
+  {
+   "id": "4zjhy1qv86f62g3yarxk",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    32.15,
+    64.5
+   ],
+   "b": [
+    35.85,
+    64.5
+   ]
+  },
+  {
+   "id": "9yvacob7nvev06kc4063",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    32,
+    64.6
+   ],
+   "b": [
+    48.55,
+    64.6
+   ]
+  },
+  {
+   "id": "qc4a9f8klosu2luvir1s",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    32,
+    65.15
+   ],
+   "b": [
+    48.45,
+    65.15
+   ]
+  },
+  {
+   "id": "aq0qsc945zlmpl6402d5",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    36.4,
+    66.55
+   ],
+   "b": [
+    44.55,
+    66.55
+   ]
+  },
+  {
+   "id": "pen3r7qcugimdkuj1k3v",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    31.9,
+    66.5
+   ],
+   "b": [
+    48.7,
+    66.5
+   ]
+  },
+  {
+   "id": "m02zo2vc2h3a69gs17b3",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    59,
+    58.55
+   ],
+   "b": [
+    59,
+    63.9
+   ]
+  },
+  {
+   "id": "4z0pbi92r6inaa4dg30c",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    58.9,
+    63.75
+   ],
+   "b": [
+    63.75,
+    63.75
+   ]
+  },
+  {
+   "id": "iyaqq3k4u99wrw8clud4",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    63.7,
+    58.75
+   ],
+   "b": [
+    63.7,
+    63.85
+   ]
+  },
+  {
+   "id": "zhdbk1b8hbsx6a2q8ppr",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    60.3,
+    58.4
+   ],
+   "b": [
+    60.3,
+    59.2
+   ]
+  },
+  {
+   "id": "djwn69f4i1m7oo7w0kny",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    61.85,
+    58.6
+   ],
+   "b": [
+    61.85,
+    59.45
+   ]
+  },
+  {
+   "id": "eonuee7b61xu4x6wcfny",
+   "floor": "2F",
+   "kind": "wall",
+   "a": [
+    60.4,
+    59.3
+   ],
+   "b": [
+    61.75,
+    59.3
+   ]
+  },
+  {
+   "id": "a2w9bc0n82rst187sjp3",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    60.45,
+    59.65
+   ],
+   "b": [
+    61.8,
+    59.65
+   ]
+  },
+  {
+   "id": "j84s4ofx5j86yh5d92d9",
+   "floor": "2F",
+   "kind": "wall",
+   "a": [
+    64.65,
+    58.65
+   ],
+   "b": [
+    64.65,
+    64.3
+   ]
+  },
+  {
+   "id": "uyeftog4e2ivm8gvk5f0",
+   "floor": "2F",
+   "kind": "wall",
+   "a": [
+    58.85,
+    64.15
+   ],
+   "b": [
+    65,
+    64.15
+   ]
+  },
+  {
+   "id": "mn76u1c1wdco0lgsyuea",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    59.45,
+    26.35
+   ],
+   "b": [
+    61.2,
+    26.35
+   ]
+  },
+  {
+   "id": "dabukov0m5jkseh6xt1u",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    59.55,
+    26.1
+   ],
+   "b": [
+    61.25,
+    26.1
+   ]
+  },
+  {
+   "id": "91cwmeqgn4r9a08plsei",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    61.2,
+    26.15
+   ],
+   "b": [
+    61.2,
+    30.3
+   ]
+  },
+  {
+   "id": "v6phrx7v5h7ja638obnw",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    59.25,
+    30.3
+   ],
+   "b": [
+    61.5,
+    30.3
+   ]
+  },
+  {
+   "id": "2ua43yobak1eccpufuxw",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    59.4,
+    26.25
+   ],
+   "b": [
+    59.4,
+    30.15
+   ]
+  },
+  {
+   "id": "1btbs7yxg9t9bwl7nbd0",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    59.5,
+    20.45
+   ],
+   "b": [
+    61.25,
+    20.45
+   ]
+  },
+  {
+   "id": "b7zb6fswathidtp2ylbs",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    61.2,
+    20.5
+   ],
+   "b": [
+    61.2,
+    25.85
+   ]
+  },
+  {
+   "id": "95g520eswylhck1as7wn",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    59.55,
+    25.8
+   ],
+   "b": [
+    61.2,
+    25.8
+   ]
+  },
+  {
+   "id": "szsr967axi708ii1j1lb",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    59.7,
+    26.55
+   ],
+   "b": [
+    61.2,
+    26.55
+   ]
+  },
+  {
+   "id": "qjvbx49qjxcko05ybs0d",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    59.55,
+    26.85
+   ],
+   "b": [
+    61,
+    26.85
+   ]
+  },
+  {
+   "id": "23e9fijyr305r0a7q9m4",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    59.9,
+    26.8
+   ],
+   "b": [
+    59.9,
+    30.35
+   ]
+  },
+  {
+   "id": "h2eh7jd2q81voccjoidt",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    59.45,
+    26.7
+   ],
+   "b": [
+    59.45,
+    29.4
+   ]
+  },
+  {
+   "id": "krkchh4xxie9q3nl3rh0",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    59.65,
+    27
+   ],
+   "b": [
+    59.65,
+    30
+   ]
+  },
+  {
+   "id": "4ogsetfxrvbwssxkdfjg",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    59.55,
+    30
+   ],
+   "b": [
+    61.3,
+    30
+   ]
+  },
+  {
+   "id": "bjelrwu0bdqy4fyzc2kc",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    47.5,
+    25.55
+   ],
+   "b": [
+    47.5,
+    23.9
+   ]
+  },
+  {
+   "id": "rtio0eswv3q9qj8tjadx",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    47.65,
+    23.75
+   ],
+   "b": [
+    47.65,
+    25.7
+   ]
+  },
+  {
+   "id": "0bcqy01izjpgkddri431",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    46.85,
+    23.85
+   ],
+   "b": [
+    47.8,
+    23.85
+   ]
+  },
+  {
+   "id": "da7p859rx02jumgwll7b",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    47,
+    24
+   ],
+   "b": [
+    47,
+    25.5
+   ]
+  },
+  {
+   "id": "rvecwogormfvye6tsnb2",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    47.05,
+    25.55
+   ],
+   "b": [
+    47.45,
+    25.55
+   ]
+  },
+  {
+   "id": "l8rimvvmp88o1a02nydb",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    47.2,
+    23.95
+   ],
+   "b": [
+    47.2,
+    25.45
+   ]
+  },
+  {
+   "id": "t8se13zhyg61n5okh71p",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    42.65,
+    53.65
+   ],
+   "b": [
+    44.15,
+    53.65
+   ]
+  },
+  {
+   "id": "hk32pfu2t72m73kpm91k",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    42.65,
+    53.55
+   ],
+   "b": [
+    44.45,
+    53.55
+   ]
+  },
+  {
+   "id": "sdz3n2l3yvroshdxrti5",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    44.4,
+    53.6
+   ],
+   "b": [
+    44.4,
+    54.35
+   ]
+  },
+  {
+   "id": "5u2u7kfmiox1a5pd11eu",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    42.75,
+    54
+   ],
+   "b": [
+    44.2,
+    54
+   ]
+  },
+  {
+   "id": "7gkpt43gu6a23amd3sxe",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    42.65,
+    53.8
+   ],
+   "b": [
+    44.25,
+    53.8
+   ]
+  },
+  {
+   "id": "g4x4b5u48t1bic0hw9q4",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    42.75,
+    54.35
+   ],
+   "b": [
+    44.45,
+    54.35
+   ]
+  },
+  {
+   "id": "2o1jbbn6v7a3ieqpl57n",
+   "floor": "2F",
+   "kind": "door",
+   "a": [
+    57.95,
+    57.8
+   ],
+   "b": [
+    58.6,
+    57.8
+   ]
+  },
+  {
+   "id": "lp3ol9kwuh5o8759m7qr",
+   "floor": "2F",
+   "kind": "wall",
+   "a": [
+    58.65,
+    57.9
+   ],
+   "b": [
+    58.65,
+    59.1
+   ]
+  },
+  {
+   "id": "u21ks6hfhnd48v2fgu7s",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    16.6,
+    46.55
+   ],
+   "b": [
+    19.05,
+    46.55
+   ]
+  },
+  {
+   "id": "hlme033jqfrir8tjpfm2",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    16.65,
+    55.25
+   ],
+   "b": [
+    16.65,
+    57.45
+   ]
+  },
+  {
+   "id": "2kgupfgbxbuzqx1o6jlj",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    16.55,
+    55.1
+   ],
+   "b": [
+    16.55,
+    57.5
+   ]
+  },
+  {
+   "id": "legnvh43htgzjoclfxka",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    16.6,
+    58.5
+   ],
+   "b": [
+    16.6,
+    66.55
+   ]
+  },
+  {
+   "id": "ko1d56pnt745cr7ihssb",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    16.75,
+    66.7
+   ],
+   "b": [
+    21,
+    66.7
+   ]
+  },
+  {
+   "id": "i599mzb1wcprd4toyie9",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    16.85,
+    58.35
+   ],
+   "b": [
+    16.85,
+    59.8
+   ]
+  },
+  {
+   "id": "3y66tydzfy2hg1j2p82b",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    16.5,
+    58.25
+   ],
+   "b": [
+    16.5,
+    59.15
+   ]
+  },
+  {
+   "id": "qy2yxz533h1jbr4huwz9",
+   "floor": "2F",
+   "kind": "open",
+   "a": [
+    16.8,
+    66.55
+   ],
+   "b": [
+    21.1,
+    66.55
+   ]
+  },
+  {
+   "id": "rev1",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    54.77,
+    25.92
+   ],
+   "b": [
+    59.08,
+    25.92
+   ],
+   "note": "郵局與東側門廳之間的單線隔間（圖面）",
+   "source": "claude-review"
+  },
+  {
+   "id": "rev2",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    1.4,
+    24.82
+   ],
+   "b": [
+    5.0,
+    24.82
+   ],
+   "note": "演講廳空調機房南牆（圖面雙線）",
+   "source": "claude-review"
+  },
+  {
+   "id": "rev3",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    5.0,
+    24.82
+   ],
+   "b": [
+    6.78,
+    23.03
+   ],
+   "note": "演講廳空調機房東南斜牆（圖面雙線）",
+   "source": "claude-review"
+  },
+  {
+   "id": "rev4",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    6.78,
+    20.8
+   ],
+   "b": [
+    6.78,
+    23.03
+   ],
+   "note": "演講廳空調機房東牆（圖面雙線）",
+   "source": "claude-review"
+  },
+  {
+   "id": "rev5",
+   "floor": "1F",
+   "kind": "door",
+   "a": [
+    44.6,
+    10.45
+   ],
+   "b": [
+    45.7,
+    10.45
+   ],
+   "note": "丁梯一樓入口門（圖面門弧，自動判讀漏掉）",
+   "source": "claude-review"
+  }
+ ]
+}

@@ -215,6 +215,9 @@ def fit_hall(rect, ink):
         if len(hits) >= 4: out[i] = round(float(np.median(hits)), 3)
     return out
 WALLS = json.loads((root / 'buildings/zhili/walls.json').read_text())['floors']
+# Manual wall / door / opening edits by the user (致理牆門編輯器), grouped by floor label.
+OVERRIDES = {}
+for _ed in json.loads((root / 'buildings/zhili/overrides.json').read_text()).get('edits', []): OVERRIDES.setdefault(_ed['floor'], []).append(_ed)
 TYPICAL = {}
 for s in plans['4']['spaces']:
     if s['type'] == 'stair' and s['name'] in STAIR:
@@ -407,6 +410,23 @@ for k in ALL_FLOORS:
         walls &= 1 - (core & (1 - solid)); walls |= room_t & (1 - core); doors &= 1 - room_t
         near_t = cv2.dilate(room_t, disk(8))
         exits = [e for e in exits if not any(near_t[to_px(drawing(q))[1], to_px(drawing(q))[0]] for q in [e['inside']]) or e.get('manual')]
+    # User edits from the 致理牆門編輯器 page (buildings/zhili/overrides.json) win over the automatic reading.
+    for ed in OVERRIDES.get(LABEL[k], []):
+        a_, b_ = np.array(ed['a'], float), np.array(ed['b'], float)
+        if ed['kind'] == 'wall':
+            strip = poly_mask(LineString([a_, b_]).buffer(.08, cap_style=2)) & O; walls |= strip; doors &= 1 - strip
+        else:
+            u_ = (b_ - a_) / max(np.hypot(*(b_ - a_)), 1e-6)
+            cut = poly_mask(LineString([a_ - u_ * .05, b_ + u_ * .05]).buffer(.3, cap_style=2))
+            walls &= 1 - (cut & (1 - solid))
+            if ed['kind'] == 'door':
+                doors |= poly_mask(LineString([a_, b_]).buffer(.2, cap_style=2))
+                mid = (a_ + b_) / 2; n_ = np.array([-u_[1], u_[0]])
+                sides = [space_at(mid + n_ * .8), space_at(mid - n_ * .8)]
+                room = next((sp for sp in sides if sp and sp['type'] not in OPEN_TO), None) or next((sp for sp in sides if sp), None)
+                label = (str(room['num']) if room.get('num') is not None else room['name']) if room else '門'
+                door_list.append({'name': label, 'kind': room['type'] if room else 'unknown', 'to': 'manual', 'manual': True,
+                                  'line': [world(list(a_)), world(list(b_))], 'drawing': [ed['a'], ed['b']]})
     doors &= 1 - walls   # lintel strips over drawn door openings
     walls_final = walls & (1 - doors)
     for e in exits:
