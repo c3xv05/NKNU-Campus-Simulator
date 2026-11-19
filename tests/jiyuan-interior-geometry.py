@@ -40,11 +40,14 @@ for f in data['floors']:
    assert not portal.buffer(.0001).intersects(hall.buffer(-.001)),('bathroom hall door',bath['id'])
   fixtures=[]
   for v in bath['fixtures']:
-   w,h={'sink':(.54,.44),'urinal':(.38,.36),'squat':(.48,.65),'shower':(.68,.68)}[v['kind']];w*=1.1;h*=1.1;a=v['angle'];cs=math.cos(a);sn=math.sin(a);x,z=v['center'];q=Polygon([(x+dx*cs+dz*sn,z-dx*sn+dz*cs)for dx,dz in[(-w/2,-h/2),(w/2,-h/2),(w/2,h/2),(-w/2,h/2)]])
+   w,h={'sink':(.54,.44),'urinal':(.38,.36),'squat':(.48,.65),'shower':(.68,.68),'seat':(.42,.65),'showerhead':(.2,.14)}[v['kind']];w*=1.1;h*=1.1;a=v['angle'];cs=math.cos(a);sn=math.sin(a);x,z=v['center'];q=Polygon([(x+dx*cs+dz*sn,z-dx*sn+dz*cs)for dx,dz in[(-w/2,-h/2),(w/2,-h/2),(w/2,h/2),(-w/2,h/2)]])
    assert q.difference(cells[bath['id']]).area<1e-6
    assert all(q.intersection(other).area<1e-6 for other in fixtures)
    fixtures.append(q)
-  for kind in ['sink','urinal','squat','shower']:assert sum(v['kind']==kind for v in bath['fixtures'])==bath['sets']
+  kinds=[v['kind'] for v in bath['fixtures']]
+  if bath['sets']==2:assert all(kinds.count(k)==2 for k in ['sink','urinal','squat','shower']),kinds
+  # User-labelled private baths: 201/212 sink+seat toilet+shower head; 206/207 sink+urinal+squat+shower.
+  else:assert kinds.count('sink')==1 and kinds.count('squat')+kinds.count('seat')==1 and kinds.count('shower')+kinds.count('showerhead')==1,(bath['id'],kinds)
  # No partition may cross the clear main corridor, even if all doors still happen to connect.
  assert all(not LineString(w).intersects(hall.buffer(-.19))for w in f['walls']),('partition squeezed corridor',f['floor'])
  floor=unary_union([Polygon(r[0],r[1:])for r in f['surfaceRegions']]);walls=unary_union([LineString(w).buffer(.3+.075*1.1)for w in f['walls']+f['windows']]);fixtures=unary_union([Point(v['center']).buffer(.3+(.27 if v['kind']=='sink' else .18)*1.1)for s in baths for v in s['fixtures']if v['kind']in['sink','urinal']]);free=floor.buffer(-.3).difference(walls.union(fixtures));parts=list(free.geoms)if free.geom_type=='MultiPolygon'else[free];main=max(parts,key=lambda p:p.area)

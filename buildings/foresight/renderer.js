@@ -1,4 +1,5 @@
 import {createJiyuanSurface,JIYUAN_OSM} from './surface.js';
+import {ringDistance} from '../../planar.js';
 // Author detail dimensions in the original metres, then scale the whole model in XYZ.
 // Inverse-transform compiled world vertices so the parent transform does not scale them twice.
 export function unscaledRenderSurface(world,scale,pivot,ground){
@@ -6,7 +7,7 @@ export function unscaledRenderSurface(world,scale,pivot,ground){
  const ring=r=>r.map(point),regions=r=>r.map(region=>region.map(ring));
  return{base:ground+(world.base-ground)/scale,floors:world.floors.map(f=>({...f,height:f.height/scale,level:ground+(f.level-ground)/scale,
   regions:regions(f.regions),floorTriangles:f.floorTriangles.map(ring),roofTriangles:f.roofTriangles.map(ring),walls:f.walls.map(ring),windows:f.windows.map(ring),entrances:f.entrances.map(ring),
-  doors:f.doors.map(d=>({...d,line:ring(d.line)})),partitions:(f.partitions||[]).map(ring),cabinets:(f.cabinets||[]).map(c=>({...c,center:point(c.center)})),vents:(f.vents||[]).map(ring),spaces:f.spaces.map(s=>({...s,center:point(s.center),ring:ring(s.ring),triangles:s.triangles.map(ring),...(s.door?{door:ring(s.door)}:{}),...(s.fixtures?{fixtures:s.fixtures.map(v=>({...v,center:point(v.center)}))}:{})})),
+  doors:f.doors.map(d=>({...d,line:ring(d.line)})),partitions:(f.partitions||[]).map(ring),shaftWalls:(f.shaftWalls||[]).map(ring),planters:(f.planters||[]).map(ring),cabinets:(f.cabinets||[]).map(c=>({...c,center:point(c.center)})),vents:(f.vents||[]).map(ring),spaces:f.spaces.map(s=>({...s,center:point(s.center),ring:ring(s.ring),triangles:s.triangles.map(ring),...(s.door?{door:ring(s.door)}:{}),...(s.fixtures?{fixtures:s.fixtures.map(v=>({...v,center:point(v.center)}))}:{})})),
   stairs:f.stairs.map(s=>({...s,route:ring(s.route),bounds:ring(s.bounds),treads:s.treads.map(t=>({...t,height:t.height/scale,ring:ring(t.ring)}))}))}))};
 }
 // The compiled plan drives both meshes and walking. No terrain/road source is changed here.
@@ -14,7 +15,7 @@ export function addJiyuanInterior(THREE,parent,campus,terrain,data){
  campus.jiyuanInterior=data;const worldSurface=createJiyuanSurface(campus,terrain),scale=data.modelScale||1,pivot=data.scalePivot||[0,0],ground=terrain.platformHeight(campus.places.find(b=>b.osm===JIYUAN_OSM)),surface=unscaledRenderSurface(worldSurface,scale,pivot,ground),base=surface.base;
  const group=new THREE.Group();group.name='jiyuan-interior';group.scale.setScalar(scale);group.position.set((1-scale)*pivot[0],(1-scale)*ground,(1-scale)*pivot[1]);parent.add(group);const blockers=[],props=new THREE.Group();props.name='jiyuan-interior-details';group.add(props);
  const cube=new THREE.BoxGeometry(1,1,1),dummy=new THREE.Object3D(),batches=new Map(),materials={};
- for(const[k,color]of Object.entries({wall:0xb87d62,inner:0xebe5d5,frame:0xb7b8ae,floor:0xd6d1c5,bath:0xc4d9d4,wood:0x8b6446,white:0xf5f2e8,steel:0x858f91,dark:0x29484e,water:0x78b0b1,glass:0x719eaa,landing:0xd5d2c6,partition:0xa9c3c4,cabinet:0xd9d4c4}))materials[k]=new THREE.MeshStandardMaterial({color,roughness:.85,side:THREE.DoubleSide});
+ for(const[k,color]of Object.entries({wall:0xb87d62,inner:0xebe5d5,frame:0xb7b8ae,floor:0xd6d1c5,bath:0xc4d9d4,wood:0x8b6446,white:0xf5f2e8,steel:0x858f91,dark:0x29484e,water:0x78b0b1,glass:0x719eaa,landing:0xd5d2c6,partition:0xa9c3c4,cabinet:0xd9d4c4,planter:0xb9b2a4,soil:0x5b4634,shrub:0x4f7d3c}))materials[k]=new THREE.MeshStandardMaterial({color,roughness:.85,side:THREE.DoubleSide});
  // Slab undersides face the hemisphere ground colour; an unlit ceiling keeps eye-level views neutral.
  materials.ceiling=new THREE.MeshBasicMaterial({color:0xd9d4c8,side:THREE.DoubleSide});
  function ceiling(triangles,y,name){const positions=[];for(const tri of triangles)for(const[x,z]of [...tri].reverse())positions.push(x,y-.004,z);const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.computeVertexNormals();const m=new THREE.Mesh(g,materials.ceiling);m.name=name;props.add(m);}
@@ -26,10 +27,17 @@ export function addJiyuanInterior(THREE,parent,campus,terrain,data){
  // The foundation follows the actual shell; no concrete plinth is added outside it.
  let foundation=null;
  for(const region of surface.floors[0].regions){const s=new THREE.Shape();region[0].forEach(([x,z],i)=>i?s.lineTo(x,-z):s.moveTo(x,-z));s.closePath();const g=new THREE.ExtrudeGeometry(s,{depth:1,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,materials.wall);m.name='jiyuan-plan-foundation';m.position.y=base-1.16;group.add(m);blockers.push(m);foundation??=m;}
+ // Ground-floor planters (user: about 1m high) fill the drawing's outer outline beyond the upper-floor rooms.
+ for(const ring of surface.floors[0].planters){const s=new THREE.Shape();ring.forEach(([x,z],i)=>i?s.lineTo(x,-z):s.moveTo(x,-z));s.closePath();
+  for(const[key,bottom,top]of[['planter',base-1.16,base+1],['soil',base+1,base+1.005]]){const g=new THREE.ExtrudeGeometry(s,{depth:top-bottom,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,materials[key]);m.name='jiyuan-planter';m.position.y=bottom;m.receiveShadow=true;group.add(m);blockers.push(m);}
+  const xs=ring.map(p=>p[0]),zs=ring.map(p=>p[1]);for(let x=Math.min(...xs)+.45;x<Math.max(...xs);x+=.8)for(let z=Math.min(...zs)+.45;z<Math.max(...zs);z+=.8)if(ringDistance(x,z,ring)===0&&ring.every((a,i)=>{const b=ring[(i+1)%ring.length],dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/(dx*dx+dz*dz||1)));return Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t)>.32;}))box(.62,.42,.62,x,base+1.2,z,'shrub',((x*7+z*3)%1.6),0);}
  for(const f of surface.floors){
   meshTriangles(f.floorTriangles,f.level,f.level-.16,'floor','jiyuan-floor-'+f.floor);
   if(f.floor>1)ceiling(f.floorTriangles,f.level-.16,'jiyuan-ceiling-'+f.floor);
-  for(const [i,[a,b]]of f.walls.entries())segment(a,b,f.level,f.lowWallIndices.includes(i)?1.05:2.84,f.exteriorWallIndices.includes(i)?'wall':'inner',.15,f.floor);
+  // Exterior walls run from the slab underside through the storey (covering slab and roof edges, overhangs included) and overlap at joints, so no
+  // horizontal band shows between floors and curved/angled facades have no slits.
+  const grow=(a,b,e)=>{const dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz)||1;return[[a[0]-dx/l*e,a[1]-dz/l*e],[b[0]+dx/l*e,b[1]+dz/l*e]];};
+  for(const [i,[a,b]]of f.walls.entries()){const outside=f.exteriorWallIndices.includes(i),low=f.lowWallIndices.includes(i);if(outside&&!low){const[p,q]=grow(a,b,.075);segment(p,q,f.level-.16,f.floor===5?3.32:3,'wall',.15,f.floor);}else if(low){const[p,q]=grow(a,b,.075);segment(p,q,f.level-.16,1.21,'wall',.15,f.floor);}else segment(a,b,f.level,2.84,outside?'wall':'inner',.15,f.floor);}
   // Ceiling/wall cap band ties each partition to the next slab without closing door openings.
   for(const d of f.doors){const[a,b]=d.line,dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz),ang=Math.atan2(-dz,dx),nx=-dz/l,nz=dx/l;
    segment(a,b,f.level+2.24,.60,'frame',.18,f.floor);
@@ -38,17 +46,21 @@ export function addJiyuanInterior(THREE,parent,campus,terrain,data){
    if(d.kind==='room')label(d.name,m[0]+nx*.13,f.level+2.48,m[1]+nz*.13,ang,Math.min(1,l*.92));
   }
   for(const [a,b]of f.entrances){segment(a,b,f.level+2.24,.6,'frame',.22,f.floor);for(const p of[a,b])box(.10,2.24,.24,p[0],f.level+1.12,p[1],'wood',0,f.floor);}
-  for(const [a,b]of f.windows){segment(a,b,f.level,1,'wall',.18,f.floor);segment(a,b,f.level+2.15,.69,'wall',.18,f.floor);segment(a,b,f.level+1,1.15,'glass',.05,f.floor);for(const p of[a,b])box(.06,1.15,.22,p[0],f.level+1.575,p[1],'frame',0,f.floor);segment(a,b,f.level+1,.055,'frame',.24,f.floor);segment(a,b,f.level+2.12,.055,'frame',.24,f.floor);}
-  // Shared-bath stalls: 1.9m panels lifted 0.12m with open doorways (no leaves yet), closed exhaust vent, 2x2 cabinets above urinals.
+  for(const [a,b]of f.windows){segment(a,b,f.level,1,'wall',.18,f.floor);segment(a,b,f.level+2.15,.85,'wall',.18,f.floor);segment(a,b,f.level+1,1.15,'glass',.05,f.floor);for(const p of[a,b])box(.06,1.15,.22,p[0],f.level+1.575,p[1],'frame',0,f.floor);segment(a,b,f.level+1,.055,'frame',.24,f.floor);segment(a,b,f.level+2.12,.055,'frame',.24,f.floor);}
+  // Shared-bath stalls: 1.9m panels lifted 0.12m with open doorways (no leaves yet), closed exhaust vent, 2x2 open cabinets (no doors) above urinals; pipe shafts are closed full-height boxes.
   for(const[a,b]of f.partitions)segment(a,b,f.level+.12,1.9,'partition',.04,f.floor);
+  for(const[a,b]of f.shaftWalls)segment(a,b,f.level,2.84,'inner',.15,f.floor);
   for(const[a,b]of f.vents){segment(a,b,f.level+1.86,.42,'glass',.19,f.floor);for(const y of[1.84,2.3])segment(a,b,f.level+y,.04,'frame',.21,f.floor);for(const p of[a,b])box(.05,.5,.21,p[0],f.level+2.07,p[1],'frame',Math.atan2(a[1]-b[1],b[0]-a[0]),f.floor);}
   for(const c of f.cabinets){const[x,z]=c.center,a=c.angle,put=(w,h,d,dx,y,dz,key)=>{const u=dx*Math.cos(a)+dz*Math.sin(a),v=-dx*Math.sin(a)+dz*Math.cos(a);box(w,h,d,x+u,f.level+y,z+v,key,a,f.floor);};
-   put(.62,.62,.28,0,1.72,.0,'cabinet');for(const i of[-1,1])for(const j of[-1,1]){put(.29,.29,.02,i*.153,1.72+j*.153,-.15,'cabinet');put(.04,.04,.02,i*.153-i*.1,1.72+j*.153,-.165,'dark');}}
+   // Open 2x2 cubbies: back, outer frame, middle shelf and divider; front left open.
+   put(.62,.62,.02,0,1.72,.13,'cabinet');for(const y of[1.42,1.72,2.02])put(.62,.02,.28,0,y,0,'cabinet');for(const x of[-.3,0,.3])put(.02,.62,.28,x,1.72,0,'cabinet');}
   for(const s of f.spaces){
    if(s.kind==='bathroom'){
     meshTriangles(s.triangles,f.level+.008,null,'bath','jiyuan-bath-floor-'+f.floor+'-'+s.id,props);
     for(const fx of s.fixtures){const[x,z]=fx.center,a=fx.angle,put=(w,h,d,dx,y,dz,key)=>{const u=dx*Math.cos(a)+dz*Math.sin(a),v=-dx*Math.sin(a)+dz*Math.cos(a);box(w,h,d,x+u,f.level+y,z+v,key,a,f.floor);};
      if(fx.kind==='squat'){put(.48,.05,.65,0,.025,0,'white');put(.23,.055,.4,0,.055,0,'dark');for(const side of[-1,1])put(.105,.02,.47,side*.18,.06,0,'steel');}
+     if(fx.kind==='seat'){put(.36,.4,.46,0,.2,-.04,'white');put(.4,.05,.52,0,.425,-.06,'white');put(.26,.02,.32,0,.452,-.08,'water');put(.42,.4,.18,0,.68,.22,'white');put(.08,.02,.04,.12,.89,.22,'steel');}
+     if(fx.kind==='showerhead'){put(.03,1.1,.03,0,1.45,.04,'steel');put(.17,.03,.17,0,2.0,-.05,'steel');put(.16,.1,.06,0,1.1,.03,'steel');put(.14,.01,.14,0,.012,-.32,'dark');}
      if(fx.kind==='urinal'){put(.38,.62,.32,0,.66,0,'white');put(.23,.38,.06,0,.65,-.17,'dark');put(.045,.36,.05,0,1.14,.06,'steel');}
      if(fx.kind==='sink'){put(.54,.13,.44,0,.83,0,'white');put(.34,.025,.25,0,.91,0,'water');put(.045,.2,.045,0,1.02,.13,'steel');put(.08,.75,.08,0,.4,0,'steel');}
      if(fx.kind==='shower'){put(.68,.025,.68,0,.018,0,'white');put(.035,1.8,.035,.22,1.06,.22,'steel');put(.25,.04,.15,.12,1.96,.22,'steel');put(.12,.06,.06,.22,1.1,.22,'steel');}

@@ -56,7 +56,8 @@ for floor in range(5):
    doors.append({'line':door,'kind':'bathroom','name':definition['id'],'from':name,'to':definition['id']})
   spaces.append({'id':definition['id'],'kind':'bathroom','name':'浴室','polygon':p,'sets':len(served),'serves':[s['name'] for s in served],'layout':definition.get('layout')})
  for definition in plan['publicSpaces']:
-  p=Polygon(definition['polygon']).buffer(0);door=edge_door(p,definition['door'],48 if definition['id'] in ['lounge','semicircle'] else 26);doors.append({'line':door,'kind':'public','name':definition['name']})
+  # Ground floor: the reception semicircle is recessed (user correction); the freed rim is a planter.
+  p=Polygon(definition['groundPolygon'] if floor==0 and 'groundPolygon' in definition else definition['polygon']).buffer(0);door=edge_door(p,definition['door'],48 if definition['id'] in ['lounge','semicircle'] else 26);doors.append({'line':door,'kind':'public','name':definition['name']})
   center=door.interpolate(.5,normalized=True)
   assert center.distance(core)<1,('public door outside corridor',definition['id'])
   spaces.append({'id':definition['id'],'kind':'laundry' if 'laundry' in definition['id'] else 'public','name':definition.get('groundName',definition['name']) if floor==0 else definition['name'],'polygon':p,'door':door})
@@ -99,7 +100,7 @@ for floor in range(5):
   for a,b in zip(line.coords,list(line.coords)[1:]):
    if math.dist(a,b)>1:segments.append([world(a),world(b)])
  # Room to shared bathroom openings must cut the room-side wall too, not just the bath side.
- rec={'floor':floor+1,'height':floor*floor_height,'corridorRoutes':[[world(p) for p in route] for route in plan['corridorRoutes']],'corridorRegions':[rings(p) for p in polygons(core.difference(unary_union([s['polygon'] for s in spaces])))],'regions':[rings(p) for p in polygons(footprint)],'roofTriangles':triangles(footprint.difference(Polygon(plan['standardTerrace']['polygon'])) if floor else footprint),'windows':[[world(p) for p in w.coords] for w in windows],'surfaceRegions':[rings(p) for p in polygons(floor_surface)],'floorTriangles':triangles(floor_surface),'lowWallIndices':[i for i,segment in enumerate(segments) if floor and boundary_segment(segment,Polygon(plan['standardTerrace']['polygon'])) and not boundary_segment(segment,Polygon(plan['publicSpaces'][1]['polygon']))],'walls':segments,'exteriorWallIndices':[i for i,segment in enumerate(segments) if boundary_segment(segment,footprint)],'spaces':[],'doors':[],'entrances':[[world(p) for p in e.coords] for e in exits],'stairs':[],'partitions':[],'cabinets':[],'vents':[]}
+ rec={'floor':floor+1,'height':floor*floor_height,'corridorRoutes':[[world(p) for p in route] for route in plan['corridorRoutes']],'corridorRegions':[rings(p) for p in polygons(core.difference(unary_union([s['polygon'] for s in spaces])))],'regions':[rings(p) for p in polygons(footprint)],'roofTriangles':triangles(footprint.difference(Polygon(plan['standardTerrace']['polygon'])) if floor else footprint),'windows':[[world(p) for p in w.coords] for w in windows],'surfaceRegions':[rings(p) for p in polygons(floor_surface)],'floorTriangles':triangles(floor_surface),'lowWallIndices':[i for i,segment in enumerate(segments) if floor and boundary_segment(segment,Polygon(plan['standardTerrace']['polygon'])) and not boundary_segment(segment,Polygon(plan['publicSpaces'][1]['polygon']))],'walls':segments,'exteriorWallIndices':[i for i,segment in enumerate(segments) if boundary_segment(segment,footprint)],'spaces':[],'doors':[],'entrances':[[world(p) for p in e.coords] for e in exits],'stairs':[],'partitions':[],'shaftWalls':[],'cabinets':[],'vents':[],'planters':[[world(v) for v in ring] for ring in plan.get('groundPlanters',[])] if floor==0 else []}
  for s in spaces:
   center=s['polygon'].representative_point();r={k:v for k,v in s.items() if k not in ['polygon','door','layout']};r.update(ring=rings(s['polygon'])[0],center=world([center.x,center.y]),triangles=triangles(s['polygon']))
   if 'door' in s:r['door']=[world(v) for v in s['door'].coords]
@@ -107,15 +108,22 @@ for floor in range(5):
    # User-confirmed shared layout: fixed fixtures, stall partitions (open, no doors for now), wall cabinets and a closed vent.
    layout=s['layout'];poly=s['polygon'];bathdoors=[d['line'] for d in doors if d['kind']=='bathroom' and d['name']==s['id']]
    r['fixtures']=[{'kind':f['kind'],'center':world(f['at']),'angle':heading(f['back'])} for f in layout['fixtures']]
-   assert sorted(f['kind'] for f in r['fixtures'])==sorted(['sink','urinal','squat','shower']*s['sets']),s['id']
+   kinds=sorted(f['kind'] for f in r['fixtures'])
+   if s['sets']==2:assert kinds==sorted(['sink','urinal','squat','shower']*2),s['id']
+   else:assert kinds.count('sink')==1 and kinds.count('squat')+kinds.count('seat')==1 and kinds.count('shower')+kinds.count('showerhead')==1,(s['id'],kinds)
    lines=[];openings=[]
-   for stall in layout['stalls']:
+   # Pipe shafts are closed full-height boxes; other stalls do not redraw their shared edges.
+   shafts=[Polygon(v['polygon']) for v in layout['stalls'] if v['kind']=='shaft']
+   for shaft in shafts:
+    for a,b in zip(list(shaft.exterior.coords),list(shaft.exterior.coords)[1:]):
+     if not poly.boundary.buffer(.6).covers(LineString([a,b])):rec['shaftWalls'].append([world(a),world(b)])
+   for stall in [v for v in layout['stalls'] if v['kind']!='shaft']:
     sp=Polygon(stall['polygon']);assert sp.difference(poly).area<1,('stall outside bath',s['id'])
     door_line=LineString(stall['door']);assert sp.boundary.distance(door_line.interpolate(.5,normalized=True))<.05,('stall door off edge',s['id'])
     openings.append(door_line);coords=list(sp.exterior.coords)
     for a,b in zip(coords,coords[1:]):
      edge=LineString([a,b])
-     if poly.boundary.buffer(.6).covers(edge):continue  # existing bath wall
+     if poly.boundary.buffer(.6).covers(edge) or any(v.boundary.buffer(.6).covers(edge) for v in shafts):continue  # existing bath or shaft wall
      lines.append(edge)
    walls_cut=unary_union(lines).difference(unary_union([o.buffer(.3,cap_style='flat') for o in openings]))
    for line in ([walls_cut] if walls_cut.geom_type=='LineString' else [g for g in getattr(walls_cut,'geoms',[]) if g.geom_type=='LineString']):

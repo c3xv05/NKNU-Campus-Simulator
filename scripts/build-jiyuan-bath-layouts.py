@@ -1,4 +1,4 @@
-"""Write the user-confirmed Jiyuan shared-bathroom layouts into plan.json.
+"""Write the user-confirmed Jiyuan bathroom layouts (shared and private) into plan.json.
 
 Two left-wing templates were read from source/dormitory-plans.pdf page 2 and
 labelled by the user (2026-11-18):
@@ -9,7 +9,11 @@ labelled by the user (2026-11-18):
 Each shared bath is one open space for both rooms. A 2x2 wall cabinet hangs
 above every urinal. Templates are in source-pixel units of their frame bath;
 other baths are mapped by bounding box, the right wing is mirrored (x -> 1800-x).
-Coordinates and door widths are model approximations of a low-resolution scan.
+Private baths (user labels, 2026-11-18): 201 sink / seat toilet / shower head;
+206 sink, urinal, squat stall, shower stall (door not built), pipe shaft (closed,
+its vent window on the 207 side); 207 sink, urinal, shower stall, squat stall;
+212 shower head, sink, seat toilet (spread out, user request). Every 2x2 cabinet above a urinal is open
+(no doors). Coordinates and door widths are model approximations of a low-resolution scan.
 """
 import json, math
 from pathlib import Path
@@ -69,9 +73,35 @@ def inner():
    {'kind':'squat','polygon':[[322,913],[345,913],[345,943],[322,943]],'door':[[345,914],[345,914+STALL]]},
    *[{'kind':'shower','polygon':s,'door':mid(s[2],s[3],STALL)} for s in showers]],
   'vents':[{'line':[at_t(p0,p1,65.5),at_t(p0,p1,73.5)]}]}
-templates={'outer':outer(),'inner':inner()}
+def private():
+ # Absolute source coordinates of the left-wing private baths; frame = own bounding box.
+ return {
+ 'p201':{'frame':[157,880,205,920],'doors':[{'at':[170,920],'width':20}],
+  'fixtures':[{'kind':'sink','at':[190.4,898],'back':[1,0]},{'kind':'seat','at':[187.9,911],'back':[1,0]},{'kind':'showerhead','at':[194.1,886],'back':[1,0]}],
+  'cabinets':[],'stalls':[{'kind':'shaft','polygon':[[196,880],[205,880],[205,920],[196,920]]}],'vents':[]},
+ 'p206':{'frame':[550,518,607,588],'doors':[{'at':[570,518],'width':18}],
+  'fixtures':[{'kind':'sink','at':[555.6,530],'back':[-1,0]},{'kind':'urinal','at':[554.7,551],'back':[-1,0]},
+   {'kind':'squat','at':[560,577],'back':[-1,0]},{'kind':'shower','at':[598.4,531],'back':[1,0]}],
+  'cabinets':[{'at':[554.7,551],'back':[-1,0]}],
+  'stalls':[{'kind':'squat','polygon':[[550,562],[572,562],[572,588],[550,588]],'door':[[552,562],[552+STALL,562]]},
+   {'kind':'shower','polygon':[[578,518],[607,518],[607,548],[578,548]],'door':[[578,518],[578,548]]},
+   {'kind':'shaft','polygon':[[572,548],[607,548],[607,588],[572,588]]}],
+  'vents':[{'line':[[607,564],[607,574]]}]},
+ 'p207':{'frame':[607,546,679,588],'doors':[{'at':[641,546],'width':18}],
+  'fixtures':[{'kind':'sink','at':[614,551.6],'back':[0,-1]},{'kind':'urinal','at':[617,583.3],'back':[0,1]},
+   {'kind':'shower','at':[670.2,556.5],'back':[1,0]},{'kind':'squat','at':[667,577],'back':[1,0]}],
+  'cabinets':[{'at':[617,583.3],'back':[0,1]}],
+  'stalls':[{'kind':'shower','polygon':[[652,546],[679,546],[679,566],[652,566]],'door':[[652,548],[652,548+STALL]]},
+   {'kind':'squat','polygon':[[652,566],[679,566],[679,588],[652,588]],'door':[[652,568],[652,568+STALL]]}],'vents':[]},
+ # 212: order from the drawing (shower head, sink, seat) but spread out at the user's request:
+ # ~0.9m shower zone at the left corner, ~0.5m between sink and toilet, ~0.85m to the door wall.
+ 'p212':{'frame':[642,636,714,670],'doors':[{'at':[714,653],'width':20}],
+  'fixtures':[{'kind':'showerhead','at':[648,638.2],'back':[0,-1]},{'kind':'sink','at':[668,641.6],'back':[0,-1]},{'kind':'seat','at':[690.2,644.1],'back':[0,-1]}],
+  'cabinets':[],'stalls':[],'vents':[]}}
+templates={'outer':outer(),'inner':inner(),**private()}
 # Left-wing bath -> template; right-wing counterparts are mirrors of these.
 assign={'left-shared-202-203':'outer','left-shared-204-205':'outer','left-shared-208-209':'inner','left-shared-210-211':'inner'}
+assign.update({'left-private-201':'p201','left-private-206':'p206','left-private-207':'p207','left-private-212':'p212'})
 for left,t in list(assign.items()):assign[left.replace('left-','right-')]=t
 
 def mapper(template,bath,mirror):
@@ -93,8 +123,9 @@ for bath in plan['bathrooms']:
  bath['layout']={'template':assign[bath['id']],'mirrored':mirror,
   'fixtures':[{'kind':f['kind'],'at':point(f['at']),'back':vector(f['back'])} for f in template['fixtures']],
   'cabinets':[{'at':point(c['at']),'back':vector(c['back'])} for c in template['cabinets']],
-  'stalls':[{'kind':s['kind'],'polygon':[point(p) for p in s['polygon']],'door':[point(p) for p in s['door']]} for s in template['stalls']],
+  'stalls':[{'kind':s['kind'],'polygon':[point(p) for p in s['polygon']],**({'door':[point(p) for p in s['door']]} if 'door' in s else {})} for s in template['stalls']],
   'vents':[{'line':[point(p) for p in v['line']]} for v in template['vents']]}
-plan['source']['sharedBathLayout']='2026-11-18使用者逐號標註原圖第2頁202/203與208/209：兩個並排洗手台、兩間蹲式馬桶隔間、兩個小便斗（上方2×2壁掛儲物櫃）、兩間淋浴隔間，兩房共用同一空間；抽風機小隔間不建，只在朝走廊牆面做常關排風窗。204/205、210/211沿用同型，右翼鏡像。位置由低解析掃描量取，為模型近似。'
+plan['source']['privateBathLayout']='2026-11-18使用者逐號標註原圖第2頁獨立衛浴：201洗手台／坐式馬桶／蓮蓬頭；206洗手台、小便斗、蹲式馬桶隔間、淋浴隔間（門不做）、管道間（封閉，朝207側常關通風窗）；207洗手台、小便斗、淋浴隔間、蹲式馬桶隔間；212蓮蓬頭、洗手台、坐式馬桶。201、212無小便斗與蹲式馬桶。小便斗上方皆有2×2無門開放櫃。右翼鏡像。位置由低解析掃描量取，為模型近似。'
+plan['source']['sharedBathLayout']='2026-11-18使用者逐號標註原圖第2頁202/203與208/209：兩個並排洗手台、兩間蹲式馬桶隔間、兩個小便斗（上方2×2無門開放櫃）、兩間淋浴隔間，兩房共用同一空間；抽風機小隔間不建，只在朝走廊牆面做常關排風窗。204/205、210/211沿用同型，右翼鏡像。位置由低解析掃描量取，為模型近似。'
 path.write_text(json.dumps(plan,ensure_ascii=False,indent=2)+'\n')
-print('shared bath layouts:',len([b for b in plan['bathrooms'] if 'layout' in b]))
+print('bath layouts:',len([b for b in plan['bathrooms'] if 'layout' in b]))
