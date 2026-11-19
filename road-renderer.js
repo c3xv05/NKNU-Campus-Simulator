@@ -43,6 +43,7 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
     }
   }
   function cap(x,z,radius,type){
+    if(type==='concrete'&&inPathCut(x,z))return;
     const centre=vertex(x,z,type);
     const ring=Array.from({length:20},(_,i)=>[x+Math.cos(i*Math.PI/10)*radius,z+Math.sin(i*Math.PI/10)*radius]);if(type==='concrete'){concretePolygon(ring);return;}footprints.push(ring);if(type==='concrete')pathFootprints.push(ring);
     for(let i=0;i<20;i++){
@@ -60,6 +61,8 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
     }
   }
   const crossings=new Map([[218881805,18],[293423732,27],[293423728,12]]);
+  const inRing=(x,z,r)=>{let c=false;for(let i=0,j=r.length-1;i<r.length;j=i++){const [xi,zi]=r[i],[xj,zj]=r[j];if((zi>z)!==(zj>z)&&x<(xj-xi)*(z-zi)/(zj-zi)+xi)c=!c;}return c;};
+  const inPathCut=(x,z)=>(campus?.pathCuts||[]).some(r=>inRing(x,z,r));
   function nearJunction(x,z){const turn=campus?.s05S06Turn;if(turn&&Math.hypot(x-turn.junction[0],z-turn.junction[1])<turn.radius+10)return true;return network.junctions.some(j=>j.motor&&Math.hypot(j.x-x,j.z-z)<j.width*.85+1);}
   for(const route of network.routes){if(route.entrance&&campus?.entranceApron?.ring)continue;currentRoute=route;
     const type=route.style.path?'concrete':'asphalt',half=route.width/2,points=route.points,sections=[];
@@ -68,6 +71,7 @@ export function addRoads(THREE,scene,network,groundHeight=(x,z)=>network.surface
       const a=sections[i-1],b=sections[i];
       const offset=(p,t)=>[p.x+p.nx*t,p.z+p.nz*t];
       if(type==='concrete'&&network.onMotorRoad((a.x+b.x)/2,(a.z+b.z)/2))continue;
+      if(type==='concrete'&&inPathCut((a.x+b.x)/2,(a.z+b.z)/2))continue;
       quad([offset(a,-a.half),offset(a,a.half),offset(b,-b.half),offset(b,b.half)],type);
       skirt(offset(a,-a.half),offset(b,-b.half));skirt(offset(a,a.half),offset(b,b.half));
       const crossing=crossings.get(route.osm),centreDistance=(a.distance+b.distance)/2;
