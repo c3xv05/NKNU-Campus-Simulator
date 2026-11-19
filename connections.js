@@ -13,7 +13,8 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
  function ramp(line,width,start,end,name){const [a,b]=line,l=Math.hypot(b[0]-a[0],b[1]-a[1]),nx=-(b[1]-a[1])/l*width/2,nz=(b[0]-a[0])/l*width/2,points=[[a[0]+nx,start,a[1]+nz],[a[0]-nx,start,a[1]-nz],[b[0]+nx,end,b[1]+nz],[b[0]-nx,end,b[1]-nz]],g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([...points[0],...points[2],...points[1],...points[1],...points[2],...points[3]],3));g.computeVertexNormals();const tiled=name==='courtyard-access-ramp';if(tiled){const positions=g.attributes.position,coords=[];for(let i=0;i<positions.count;i++)coords.push(positions.getX(i)/2.4,positions.getZ(i)/2.4);g.setAttribute('uv',new THREE.Float32BufferAttribute(coords,2));g.setAttribute('sidewalkEdgeDistance',new THREE.Float32BufferAttribute(Array(positions.count).fill(1),1));}const m=new THREE.Mesh(g,tiled?tileMaterial:new THREE.MeshStandardMaterial({color:0xc7c3b4,side:THREE.DoubleSide,roughness:1}));m.name=name;group.add(m);}
  const link=campus.levelLink,from=campus.places.find(a=>a.osm===link.from),to=campus.places.find(a=>a.osm===link.to),bridgeLevel=terrain.platformHeight(from),courtyardLevel=bridgeLevel+3.6,linkRing=connectionRing(link),foundation=terrain.platformHeight(to)-4;
  const teaching=(link.stairs||[]),cutPieces=(ring,cuts)=>cuts.reduce((pieces,cut)=>pieces.flatMap(p=>subtract(p.map(([x,z])=>[x,0,z]),cut).map(q=>q.map(([x,,z])=>[x,z]))),[ring]);
- for(const [i,piece] of cutPieces(linkRing,teaching.map(s=>stairRing(s))).entries())prism(piece,bridgeLevel-.25,foundation,brick,i?'zhili-gauss-solid-foundation-'+i:'zhili-gauss-solid-foundation');
+ // With Gauss's drawing-based interior the former Zhili–Gauss bridge sits inside Gauss: no stand-in foundation.
+ for(const [i,piece] of (link.insideGauss?[]:cutPieces(linkRing,teaching.map(s=>stairRing(s)))).entries())prism(piece,bridgeLevel-.25,foundation,brick,i?'zhili-gauss-solid-foundation-'+i:'zhili-gauss-solid-foundation');
  if(campus.teachingAccess){const landing=campus.teachingAccess.lowerLanding,base=Math.min(...landing.map(([x,z])=>terrain.height(x,z)-1));for(const [i,piece]of cutPieces(landing,[linkRing,...teaching.map(s=>stairRing(s))]).entries())blockers.push(prism(piece,bridgeLevel-.25,base,brick,'compact-teaching-landing-foundation-'+i));}
  const plaza=addTeachingCourtyard(THREE,group,campus,terrain,tileMaterial);blockers.push(...plaza.blockers);
  const corridors=addCampusCorridors(THREE,group,campus,terrain,network,tileMaterial);blockers.push(...corridors.blockers);
@@ -50,7 +51,7 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
   if(stairDefinitions.some(s=>ringDistance(x,z,stairRing(s))===0)&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(!bio.corridor&&ringDistance(x,z,bioRing)===0&&currentY<bioLevel-.6&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(campus.teachingAccess&&ringDistance(x,z,campus.teachingAccess.lowerLanding)===0&&currentY<bridgeLevel-.5&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
-  if(ringDistance(x,z,linkRing)===0&&currentY<bridgeLevel-.5&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
+  if(!link.insideGauss&&ringDistance(x,z,linkRing)===0&&currentY<bridgeLevel-.5&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   return false;
  }};
 }
