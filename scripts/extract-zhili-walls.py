@@ -35,21 +35,55 @@ PAIR_MIN, PAIR_MAX, OVERLAP_MIN = .05, .42, .12
 C = .025                          # raster cell for components / images
 
 
-def segments(fl):
-    page = fitz.open(B / f'source/floor-{fl}.pdf')[0]; tx, ty = OFFSET[fl]
-    out = []
+# User 2026-11-19: the current 1F plan (致理大樓一樓平面圖, 單位公分; rooms 113-1/113-2, 102-1/102-2, 全家超商…)
+# replaces the old 1F sheet. It is drawn north-up like the plan frame: x = s*page_x + ox, y = s*page_y + oy, fitted
+# to the old 1F walls (mean residual 2.7 cm).
+SOURCE = {'1F': {'file': 'floor-1F-current.pdf', 'affine': (0.1313, 0.0, -15.6777, 0.0, 0.1313, -0.5572),
+               # Its dimension numbers are drawn as curves and fit small false arcs (R 0.46–0.55); real doors here are
+               # R >= 0.6 m swinging >= 60 deg, and leaves under 0.75 m must hinge right on a wall (甲梯's double door).
+               'minDoorR': .6, 'minDoorSpan': 60, 'onWallBelowR': .75}}
+
+
+def page_of(fl):
+    src = SOURCE.get(fl)
+    page = fitz.open(B / f"source/{src['file'] if src else f'floor-{fl}.pdf'}")[0]
+    if src: a, b, c, d, e, f = src['affine']; tf = lambda q: (a * q.x + b * q.y + c, d * q.x + e * q.y + f)
+    else: tx, ty = OFFSET[fl]; tf = lambda q: (-q.y * S + tx, q.x * S + ty)
+    return page, tf
+
+
+def segments(fl, door_layer=False):
+    """All line work in drawing metres; with door_layer=True also a mask of the strokes on the sheet's door layer."""
+    page, tf = page_of(fl)
+    out, layer = [], []
+    dc = SOURCE.get(fl, {}).get('doorColor')
     for d in page.get_drawings():
+        on = dc is None or (d.get('color') is not None and all(abs(a - b) < .01 for a, b in zip(d['color'], dc)))
         for it in d['items']:
             pts = []
             if it[0] == 'l': pts = [it[1], it[2]]
             elif it[0] == 'qu': q = it[1]; pts = [q.ul, q.ur, q.lr, q.ll, q.ul]
             elif it[0] == 're': r = it[1]; pts = [r.tl, r.tr, r.br, r.bl, r.tl]
-            elif it[0] == 'c': pts = [it[1], it[4]]
-            for a, b in zip(pts, pts[1:]):
-                out.append((-a.y * S + tx, a.x * S + ty, -b.y * S + tx, b.x * S + ty))
-    s = np.array(out)
+            elif it[0] == 'c':   # Bézier (door swings in the current 1F sheet): sample as short segments
+                P = [it[1], it[2], it[3], it[4]]
+                pts = [fitz.Point(*[(1 - t) ** 3 * P[0][i] + 3 * (1 - t) ** 2 * t * P[1][i] + 3 * (1 - t) * t * t * P[2][i] + t ** 3 * P[3][i] for i in (0, 1)]) for t in np.linspace(0, 1, 33)]
+            for a_, b_ in zip(pts, pts[1:]):
+                out.append((*tf(a_), *tf(b_))); layer.append(on)
+    s = np.array(out); layer = np.array(layer)
     L = np.hypot(s[:, 2] - s[:, 0], s[:, 3] - s[:, 1])
-    return s[L > 1e-4]
+    return (s[L > 1e-4], layer[L > 1e-4]) if door_layer else s[L > 1e-4]
+
+
+def labels(fl):
+    """Room labels from the sheet's text (only sheets with real text), grouped into lines per room."""
+    page, tf = page_of(fl)
+    words = page.get_text('words')
+    if not words: return []
+    out = []
+    for w in words:
+        cx, cy = tf(fitz.Point((w[0] + w[2]) / 2, (w[1] + w[3]) / 2))
+        out.append({'text': w[4], 'at': [round(cx, 3), round(cy, 3)]})
+    return out
 
 
 def geometry(s):
@@ -181,12 +215,14 @@ def mask_from(geoms, shape, org):
 
 
 def extract(fl):
-    s = segments(fl)
+    s, layer = segments(fl, door_layer=True)
     key = KEY[fl]; fp = [Polygon(p).buffer(0) for f in plan['floors'] if f['key'] == key for p in f['footprint']]
     region = unary_union(fp).buffer(1.5)
     import shapely
-    keep = shapely.intersects(region, shapely.linestrings(s.reshape(-1, 2, 2))); s = s[keep]
-    arcs = find_arcs(s)
+    keep = shapely.intersects(region, shapely.linestrings(s.reshape(-1, 2, 2))); s, layer = s[keep], layer[keep]
+    arcs = find_arcs(s[layer])
+    if fl in SOURCE:
+        arcs = [a for a in arcs if a['r'] >= SOURCE[fl]['minDoorR'] and a['a1'] - a['a0'] >= math.radians(SOURCE[fl]['minDoorSpan'])]
     # Door leaves: straight lines from a swing's hinge to one arc end (length ~R). They are not wall faces.
     leaves = set()
     for a in arcs:
@@ -236,6 +272,30 @@ def extract(fl):
     seats = [Polygon(q).buffer(0).buffer(-.5) for f in plan['floors'] if f['key'] == key for sp in f['spaces']
              if any(w in sp['name'] for w in ('階梯教室', '演講廳')) for q in sp['polys']]
     if seats: wall &= 1 - mask_from(seats, shape, org)
+    if fl in SOURCE:
+        # Light partitions on the current sheet are one continuous stroke (106-1/106-2): a single line >= 2 m that is
+        # not part of a repeating pattern and runs from wall to wall becomes a 0.1 m wall.
+        Ls = np.hypot(s[:, 2] - s[:, 0], s[:, 3] - s[:, 1]); dw = cv2.distanceTransform((1 - wall).astype(np.uint8), cv2.DIST_L2, 3) * C
+        zones = [Polygon(q).buffer(0).buffer(.3) for f in plan['floors'] if f['key'] == key for sp in f['spaces'] if sp['type'] in ('stair', 'hall') for q in sp['polys']]
+        def near_wall(q):
+            ij = np.round((np.array(q) - org) / C).astype(int)
+            return 0 <= ij[0] < shape[1] and 0 <= ij[1] < shape[0] and dw[ij[1], ij[0]] <= .2
+        thin = []
+        cand = np.nonzero(Ls >= 1.0)[0]
+        ang = np.mod(np.arctan2(s[cand, 3] - s[cand, 1], s[cand, 2] - s[cand, 0]), np.pi)
+        for i in np.nonzero(Ls >= 2.0)[0]:
+            if i in pat or not (near_wall(s[i, :2]) and near_wall(s[i, 2:])): continue
+            a = math.atan2(s[i, 3] - s[i, 1], s[i, 2] - s[i, 0]) % math.pi
+            if min(a, abs(a - math.pi / 2), math.pi - a) > math.radians(2): continue   # void / shaft crosses
+            # steps and paving: several similar parallel strokes within 1.5 m
+            u = np.array([math.cos(a), math.sin(a)]); n = np.array([-u[1], u[0]])
+            par = cand[np.abs(np.sin(ang - a)) < .03]
+            d = np.abs(((s[par, :2] + s[par, 2:]) / 2 - s[i, :2]) @ n); same = (d > .15) & (d < 1.5) & (np.abs(Ls[par] - Ls[i]) < .3 * Ls[i])
+            if same.sum() >= 2: continue
+            ln = LineString([s[i, :2], s[i, 2:]])
+            if any(z.intersects(ln) for z in zones): continue
+            thin.append(ln.buffer(.05, cap_style=2))
+        if thin: wall |= mask_from(thin, shape, org) & (1 - (mask_from(seats, shape, org) if seats else 0))
     # Drop isolated pieces (text glyphs, furniture symbols): keep components with extent >= 1.6 m.
     n_, lab, st, _ = cv2.connectedComponentsWithStats(wall, 8)
     for c in range(1, n_):
@@ -257,13 +317,14 @@ def extract(fl):
     for a in arcs:
         cx, cy = a['c']; R = a['r']
         hp = np.round((np.array([cx, cy]) - org) / C).astype(int)
-        if not (0 <= hp[0] < shape[1] and 0 <= hp[1] < shape[0]) or (dwall[hp[1], hp[0]] > .6 and not a.get('leaf')): continue   # a swing hinges on a wall (or has its drawn leaf)
+        if fl in SOURCE and R < SOURCE[fl]['onWallBelowR'] and 0 <= hp[0] < shape[1] and 0 <= hp[1] < shape[0] and dwall[hp[1], hp[0]] > .15: continue
+        if not (0 <= hp[0] < shape[1] and 0 <= hp[1] < shape[0]) or (dwall[hp[1], hp[0]] > (1.0 if fl in SOURCE else .6) and not a.get('leaf')): continue   # a swing hinges on a wall (or has its drawn leaf)
         if any(sp.contains(Point(cx, cy)) for sp in stair_cores): continue   # stair arrows / handrail ends
         # User 2026-11-19: urinals / basins were read as doors. Inside toilets a swing must be a full quarter arc
         # or have its straight leaf drawn from the hinge; urinal bowls are shallow arcs with no leaf.
         # Urinal symbols (angular bowls) also fit circles but their 'hinge' floats in open floor: in toilets the hinge
         # must sit on a wall.
-        if any(t.contains(Point(cx, cy)) for t in toilet_zone):
+        if fl not in SOURCE and any(t.contains(Point(cx, cy)) for t in toilet_zone):   # the current sheet's size rule already drops urinals
             if dwall[hp[1], hp[0]] > .2: continue
             if a['a1'] - a['a0'] < math.radians(76) and not has_leaf(a): continue
         e0 = np.array([cx + R * math.cos(a['a0']), cy + R * math.sin(a['a0'])]); e1 = np.array([cx + R * math.cos(a['a1']), cy + R * math.sin(a['a1'])])
@@ -346,7 +407,7 @@ if __name__ == '__main__':
         s, polys, doors, (org, shape, wall) = extract(fl)
         out['floors'][fl] = {'walls': [[[round(x, 3), round(y, 3)] for x, y in list(g.exterior.coords)[:-1]] + ([] if not g.interiors else []) for g in polys],
                              'wallHoles': [[[[round(x, 3), round(y, 3)] for x, y in list(h.coords)[:-1]] for h in g.interiors] for g in polys],
-                             'doors': doors}
+                             'doors': doors, 'labels': labels(fl)}
         cv2.imwrite(str(B / f'review/walls-{fl}.png'), render(fl, s, polys, doors, org, shape))
         (B / f'review/walls-{fl}.json').write_text(json.dumps({'org': [float(org[0]), float(org[1])], 'pxPerMetre': 2 / C}))
         print(fl, 'segments', len(s), 'wall polygons', len(polys), 'area', round(sum(g.area for g in polys), 1), 'doors', len(doors))
