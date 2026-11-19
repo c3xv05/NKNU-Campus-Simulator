@@ -146,6 +146,16 @@ def floor_spaces(k, inner):
         if s['type'] in ('planter', 'steps', 'drive', 'void') and s['type'] != 'void' or not s['polys']: continue
         m = mask_of(s['polys'], evenodd=s['type'] == 'garage') & inner
         if m.sum() >= 30: out.append({**s, 'mask': m})
+    # Hairlines drawn across one space (floor patterns, dashed lines) split it into pieces whose 0.1 m gap would
+    # become a wall (user 2026-11-19: a wall across the 1F corridor). Close such gaps inside each space, without
+    # growing into any other space.
+    allm = np.zeros((H, W), np.uint8)
+    for s in out: allm |= s['mask']
+    for s in out:
+        r = 5 if s['type'] in OPEN_TO else 3
+        closed = cv2.morphologyEx(s['mask'], cv2.MORPH_CLOSE, np.ones((r, r), np.uint8)) & inner
+        s['mask'] = closed & ~(allm & (1 - s['mask'])).astype(bool)
+        s['mask'] = s['mask'].astype(np.uint8)
     return out
 
 def window_plan(k, O, spaces, skip):

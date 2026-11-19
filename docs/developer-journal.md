@@ -737,3 +737,7 @@ teachingStairs改為三組：zhili-lower（S05主階梯）、zhili-ji（己梯�
 ## 2026-11-19：致理內部裝潢（scripts/furnish.py）
 
 房名關鍵字對應家具組；每間取「扣牆後內縮0.3m的最大矩形」，前側依房型（教室取離門較遠的短邊、櫃台型取門側），外牆側（開窗）不放櫃。門口淨空改以 door_list 線段（舊 doors 遮罩與門位不一致）。桌椅改為桌面＋側板、椅面＋側板＋椅背的方塊組，碰撞以整體底面。執行端 interior.js 加家具材質與 furnitureBlocks。瀏覽器檢查：可進入的 30 個房門中僅既有 4 個不易走入（與家具無關）。
+
+## 2026-11-19：同空間細縫不成牆；開發者樓層剖切
+
+floor_spaces 在每個空間遮罩做小閉運算（走廊5格、其他3格，0.1m格），且不侵入其他空間，避免圖面細線造成的 gap 牆。developer-floorcut.js：clone 受影響網格材質加 clippingPlanes（renderer.localClippingEnabled），建築群組用牆頂高度、廣場網格再低0.3m（避免上層廣場底面殘留），返回地面時還原原材質。
