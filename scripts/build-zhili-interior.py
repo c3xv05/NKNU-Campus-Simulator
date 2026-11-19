@@ -419,7 +419,6 @@ for k in ALL_FLOORS:
             u_ = (b_ - a_) / max(np.hypot(*(b_ - a_)), 1e-6)
             cut = poly_mask(LineString([a_ - u_ * .05, b_ + u_ * .05]).buffer(.3, cap_style=2))
             walls &= 1 - (cut & (1 - solid))
-            exits = [e for e in exits if not any((rect_mask(r) & cut).any() for r in e['rect'])]
             if ed['kind'] == 'door':
                 doors |= poly_mask(LineString([a_, b_]).buffer(.2, cap_style=2))
                 mid = (a_ + b_) / 2; n_ = np.array([-u_[1], u_[0]])

@@ -293,7 +293,7 @@ def extract(fl):
             d = np.abs(((s[par, :2] + s[par, 2:]) / 2 - s[i, :2]) @ n); same = (d > .15) & (d < 1.5) & (np.abs(Ls[par] - Ls[i]) < .3 * Ls[i])
             if same.sum() >= 2: continue
             ln = LineString([s[i, :2], s[i, 2:]])
-            if any(z.intersects(ln) for z in zones): continue
+            if Ls[i] < 3.5 and any(z.intersects(ln) for z in zones): continue   # treads are short; a stair hall's side wall is long
             thin.append(ln.buffer(.05, cap_style=2))
         if thin: wall |= mask_from(thin, shape, org) & (1 - (mask_from(seats, shape, org) if seats else 0))
     # Drop isolated pieces (text glyphs, furniture symbols): keep components with extent >= 1.6 m.

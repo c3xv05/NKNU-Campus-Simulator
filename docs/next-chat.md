@@ -1,5 +1,9 @@
 # 新對話接續摘要
 
+## 2026-11-19：套用使用者牆門修正
+
+使用者在牆門編輯器畫了272筆（開口215、補牆41、門16），已寫入buildings/zhili/overrides.json並套用（編輯器meta/state.appliedThrough標記已套用）。Claude逐格（14m）對照加深的原圖線稿檢查1F，另加5筆（source=claude-review）：郵局與東側門廳單線隔間、演講廳空調機房南／斜／東牆、丁梯一樓入口門；抽取器允許樓梯區內≥3.5m的單線（梯間側牆）。待使用者確認：2F北側廁所外圍與201西側的「開口」筆畫連同真牆一起拿掉（外牆出現缺口）；1F西側在1F外框外畫的牆（全家超商B區南側x7–16,y46–51、更西側L形）因不在建物外框內未建出。
+
 ## 2026-11-19：致理牆門手動編輯器
 
 使用者手動修正：致理牆門編輯器（https://claude.ai/artifact/STB5MGccpxR92gHTq64vbA，資料存在頁面db的edits集合）。使用者說「套用」時，以ArtifactData讀取edits，寫入buildings/zhili/overrides.json（floor/kind=wall|door|open/a/b/note），重建build-zhili-interior.py（最後套用，優先於自動判讀），再把該筆edits的status改為applied。
