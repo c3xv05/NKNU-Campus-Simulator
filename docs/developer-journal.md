@@ -733,3 +733,11 @@ teachingStairs改為三組：zhili-lower（S05主階梯）、zhili-ji（己梯�
 ## 2026-11-18：高斯 1F～3F 室內
 
 物理館平面圖無文字層，房間以線稿分區＋手動標註（使用者確認）；各層以外框對齊線稿求平移（1F (13,-109.5)、2F (52,-74.5)、3F (11,-31.5) v 像素）。scripts/build-gauss-interior.py 由致理產生器複製改參數；門洞依圖面方向投射到外框、門內 1.4m 淨空。interior.js 改為多棟共用（createPlanSurface/planSurfaces/PLAN_OSMS），出口高度依中央廣場各樓層（lower/upper/gaussCourt）判斷，最低層補基礎，exposedRoofs 畫未被上層覆蓋的屋頂。courtyard：gaussCourt＋平台＋門前條帶、gaussGarden、下層廣場以高斯 1F（扣露台）＋2F 外框扣除、露台下若有室內不做實心基座、levelLink.insideGauss 停用舊連通廊基礎。2F 露台外框改為圖面手描（較早先目測框西端延長約 2.6m）。
+
+## 2026-11-19：致理內部裝潢（scripts/furnish.py）
+
+房名關鍵字對應家具組；每間取「扣牆後內縮0.3m的最大矩形」，前側依房型（教室取離門較遠的短邊、櫃台型取門側），外牆側（開窗）不放櫃。門口淨空改以 door_list 線段（舊 doors 遮罩與門位不一致）。桌椅改為桌面＋側板、椅面＋側板＋椅背的方塊組，碰撞以整體底面。執行端 interior.js 加家具材質與 furnitureBlocks。瀏覽器檢查：可進入的 30 個房門中僅既有 4 個不易走入（與家具無關）。
+
+## 2026-11-19：同空間細縫不成牆；開發者樓層剖切
+
+floor_spaces 在每個空間遮罩做小閉運算（走廊5格、其他3格，0.1m格），且不侵入其他空間，避免圖面細線造成的 gap 牆。developer-floorcut.js：clone 受影響網格材質加 clippingPlanes（renderer.localClippingEnabled），建築群組用牆頂高度、廣場網格再低0.3m（避免上層廣場底面殘留），返回地面時還原原材質。

@@ -20,7 +20,7 @@ export function createPlanSurface(campus,terrain,osm){
  if(!data||!building)return null;
  const f=frame(data.transform),base=terrain.platformHeight(building),H=data.floorHeight;
  // Walls, window glass/sills and glazed entrances all block; open entrances and doors do not.
- const floors=data.floors.map(fl=>{const blocking=[...fl.walls,...(fl.sills||[]).map(s=>s.rect),...fl.exits.filter(e=>!e.open).flatMap(e=>e.rect)];return{...fl,y:base+fl.level,near:grid(blocking),blocking};});
+ const floors=data.floors.map(fl=>{const blocking=[...fl.walls,...(fl.furnitureBlocks||[]),...(fl.sills||[]).map(s=>s.rect),...fl.exits.filter(e=>!e.open).flatMap(e=>e.rect)];return{...fl,y:base+fl.level,near:grid(blocking),blocking};});
  const stepRects=floors.flatMap(fl=>fl.exits.flatMap(e=>(e.steps||[]).map(t=>t.rect)));
  function supportAt(x,z,y){
   const p=f.toDrawing(x,z);if(ringDistance(p[0],p[1],data.outline)!==0&&!stepRects.some(r=>inRect(p,r)))return null;
@@ -55,7 +55,7 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
   if(e.manual&&rise<=-.45&&rise>=-2.6){const a=f.toDrawing(...e.line[0]),b=f.toDrawing(...e.line[1]),o=f.toDrawing(...e.outside),i=f.toDrawing(...e.inside),mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],len=Math.hypot(i[0]-o[0],i[1]-o[1]),u=[(i[0]-o[0])/len,(i[1]-o[1])/len],half=Math.hypot(b[0]-a[0],b[1]-a[1])/2+.3,n=Math.ceil(-rise/.17),h=-rise/n,rect=(d0,d1)=>{const p0=[mid[0]+u[0]*d0,mid[1]+u[1]*d0],p1=[mid[0]+u[0]*d1,mid[1]+u[1]*d1],across=[Math.abs(u[1])*half,Math.abs(u[0])*half];return[Math.min(p0[0],p1[0])-across[0],Math.min(p0[1],p1[1])-across[1],Math.max(p0[0],p1[0])+across[0],Math.max(p0[1],p1[1])+across[1]];};
    e.steps=[];for(let k=0;k<n-1;k++)e.steps.push({rect:rect(-(k+1)*.3,-k*.3),height:-(k+1)*h,bottom:rise-.4});e.open=true;}}
  const group=new THREE.Group();group.name=key+'-interior';parent.add(group);const blockers=[],props=new THREE.Group();props.name=key+'-interior-details';group.add(props);
- const mats={};for(const[k,c]of Object.entries({outer:0xa7644e,trim:0xbdbcb1,inner:0xece6d6,floor:0xd3cfc4,ceiling:0xe9e7df,frame:0x8f938c,tread:0xc9c5b8,glass:0x6f98a3,steel:0x7f898b}))mats[k]=new THREE.MeshStandardMaterial({color:c,roughness:.88,side:THREE.DoubleSide,...(k==='glass'?{transparent:true,opacity:.5,roughness:.3}:{}),...(['inner','floor','ceiling','tread'].includes(k)?{emissive:c,emissiveIntensity:.32}:{})});
+ const mats={};for(const[k,c]of Object.entries({outer:0xa7644e,trim:0xbdbcb1,inner:0xece6d6,floor:0xd3cfc4,ceiling:0xe9e7df,frame:0x8f938c,tread:0xc9c5b8,glass:0x6f98a3,steel:0x7f898b,wood:0xa87c50,metal:0x8f979c,fabric:0x4f6f98,board:0x2e4a3c,white:0xeeeeea,dark:0x3b3d40,screen:0xe6e8ea,green:0x2f6d4a}))mats[k]=new THREE.MeshStandardMaterial({color:c,roughness:.88,side:THREE.DoubleSide,...(k==='glass'?{transparent:true,opacity:.5,roughness:.3}:{}),...(['inner','floor','ceiling','tread','wood','metal','fabric','board','white','dark','screen','green'].includes(k)?{emissive:c,emissiveIntensity:.32}:{})});
  const cube=new THREE.BoxGeometry(1,1,1),dummy=new THREE.Object3D(),batches=new Map();
  const isExterior=(r,ring)=>[[r[0]-.15,(r[1]+r[3])/2],[r[2]+.15,(r[1]+r[3])/2],[(r[0]+r[2])/2,r[1]-.15],[(r[0]+r[2])/2,r[3]+.15]].some(([x,y])=>ringDistance(x,y,ring)>0);
  function rectBox(r,y0,y1,key){if(y1-y0<=.001)return;const [x,z]=f.toWorld((r[0]+r[2])/2,(r[1]+r[3])/2);if(!batches.has(key))batches.set(key,[]);batches.get(key).push({w:r[2]-r[0],h:y1-y0,d:r[3]-r[1],x,y:(y0+y1)/2,z});}
@@ -73,6 +73,8 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
   for(const w of fl.windows||[])pane(w,y,-.12);
   for(const l of fl.lintels)rectBox(l,y+2.25,y+H-SLAB,'inner');
   for(const e of fl.exits){for(const r of e.rect){rectBox(r,y+2.4,y+H-SLAB,'outer');if(!e.open){rectBox(r,y,y+.15,'outer');rectBox([r[0]+.08,r[1]+.08,r[2]-.08,r[3]-.08],y+.15,y+2.4,'glass');}}}
+  // Room furniture (scripts/furnish.py): instanced boxes with the room's materials.
+  for(const it of fl.furniture||[])rectBox(it.r,y+it.y[0],y+it.y[1],it.m);
   for(const e of fl.exits)for(const t of e.steps||[])rectBox(t.rect,y+(t.bottom??0),y+t.height,'tread');
   for(const st of fl.stairs){if(st.tiers){for(const t of st.treads)rectBox(t.rect,y,y+t.height,'tread');continue;}
    for(const t of st.treads){const top=y+t.height;rectBox(t.rect,top-(t.flight<0?.2:.18),top,'tread');}
