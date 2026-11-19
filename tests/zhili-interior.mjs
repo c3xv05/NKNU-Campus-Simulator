@@ -25,4 +25,9 @@ for(const [i,f] of d.floors.entries()){
 }
 assert.equal(d.floors[1].exits.filter(e=>e.manual).length,5,'1F north lobby, south corridor end, east main entrance and two west lobby doors');
 assert(treads>150&&doors>20,JSON.stringify({treads,doors}));
+// Furniture from room names (scripts/furnish.py): key rooms furnished, every piece inside its floor outline, nothing in doorways.
+{const rooms=new Set(d.floors.flatMap(f=>(f.furniture||[]).map(i=>i.room)));for(const r of ['112 普通教室','113 普通教室','108 階梯教室','101 學務處','102 教務處','111 健康中心','215 電化教室','216 普通教室','202 院務會議室','201 校長室／203 祕書室','211 教師休息室','208 茶水間','理學院階梯教室'])assert(rooms.has(r),'furnished '+r);
+ for(const f of d.floors){for(const it of f.furniture||[]){const c=[(it.r[0]+it.r[2])/2,(it.r[1]+it.r[3])/2];assert(ringDistance(c[0],c[1],f.outline)===0,'furniture inside '+f.label);}
+  const T=d.transform,dr=(x,z)=>[T.a*(x-T.tx)+T.b*(z-T.tz),-T.b*(x-T.tx)+T.a*(z-T.tz)];
+  for(const door of f.doors){const [a,b]=door.line.map(p=>dr(...p)),m=[(a[0]+b[0])/2,(a[1]+b[1])/2];for(const r of f.furnitureBlocks||[])assert(Math.hypot(Math.max(r[0]-m[0],0,m[0]-r[2]),Math.max(r[1]-m[1],0,m[1]-r[3]))>1.0,'doorway kept clear '+f.label+' '+door.name);}}}
 console.log('PASS: Zhili B1–2F empty-room interior (3F+ solid), stacked four-core stairwells reaching every floor, stair openings, doors for numbered rooms',{treads,doors});

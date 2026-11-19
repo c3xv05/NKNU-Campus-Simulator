@@ -17,6 +17,7 @@ import numpy as np, cv2
 from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 from shapely import constrained_delaunay_triangles
+import sys; sys.path.insert(0, str(Path(__file__).resolve().parent)); from furnish import furnish_floor
 
 root = Path(__file__).resolve().parents[1]
 plan = json.loads((root / 'buildings/zhili/plan.json').read_text())
@@ -299,8 +300,34 @@ for k in ALL_FLOORS:
         if cut.sum() < 5: continue
         walls_final &= 1 - cut; rr = rects(cut); sills += [dict(rect=q, top=w['sill']) for q in rr]; heads += [dict(rect=q, bottom=w['head']) for q in rr]
         glass.append({'a': a, 'b': b, 'normal': w['normal'], 'sill': w['sill'], 'head': w['head']})
+    # Furniture from room names (scripts/furnish.py); 1.3 m kept clear around doors, exits and stair halls.
+    keep = doors.copy()
+    for dr in door_list:   # authoritative door positions (world) -> drawing
+        (a, b) = [drawing(q) for q in dr['line']]
+        keep |= rect_mask([min(a[0], b[0]) - .2, min(a[1], b[1]) - .2, max(a[0], b[0]) + .2, max(a[1], b[1]) + .2])
+    for e in exits:
+        for r in e['rect']: keep |= rect_mask(r)
+    for st in stairs:
+        if not st.get('tiers'): keep |= rect_mask(st['rect'])
+    for sid, hr in halls.items(): keep |= rect_mask(hr)
+    if k == '2': keep |= rect_mask(OPEN_2F)
+    keep = cv2.dilate(keep.astype(np.uint8), disk(int(1.3 / CELL)))
+    furniture, fblocks = furnish_floor(spaces, walls_final, keep, O, H, W, CELL, ox, oy, CELL)
+    if k == 'B':  # 理學院階梯教室: fixed seats on each rake tier (aisles at both ends and down the middle)
+        rk = next(st for st in stairs if st.get('tiers'))
+        y0r, y1r = RAKE['rect'][1], RAKE['rect'][3]; ym = (y0r + y1r) / 2
+        for t in rk['treads'][2:]:   # first two tiers: cross-aisle in front of the stage
+            r = t['rect']; h = t['height']; xc = (r[0] + r[2]) / 2
+            yy = y0r + 1.0
+            while yy + .5 < y1r - 1.0:
+                if abs(yy + .25 - ym) > .75 and not (rect_mask([xc - .25, yy, xc + .25, yy + .5]) & keep).any():
+                    seat = [round(xc - .25, 3), round(yy, 3), round(xc + .25, 3), round(yy + .5, 3)]
+                    furniture += [{'r': seat, 'y': [h, h + .45], 'm': 'fabric', 'room': '理學院階梯教室'},
+                                  {'r': [round(r[0] + .02, 3), round(yy, 3), round(r[0] + .08, 3), round(yy + .5, 3)], 'y': [h + .45, h + .95], 'm': 'fabric', 'room': '理學院階梯教室'}]
+                    fblocks.append(seat)
+                yy += .55
     floors_out.append({'openAreas': [OPEN_2F] if k == '2' else [], 'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'outline': ring_coords(Pk), 'walls': rects(walls_final.astype(np.uint8)), 'lintels': rects(doors.astype(np.uint8)),
-                       'sills': sills, 'heads': heads, 'windows': glass, 'doors': door_list, 'exits': exits, 'stairs': stairs, 'voidMask': void,
+                       'sills': sills, 'heads': heads, 'windows': glass, 'furniture': furniture, 'furnitureBlocks': fblocks, 'doors': door_list, 'exits': exits, 'stairs': stairs, 'voidMask': void,
                        'spaces': [{'name': s['name'], 'num': s.get('num'), 'type': s['type'], 'anchor': world(s['anchor']) if s.get('anchor') else None} for s in spaces]})
 
 for i, fl in enumerate(floors_out):
