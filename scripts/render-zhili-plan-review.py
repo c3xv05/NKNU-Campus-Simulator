@@ -27,7 +27,9 @@ for fl in I['floors']:
     for e in fl['exits']:
         for r in e['rect']: cv2.rectangle(over, P(r[:2]), P(r[2:]), (220, 120, 20), -1)
     img = cv2.addWeighted(over, .8, img, .2, 0)
+    built = [[drawing(q) for q in d['line']] for d in fl['doors']] + [[drawing(q) for q in e['line']] for e in fl['exits']]
     for d in WJ[lab]['doors']:
+        if not any(math.dist(d['hinge'], b[0]) < .05 or math.dist(d['hinge'], b[1]) < .05 for b in built): continue   # only doors that were built
         h = np.array(d['hinge']); c = np.array(d['closed']); o = np.array(d['open']); R = d['r']
         a0 = math.degrees(math.atan2(*(c - h)[::-1])); a1 = math.degrees(math.atan2(*(o - h)[::-1])); da = (a1 - a0 + 540) % 360 - 180
         cv2.ellipse(img, P(h), (int(R * K),) * 2, 0, a0, a0 + da, (20, 150, 20), 2, cv2.LINE_AA)

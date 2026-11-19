@@ -221,6 +221,7 @@ for k in ALL_FLOORS:
     def space_at(q):   # smallest plan space containing q (the corridor polygon wraps around the rooms)
         hits = [(g.area, i) for i, (sp, g) in enumerate(space_polys) if g.buffer(.15).contains(Point(*q))]
         return space_polys[min(hits)[1]][0] if hits else None
+    toilet_polys = [g for sp, g in space_polys if sp['type'] == 'toilet']; toilet_doors = []
     for d in WF['doors']:
         h, c, o = np.array(d['hinge']), np.array(d['closed']), np.array(d['open'])
         mid = (h + c) / 2; nrm = (o - h) / max(np.hypot(*(o - h)), 1e-6)
@@ -228,6 +229,9 @@ for k in ALL_FLOORS:
             hits = [space_at(mid + sg * nrm * t) for t in (.6, 1.0, 1.6)]
             return next((sp for sp in hits if sp and sp['type'] not in OPEN_TO), None) or next((sp for sp in hits if sp), None)
         sides = [side(1), side(-1)]
+        # User 2026-11-19: toilets are not built for now — their doors are walled up and the rooms sealed below.
+        if any(sp and sp['type'] == 'toilet' for sp in sides) or (not any(sides) and any(g.buffer(1.0).contains(Point(*mid)) for g in toilet_polys)):
+            toilet_doors.append((h, c)); continue
         room = next((sp for sp in sides if sp and sp['type'] not in OPEN_TO), None) or next((sp for sp in sides if sp), None)
         if room is None or not Pk.buffer(.3).contains(Point(*mid)): continue
         other = next((sp for sp in sides if sp is not room), None)
@@ -289,6 +293,26 @@ for k in ALL_FLOORS:
         exits.append({'manual': False, 'drawn': True, 'rect': rects(sel), 'line': [world(list(h)), world(list(c))], 'outside': world(list(out_p)), 'inside': world(list(2 * mid - out_p))})
         manual_mid.append(tuple(mid))
     if k == '2': walls &= 1 - rect_mask(OPEN_2F); doors &= 1 - rect_mask(OPEN_2F)
+    # Seal the toilets (not built yet): wall up their doors, then clear the partitions and fixtures inside each
+    # closed toilet room so it reads as one empty, unreachable room.
+    sealed = np.zeros((H, W), np.uint8)
+    for h, c in toilet_doors:
+        shut = poly_mask(LineString([h, c]).buffer(.1, cap_style=2)); walls |= shut & O; doors &= 1 - shut
+    tmask = np.zeros((H, W), np.uint8)
+    for g in toilet_polys: tmask |= poly_mask(g)
+    zone = cv2.dilate(tmask, disk(6))
+    n_t, lab_t, st_t, _ = cv2.connectedComponentsWithStats((O & (1 - walls) & (1 - band)).astype(np.uint8), 4)
+    for i in range(1, n_t):
+        comp = lab_t == i
+        if st_t[i, 4] * CELL * CELL < 20 and (zone[comp] > 0).mean() > .3: sealed[comp] = 1
+    if sealed.any():
+        room_t = cv2.morphologyEx(sealed, cv2.MORPH_CLOSE, disk(9)) & O
+        cs_t, _ = cv2.findContours(room_t, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE); room_t = np.zeros_like(room_t)
+        cv2.drawContours(room_t, cs_t, -1, 1, -1); room_t &= O
+        core = cv2.erode(room_t, np.ones((5, 5), np.uint8))
+        walls &= 1 - (core & (1 - solid)); walls |= room_t & (1 - core); doors &= 1 - room_t
+        near_t = cv2.dilate(room_t, disk(8))
+        exits = [e for e in exits if not any(near_t[to_px(drawing(q))[1], to_px(drawing(q))[0]] for q in [e['inside']]) or e.get('manual')]
     doors &= 1 - walls   # lintel strips over drawn door openings
     walls_final = walls & (1 - doors)
     for e in exits:
@@ -351,8 +375,20 @@ for i, fl in enumerate(floors_out):
     slab = slab.buffer(0); parts = [slab] if slab.geom_type == 'Polygon' else list(slab.geoms)
     fl['slab'] = [[ring_coords(p), *[[[round(x, 3), round(y, 3)] for x, y in h.coords][:-1] for h in p.interiors]] for p in parts if p.area > .5]
     fl['slabTriangles'] = [[world(q) for q in list(t.exterior.coords)[:-1]] for p in parts for t in constrained_delaunay_triangles(p).geoms if t.area > 1e-6]
+    # Suspended T-bar ceiling (user 2026-11-19): over the floor, open over stair halls (this floor's flights and the
+    # ones arriving from below), the 己梯 opening and the double-height lecture hall.
+    ceil = slab
+    for st in stairs_by_floor[fl['key']] + (stairs_by_floor[ORDER[i - 1]] if i > 0 else []):
+        ceil = ceil.difference(box(*st['rect']).buffer(.05, join_style=2))
+        if st.get('tiers'): ceil = ceil.difference(box(*HALL_OPEN_1F))
+    for r in fl['openAreas']: ceil = ceil.difference(box(*r))
+    ceil = ceil.buffer(0); cparts = [ceil] if ceil.geom_type == 'Polygon' else [g for g in ceil.geoms if g.geom_type == 'Polygon']
+    fl['ceilingTriangles'] = [[world(q) for q in list(t.exterior.coords)[:-1]] for p in cparts if p.area > .5 for t in constrained_delaunay_triangles(p).geoms if t.area > 1e-6]
 top = OUTLINE[ORDER[-1]]
-out = {'version': 2, 'building': 444867693, 'floorHeight': FLOOR_H, 'slab': SLAB, 'transform': T, 'outline': ring_coords(unary_union([OUTLINE[k] for k in ORDER])),
+out = {'version': 2, 'building': 444867693, 'floorHeight': FLOOR_H, 'slab': SLAB, 'transform': T,
+       # Interior finish (user 2026-11-19): square floor tiles, off-white walls, black skirting, light-steel (T-bar)
+       # suspended ceiling with recessed lights.
+       'finish': {'tile': .6, 'wall': '#efe9da', 'skirting': '#1c1c1e', 'skirtingHeight': .1, 'ceilingHeight': 3.0, 'ceilingPanel': .6}, 'outline': ring_coords(unary_union([OUTLINE[k] for k in ORDER])),
        'towerOutline': ring_coords(TOWER), 'podiumRoofLevel': LEVEL['2'],
        'source': {'plan': 'buildings/zhili/plan.json', 'basis': '使用者確認的平面圖判讀；各層外框依圖面（1F含裙樓與北側門廳），牆為房間分區交界與0.25m外牆，梯間四周封牆、門依圖面方位，外牆依房間開窗；門窗尺寸為模型近似。空房間。',
                   'scope': '使用者2026-11-18：先做2樓以下（B1～2F可走），3F以上為實心量體但外牆窗依圖面；B1只含1F建物下方，室外鋪面下方的停車場待做。'},

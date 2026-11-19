@@ -1,5 +1,9 @@
 # 新對話接續摘要
 
+## 2026-11-19：致理廁所暫不做、室內裝修
+
+2026-11-19（續）：使用者要求「先不要做廁所」：廁所門封牆、廁所內隔間與器具清除、整間封閉不可進入（build-zhili-interior.py；判讀資料walls.json保留）。室內裝修：方形地磚（60cm）、米白牆面（外牆內側半邊亦米白）、黑色踢腳板（10cm）、輕鋼架天花板（60cm格、離地3.0m、60×120嵌入燈具），由interior.json的finish與各層ceilingTriangles驅動（只有致理有finish，高斯不受影響）；開發者樓層剖切高度改在天花板下。
+
 ## 2026-11-19：致理牆與門依圖面向量重讀
 
 使用者回報「很多門當成牆、很多牆漏掉」。改為直接讀PDF線稿：雙線＝牆、門弧＝門（scripts/extract-zhili-walls.py → buildings/zhili/walls.json，B1～8F），build-zhili-interior.py改用此結果（取代房間分區交界推牆與中點猜門）。檢視圖：python scripts/render-zhili-plan-review.py（buildings/zhili/review/built-*.png，不納入git）。
