@@ -224,7 +224,10 @@ for k in ALL_FLOORS:
     for d in WF['doors']:
         h, c, o = np.array(d['hinge']), np.array(d['closed']), np.array(d['open'])
         mid = (h + c) / 2; nrm = (o - h) / max(np.hypot(*(o - h)), 1e-6)
-        sides = [space_at(mid + nrm * .6), space_at(mid - nrm * .6)]
+        def side(sg):   # first room met walking 0.6–1.6 m into that side (plan outlines stop short of some walls)
+            hits = [space_at(mid + sg * nrm * t) for t in (.6, 1.0, 1.6)]
+            return next((sp for sp in hits if sp and sp['type'] not in OPEN_TO), None) or next((sp for sp in hits if sp), None)
+        sides = [side(1), side(-1)]
         room = next((sp for sp in sides if sp and sp['type'] not in OPEN_TO), None) or next((sp for sp in sides if sp), None)
         if room is None or not Pk.buffer(.3).contains(Point(*mid)): continue
         other = next((sp for sp in sides if sp is not room), None)

@@ -7,7 +7,7 @@ This script reads the drawing itself:
 - Wall  = the band between two parallel drawn lines 0.05–0.42 m apart that overlap along their length
           (the drawings draw every wall / partition as a double line), plus columns (small closed squares
           attached to walls). Repeating parallel patterns (stair treads, seat rows, paving) are excluded.
-- Door  = a swing arc (a chain of short segments fitting a circle, R 0.46–1.4 m, 50–110 deg, or 150–200 deg for double-acting leaves). The hinge is
+- Door  = a swing arc (a chain of short segments fitting a circle, R 0.46–1.4 m, a 76–110 deg quarter arc (urinals and basins draw shallower bowls), or 150–200 deg for double-acting leaves). The hinge is
           the circle centre; the opening is the chord along the wall; the whole swing sector is kept clear.
 - Openings without a leaf are simply gaps in the drawn double lines and stay open.
 
@@ -242,6 +242,14 @@ def extract(fl):
         if math.hypot(st[c, 2], st[c, 3]) * C < 1.6: wall[lab == c] = 0
     # Doors: keep each swing sector clear and record the opening chord along the wall.
     doors = []
+    toilet_zone = [Polygon(q).buffer(0).buffer(1.5) for f in plan['floors'] if f['key'] == key for sp in f['spaces'] if sp['type'] == 'toilet' for q in sp['polys']]
+    def has_leaf(a):
+        c = np.array(a['c']); R = a['r']
+        for t in (a['a0'], a['a1']):
+            v = np.array([math.cos(t), math.sin(t)]); A, Bq = s[:, :2] - c, s[:, 2:] - c; ta, tb = A @ v, Bq @ v
+            da = np.abs(A[:, 0] * v[1] - A[:, 1] * v[0]); db = np.abs(Bq[:, 0] * v[1] - Bq[:, 1] * v[0])
+            if ((da < .05) & (db < .05) & (np.abs(np.minimum(ta, tb)) < .12) & (np.maximum(ta, tb) > .6 * R)).any(): return True
+        return bool(a.get('leaf'))
     stair_cores = [Polygon(q).buffer(0).buffer(-.6) for f in plan['floors'] if f['key'] == key for sp in f['spaces'] if sp['type'] == 'stair' for q in sp['polys']]
     wall0 = wall.copy()
     dwall = cv2.distanceTransform((1 - wall).astype(np.uint8), cv2.DIST_L2, 3) * C
@@ -251,6 +259,13 @@ def extract(fl):
         hp = np.round((np.array([cx, cy]) - org) / C).astype(int)
         if not (0 <= hp[0] < shape[1] and 0 <= hp[1] < shape[0]) or (dwall[hp[1], hp[0]] > .6 and not a.get('leaf')): continue   # a swing hinges on a wall (or has its drawn leaf)
         if any(sp.contains(Point(cx, cy)) for sp in stair_cores): continue   # stair arrows / handrail ends
+        # User 2026-11-19: urinals / basins were read as doors. Inside toilets a swing must be a full quarter arc
+        # or have its straight leaf drawn from the hinge; urinal bowls are shallow arcs with no leaf.
+        # Urinal symbols (angular bowls) also fit circles but their 'hinge' floats in open floor: in toilets the hinge
+        # must sit on a wall.
+        if any(t.contains(Point(cx, cy)) for t in toilet_zone):
+            if dwall[hp[1], hp[0]] > .2: continue
+            if a['a1'] - a['a0'] < math.radians(76) and not has_leaf(a): continue
         e0 = np.array([cx + R * math.cos(a['a0']), cy + R * math.sin(a['a0'])]); e1 = np.array([cx + R * math.cos(a['a1']), cy + R * math.sin(a['a1'])])
         c = np.array([cx, cy])
         # The closed-leaf end lies on the wall line: the wall continues behind the hinge in the opposite direction.

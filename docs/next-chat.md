@@ -3,6 +3,7 @@
 ## 2026-11-19：致理牆與門依圖面向量重讀
 
 使用者回報「很多門當成牆、很多牆漏掉」。改為直接讀PDF線稿：雙線＝牆、門弧＝門（scripts/extract-zhili-walls.py → buildings/zhili/walls.json，B1～8F），build-zhili-interior.py改用此結果（取代房間分區交界推牆與中點猜門）。檢視圖：python scripts/render-zhili-plan-review.py（buildings/zhili/review/built-*.png，不納入git）。
+使用者回報廁所小便斗被當成門：廁所範圍內門弧需鉸鏈貼牆且為完整四分之一弧或有門扇線，已修正。
 待使用者確認：B02配電室、B03機械室、B06機房圖面沒有畫門（目前封閉）；1F北側男女廁入口在走廊旁的小前室，判讀不確定（目前走不進）；1F西側廁所門開向室外鋪面。
 
 ## 2026-11-19：走廊假牆修正、開發者樓層剖切
