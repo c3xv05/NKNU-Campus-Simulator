@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "source": "致理牆門編輯器 https://claude.ai/artifact/STB5MGccpxR92gHTq64vbA（使用者手動標示，優先於自動判讀）",
+  "frame": "plan.json drawing metres",
+  "kinds": {"wall": "沿線補牆（0.16m）", "door": "沿線開門洞並加門楣", "open": "沿線去除牆（含外牆），無門"},
+  "edits": []
+}
