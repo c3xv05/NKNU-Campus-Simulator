@@ -14,7 +14,7 @@ approximations read from the drawings, not survey data.
 import json
 from pathlib import Path
 import numpy as np, cv2
-from shapely.geometry import Polygon, box
+from shapely.geometry import Polygon, box, Point, LineString
 from shapely.ops import unary_union
 from shapely import constrained_delaunay_triangles
 import sys; sys.path.insert(0, str(Path(__file__).resolve().parent)); from furnish import furnish_floor
@@ -65,8 +65,6 @@ WALL_BAND = .25
 # Stair cores: switchback entrance end and the door read from the drawings (side, position along it).
 STAIR = {'甲梯': {'entrance': 'y1', 'door': ('y1', .5, 1.6)}, '乙梯': {'entrance': 'x0', 'door': ('x0', .5, 1.4)},
          '丙梯': {'entrance': 'x0', 'door': ('x0', .5, 1.4)}, '丁梯': {'entrance': 'y1', 'door': ('x0', .82, 1.1)}}
-# Interior doors whose drawn swing arcs would otherwise survive as wall fragments (drawing metres).
-EXTRA_DOORS = {'B': [[7.0, 40.2, 9.1, 41.3]]}
 # 己梯 (user 2026-11-18 "己梯要蓋"): open straight stair from the 1F ±0 paving (y55.3) up to the 2F plaza (y48.7);
 # the 2F floor is open over it and its top opens onto the plaza.
 OPEN_2F = [19.0, 46.3, 21.3, 55.4]     # walls cleared (top landing opens onto the plaza)
@@ -135,6 +133,7 @@ def stair_layout(rect, entrance):
     return treads, r(land, L, 0, Wd), run, land, r(land, L - land, Wd / 2 - .06, Wd / 2 + .06)
 
 plans = {f['key']: f for f in plan['floors']}
+WALLS = json.loads((root / 'buildings/zhili/walls.json').read_text())['floors']
 TYPICAL = {}
 for s in plans['4']['spaces']:
     if s['type'] == 'stair' and s['name'] in STAIR:
@@ -209,42 +208,33 @@ for k in ALL_FLOORS:
     lab = np.zeros((H, W), np.int32)
     for i, sp in enumerate(spaces, 1):
         if sp['type'] in FREE: lab[sp['mask'] > 0] = i
-    k3 = np.ones((3, 3), np.uint8)
-    hi = cv2.dilate(lab.astype(np.float32), k3); lo = -cv2.dilate(-np.where(lab > 0, lab, 10 ** 6).astype(np.float32), k3)
-    open_ids = [i for i, sp in enumerate(spaces, 1) if sp['type'] in OPEN_TO] or [-1]
-    interface = ((lab > 0) & (hi != lo) & (lo < 10 ** 6)).astype(np.uint8)
-    interface[np.isin(hi, open_ids) & np.isin(lo, open_ids)] = 0
-    gap = O & (1 - free) & (1 - void)
-    thick = cv2.morphologyEx(gap, cv2.MORPH_OPEN, disk(4))
-    walls = ((gap & (1 - cv2.dilate(thick, disk(1)))) | band | solid | interface) & O
-    corr_mask = np.zeros((H, W), np.uint8)
-    for s in spaces:
-        if s['type'] in OPEN_TO: corr_mask |= s['mask']
+    # Walls and doors read straight from the drawing's line work (scripts/extract-zhili-walls.py -> walls.json):
+    # every drawn double line is a wall, every swing arc is a door, gaps without a leaf stay open (user 2026-11-19).
+    WF = WALLS[LABEL[k]]
+    ink = np.zeros((H, W), np.uint8)
+    for ring, holes in zip(WF['walls'], WF['wallHoles']):
+        if len(ring) > 2: ink |= poly_mask(Polygon(ring, [h for h in holes if len(h) > 2]).buffer(.02, join_style=2))
+    ink &= O
+    walls = (ink | band | solid) & O
     doors = np.zeros((H, W), np.uint8); door_list = []
-    def carve(cand, width, name, kind, target):
-        n, cl, st, _ = cv2.connectedComponentsWithStats(cand.astype(np.uint8), 8)
-        if n < 2: return False
-        i = 1 + int(np.argmax(st[1:, 4])); comp = cl == i
-        ys, xs = np.nonzero(comp); horiz = (xs.max() - xs.min()) >= (ys.max() - ys.min())
-        length = ((xs.max() - xs.min()) if horiz else (ys.max() - ys.min())) * CELL
-        if length < .7: return False
-        w = min(width, length - .2); cx, cy = (xs.min() + xs.max()) / 2, (ys.min() + ys.max()) / 2; half = w / 2 / CELL
-        sel = comp & ((np.abs(xs_grid - cx) <= half) if horiz else (np.abs(ys_grid - cy) <= half))
-        sel = cv2.dilate(sel.astype(np.uint8), np.ones((5, 1) if horiz else (1, 5), np.uint8)) & walls & (1 - solid) & (1 - band)
-        doors[sel > 0] = 1
-        p = [ox + cx * CELL, oy + cy * CELL]; d = [w / 2, 0] if horiz else [0, w / 2]
-        door_list.append({'name': name, 'kind': kind, 'to': target, 'line': [world([p[0] - d[0], p[1] - d[1]]), world([p[0] + d[0], p[1] + d[1]])]})
-        return True
-    for s in spaces:
-        if s['type'] in OPEN_TO or s['type'] in ('elevator', 'void', 'stair'): continue
-        width = 1.0 if s['type'] in ('toilet', 'service', 'mech') else 1.2
-        cand = walls & near(s['mask'], .4) & (1 - band) & (1 - solid)
-        label = str(s['num']) if s.get('num') is not None else s['name']
-        if carve(cand & near(corr_mask, .4), width, label, s['type'], 'corridor'): continue
-        others = np.zeros((H, W), np.uint8)
-        for t in spaces:
-            if t is not s and t['type'] in FREE: others |= t['mask']
-        carve(cand & near(others, .4), width, label, s['type'], 'room')
+    space_polys = [(sp, unary_union([Polygon(q).buffer(0) for q in sp['polys'] if len(q) > 2])) for sp in spaces if sp['type'] in FREE]
+    def space_at(q):   # smallest plan space containing q (the corridor polygon wraps around the rooms)
+        hits = [(g.area, i) for i, (sp, g) in enumerate(space_polys) if g.buffer(.15).contains(Point(*q))]
+        return space_polys[min(hits)[1]][0] if hits else None
+    for d in WF['doors']:
+        h, c, o = np.array(d['hinge']), np.array(d['closed']), np.array(d['open'])
+        mid = (h + c) / 2; nrm = (o - h) / max(np.hypot(*(o - h)), 1e-6)
+        sides = [space_at(mid + nrm * .6), space_at(mid - nrm * .6)]
+        room = next((sp for sp in sides if sp and sp['type'] not in OPEN_TO), None) or next((sp for sp in sides if sp), None)
+        if room is None or not Pk.buffer(.3).contains(Point(*mid)): continue
+        other = next((sp for sp in sides if sp is not room), None)
+        # Opening: the full chord from hinge to the closed-leaf end, through the wall thickness (raster rounding of the
+        # jambs must not narrow it).
+        doors |= poly_mask(LineString([h, c]).buffer(.2, cap_style=2))
+        label = str(room['num']) if room.get('num') is not None else room['name']
+        door_list.append({'name': label, 'kind': room['type'], 'to': (other['type'] if other else 'outside'), 'double': d.get('double', False),
+                          'line': [world(list(h)), world(list(c))], 'drawing': [d['hinge'], d['closed']]})
+    walls &= 1 - (doors & (1 - solid) & (1 - band))
     # Stair halls: same rect on every floor, a 0.2 m wall all round, one door where the drawing puts it.
     prev = stairs_by_floor.get(ORDER[ORDER.index(k) - 1], []) if k != ORDER[0] else []
     stairs = []
@@ -257,20 +247,11 @@ for k in ALL_FLOORS:
             treads, hole, run, land, divider = stair_layout(rect, STAIR[s['name']]['entrance'])
             stairs.append({'id': s['name'], 'rect': rect, 'entrance': STAIR[s['name']]['entrance'], 'treads': treads, 'hole': hole, 'divider': divider, 'run': round(run, 3), 'landing': round(land, 3)})
     halls = {st['id']: st['rect'] for st in prev + stairs if st['id'] in STAIR}
+    near_ink = cv2.dilate(ink, disk(3))
     for sid, (x0, y0, x1, y1) in halls.items():
+        # Treads and the divider are generated; the hall walls and doors stay as drawn (ring kept only where ink is).
         inside = rect_mask([x0, y0, x1, y1]); ring = rect_mask([x0 - .2, y0 - .2, x1 + .2, y1 + .2]) & (1 - inside) & O
-        walls[inside > 0] = 0; doors[inside > 0] = 0; walls |= ring
-        side, pos, width = STAIR[sid]['door']
-        if side in ('x0', 'x1'):
-            xx = x0 - .2 if side == 'x0' else x1; c = y0 + (y1 - y0) * pos; c = min(max(c, y0 + width / 2), y1 - width / 2); r = [xx - .05, c - width / 2, xx + .25, c + width / 2]
-        else:
-            yy = y0 - .2 if side == 'y0' else y1; c = x0 + (x1 - x0) * pos; c = min(max(c, x0 + width / 2), x1 - width / 2); r = [c - width / 2, yy - .05, c + width / 2, yy + .25]
-        doors |= rect_mask(r) & walls & (1 - band)
-        # Keep a clear 1.2 m approach outside the stair door (drawing door swings / leftover partition pieces).
-        ap = {'x0': [r[0] - 1.2, r[1] - .15, r[0], r[3] + .15], 'x1': [r[2], r[1] - .15, r[2] + 1.2, r[3] + .15],
-              'y0': [r[0] - .15, r[1] - 1.2, r[2] + .15, r[1]], 'y1': [r[0] - .15, r[3], r[2] + .15, r[3] + 1.2]}[side]
-        walls &= 1 - (rect_mask(ap) & (1 - band) & (1 - ring))
-        door_list.append({'name': sid, 'kind': 'stair', 'to': 'corridor', 'line': [world([r[0], r[1]]), world([r[2], r[3]])]})
+        walls[inside > 0] = 0; doors[inside > 0] = 0; walls |= ring & near_ink & (1 - doors)
     if k == '1': walls &= 1 - rect_mask(HALL_OPEN_1F); doors &= 1 - rect_mask(HALL_OPEN_1F)
     if k == 'B':
         walls &= 1 - rect_mask(HALL_CLEAR_B1); doors &= 1 - rect_mask(HALL_CLEAR_B1)
@@ -289,10 +270,23 @@ for k in ALL_FLOORS:
             q = [p[0] + (0 if horiz else sgn * .8), p[1] + (sgn * .8 if horiz else 0)]
             if not Pk.buffer(-.01).contains(Polygon([(q[0] - .01, q[1] - .01), (q[0] + .01, q[1] - .01), (q[0], q[1] + .01)])): probe = q
         exits.append({'manual': True, 'rect': rects(sel), 'line': [world(a0), world(a1)], 'outside': world(probe), 'inside': world([2 * p[0] - probe[0], 2 * p[1] - probe[1]])})
+    # Drawn exterior doors (swing arcs on the outline) not covered above: open when level with the ground
+    # outside, otherwise glazed (runtime).
+    manual_mid = [((a0[0] + a1[0]) / 2, (a0[1] + a1[1]) / 2) for a0, a1 in MANUAL_EXITS.get(k, [])]
+    for d in WF['doors']:
+        h, c = np.array(d['hinge']), np.array(d['closed']); mid = (h + c) / 2
+        if d['r'] < .7 or Pk.exterior.distance(Point(*mid)) > .45 or any(np.hypot(mid[0] - q[0], mid[1] - q[1]) < 1.6 for q in manual_mid): continue
+        u = (c - h) / max(np.hypot(*(c - h)), 1e-6); nrm = np.array([-u[1], u[0]])
+        out_p = mid + nrm * .8
+        if Pk.buffer(-.01).contains(Point(*out_p)): out_p = mid - nrm * .8
+        if Pk.buffer(-.01).contains(Point(*out_p)): continue
+        strip = LineString([h, c]).buffer(.45, cap_style=2)
+        sel = poly_mask(strip) & (band | walls)
+        if sel.sum() < 3: continue
+        exits.append({'manual': False, 'drawn': True, 'rect': rects(sel), 'line': [world(list(h)), world(list(c))], 'outside': world(list(out_p)), 'inside': world(list(2 * mid - out_p))})
+        manual_mid.append(tuple(mid))
     if k == '2': walls &= 1 - rect_mask(OPEN_2F); doors &= 1 - rect_mask(OPEN_2F)
-    for r in EXTRA_DOORS.get(k, []):
-        doors |= rect_mask(r) & walls & (1 - band); walls &= 1 - (rect_mask(r) & (1 - band)); walls |= doors
-    doors &= walls
+    doors &= 1 - walls   # lintel strips over drawn door openings
     walls_final = walls & (1 - doors)
     for e in exits:
         for r in e['rect']: walls_final &= 1 - rect_mask(r)

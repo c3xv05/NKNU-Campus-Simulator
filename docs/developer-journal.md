@@ -1,5 +1,10 @@
 # 開發者紀錄與後續討論入口
 
+## 2026-11-19：致理牆與門改由圖面向量直接讀取
+
+使用者不滿：很多門被當成牆、很多牆漏掉。原因是牆由plan.json房間分區交界推算、門只在共用牆中點猜一個。新增scripts/extract-zhili-walls.py（PyMuPDF讀PDF向量線稿，各頁offset已對齊plan.json圖面公尺）：牆＝相距0.05～0.42m且重疊的平行雙線帶＋貼牆的柱方塊（排除樓梯踏階／座椅列等等距重複線、階梯教室座位區、廁所內的短線（器具與文字）；短雙線只在接觸長牆時採用以去除文字）；門＝門弧（細碎折線叢集以RANSAC找圓，R 0.46～1.4m，四分之一弧或雙向門半圓；同一中框的整圓沿門扇線拆成兩扇），以門扇直線判斷開／關位置，門扇線不參與雙線配對；整個開啟扇形淨空。輸出buildings/zhili/walls.json（B1～8F）。build-zhili-interior.py改用walls.json：牆＝圖面雙線＋外牆帶＋電梯，門洞＝弧的鉸鏈到關閉端整段淨空（含牆厚），門的房名由plan.json最小包含空間判定；梯間只在圖面有牆處保留外圈、不再強制單一門；外框上R≥0.7的圖面門自動成為入口（同高可走，否則玻璃）。scripts/render-zhili-plan-review.py把建成結果疊在原圖（review/，不納入git）。
+驗證：zhili-interior.mjs、gauss-interior.mjs通過；以實際supportAt/blocked（半徑0.3m）做BFS，B1～2F房間皆可走到，例外：B02／B03／B06圖面沒有畫門、1F北側廁所（入口需使用者確認）、1F西側廁所門開向室外、器材室在階梯教室挑空範圍內（既有）。
+
 ## 2026-11-18：霽遠樓一樓花台、會客室內縮、兩端洗衣間弧牆
 
 plan.json新增groundPlanters與semicircle.groundPolygon；產生器floor0改用groundPolygon並輸出planters（世界座標）。renderer以ExtrudeGeometry做花台（基礎下1.16到+1.0，土面與灌木instanced），surface.blocked在樓層邊界判斷前先測花台。洗衣間多邊形改為1/4圓弧。jiyuan-interior.mjs的1.1倍形狀比對改用2F半圓（1F刻意內縮），並新增花台碰撞檢查。

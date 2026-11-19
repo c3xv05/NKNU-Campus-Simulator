@@ -1,5 +1,10 @@
 # 新對話接續摘要
 
+## 2026-11-19：致理牆與門依圖面向量重讀
+
+使用者回報「很多門當成牆、很多牆漏掉」。改為直接讀PDF線稿：雙線＝牆、門弧＝門（scripts/extract-zhili-walls.py → buildings/zhili/walls.json，B1～8F），build-zhili-interior.py改用此結果（取代房間分區交界推牆與中點猜門）。檢視圖：python scripts/render-zhili-plan-review.py（buildings/zhili/review/built-*.png，不納入git）。
+待使用者確認：B02配電室、B03機械室、B06機房圖面沒有畫門（目前封閉）；1F北側男女廁入口在走廊旁的小前室，判讀不確定（目前走不進）；1F西側廁所門開向室外鋪面。
+
 ## 2026-11-19：走廊假牆修正、開發者樓層剖切
 
 使用者回報致理 1F（X≈-145.69, Y 39.13）走廊有牆：圖面細線把走廊切成兩塊造成假牆，產生器改為同空間內補合細縫（致理、高斯）。新增開發者功能：在建築內開空中觀察可選「樓層剖切」，隱藏該層以上（developer-floorcut.js；致理／高斯／霽遠）。
