@@ -37,6 +37,16 @@ def zw(r):return Polygon([(ztr['a']*x-ztr['b']*y+ztr['tx'],ztr['b']*x+ztr['a']*y
 gplan=json.loads((root/'buildings/gauss/plan.json').read_text());hplan=json.loads((root/'buildings/huanyu/plan.json').read_text())
 gauss1F=zw(gplan['outlines']['1']);gaussDeck=zw(gplan['deck2F']['ring']).difference(buildings if not (root/'buildings/gauss/interior.json').exists() else unary_union([zw(f['outline']) for f in json.loads((root/'buildings/gauss/interior.json').read_text())['floors'] if f['key'] in ('1','2')]).difference(zw(gplan['deck2F']['ring'])));gaussOld=Polygon(json.loads((root/'buildings/gauss/building.json').read_text())['geometry']['beforeDrawingFootprint']['ring'])
 gaussClosed=unary_union([gauss1F,gaussOld]).difference(zw(gplan['deck2F']['ring'])).buffer(0)
+# The built Gauss east wall (interior outline, x≈-0.9 in drawing metres) sits inside the drawing's 1F outline (x≈0.53):
+# pave the strip between them as lower plaza so no terrain slot opens between Gauss and the plaza (user 2026-11-19).
+gaussEast=Polygon()
+if (root/'buildings/gauss/interior.json').exists():
+ _gi=json.loads((root/'buildings/gauss/interior.json').read_text())
+ _zi=json.loads((root/'buildings/zhili/interior.json').read_text()) if (root/'buildings/zhili/interior.json').exists() else {'floors':[]}
+ _zhili1F=unary_union([zw(f['outline']) for f in _zi['floors'] if f['label'] in ('B1','1F')])
+ # Also the sliver between the Gauss 1F roof and Zhili's 1F west wall (open down to Zhili B1 otherwise).
+ gaussEast=unary_union([zw([[-1.2,48.3],[1.7,48.3],[1.7,62.35],[-1.2,62.35]]),zw([[0.2,33.45],[1.35,33.45],[1.35,48.4],[0.2,48.4]])]).difference(unary_union([zw(f['outline']) for f in _gi['floors'] if f['key'] in ('1','2')])).difference(_zhili1F)
+ gaussClosed=gaussClosed.difference(gaussEast)
 zplan=json.loads((root/'buildings/zhili/plan.json').read_text())['site']
 # Upper plaza (user 2026-11-18 "L型連接到上層廣場如你圖示那樣畫"): only the drawn pieces — Zhili 2F central plaza (+ podium roof),
 # the 2F walkway, the 化學系廣場 and the Huanyu 2F deck; the earlier game-only L arm is replaced.
@@ -63,6 +73,10 @@ planterShape=unary_union([Polygon(p['ring']) for p in court['planters']])
 zhiliPlanters=unary_union([Polygon(p['ring']) for p in court['planters'] if p['source']=='zhili'])
 if court.get('stairs'):
  stair=court['stairs'][0];stair['line']=layout['centralStair']['line'];stair['width']=layout['centralStair']['width'];a,b=stair['line'];dx=b[0]-a[0];dz=b[1]-a[1];length=math.hypot(dx,dz);nx=-dz/length*stair['width']/2;nz=dx/length*stair['width']/2;stair['ring']=[[a[0]+nx,a[1]+nz],[b[0]+nx,b[1]+nz],[b[0]-nx,b[1]-nz],[a[0]-nx,a[1]-nz]]
+# Close the slit between Zhili's 1F west wall (lecture hall, roofed by the plaza) and the upper deck edge (user 2026-11-19).
+if (root/'buildings/zhili/interior.json').exists():
+ _zf={f['label']:zw(f['outline']) for f in json.loads((root/'buildings/zhili/interior.json').read_text())['floors']}
+ upper=unary_union([upper,zw([[0.9,33.0],[1.7,33.0],[1.7,44.6],[0.9,44.6]]).intersection(_zf['1F']).difference(_zf.get('2F',Polygon()))])
 for s in c['levelLink']['stairs']+court.get('stairs',[]):upper=upper.difference(Polygon(s['ring']))
 # Revert the blanket fill; the corridor builder cuts the lower access along the existing path.
 ramp=LineString(court['ramp']).buffer(court['width']/2,cap_style=2);extension=Polygon(legacy[444867693]).buffer(0) if 444867693 in legacy else Polygon()
@@ -73,14 +87,14 @@ gaussInt=json.loads((root/'buildings/gauss/interior.json').read_text()) if (root
 gaussRooms=unary_union([zw(gaussInt['floors'][0]['outline']).difference(zw(gplan['deck2F']['ring'])),zw(gaussInt['floors'][1]['outline'])]) if gaussInt else None
 buildingsLower=unary_union([Polygon(a['ring']).buffer(.01,join_style=2) for a in c['places']+c['buildings'] if a.get('height') and a['osm']!=444867693 and not (gaussInt and a['osm']==444867692)]+[podium.buffer(.01,join_style=2)]+([gaussRooms.buffer(.01,join_style=2)] if gaussInt else []))
 gauss1FRooms=zw(gaussInt['floors'][0]['outline']) if gaussInt else Polygon()
-extension=extension.union(zhiliPlanters.buffer(.4,join_style=2).difference(zhiliPlanters)).union(gaussDeck.difference(gauss1FRooms)).union(unary_union([zw(r) for r in zplan['paving1F']['rings']]).difference(gauss1F.difference(gaussDeck)))
+extension=extension.union(gaussEast).union(zhiliPlanters.buffer(.4,join_style=2).difference(zhiliPlanters)).union(gaussDeck.difference(gauss1FRooms)).union(unary_union([zw(r) for r in zplan['paving1F']['rings']]).difference(gauss1F.difference(gaussDeck)))
 sidewalkGrade=unary_union([Polygon(st['ring']) for st in c['levelLink']['stairs'] if st.get('topLevel','zhili-ground')=='zhili-ground']+[Polygon(c['teachingAccess'][k]) for k in ('frontApron','gapFootprint') if c['teachingAccess'].get(k)]).buffer(.02,join_style=2)
 extension=extension.difference(sidewalkGrade)
 lowerShape=shape.union(extension).union(gaussDeck).union(Polygon(c['teachingAccess']['lowerLanding'])).difference(buildingsLower).difference(gaussClosed).difference(sidewalkGrade).difference(planterShape);lower=lowerShape.difference(unary_union([Polygon(st['ring']) for st in c['levelLink']['stairs'] if st.get('topLevel','zhili-ground')=='zhili-ground']))
 # Exposed rims of the extension get a solid base (drop side) or retaining wall (uphill side) at runtime.
 extensionRegions=[];extensionEdges=[]
 if not extension.is_empty:
- ext=extension.difference(buildingsLower).intersection(lowerShape);closed=unary_union([lowerShape,buildingsLower.buffer(.35,join_style=2),podium.buffer(.35,join_style=2),planterShape.buffer(.35,join_style=2),Polygon(c['levelLink']['ring']),Polygon(c['teachingAccess']['lowerLanding']),*[Polygon(s['ring']) for s in c['levelLink']['stairs']]])
+ ext=extension.difference(buildingsLower).intersection(lowerShape);closed=unary_union([lowerShape,buildingsLower.buffer(.35,join_style=2),podium.buffer(.35,join_style=2),*([_zhili1F.buffer(.35,join_style=2)] if gaussInt else []),planterShape.buffer(.35,join_style=2),Polygon(c['levelLink']['ring']),Polygon(c['teachingAccess']['lowerLanding']),*[Polygon(s['ring']) for s in c['levelLink']['stairs']]])
  for piece in polygons(ext):
   if piece.area<1:continue
   extensionRegions.append(coords(piece.exterior))
@@ -110,7 +124,7 @@ gaussPodium=gauss1F.difference(gaussDeck).difference(zw(gplan['court1F']['ring']
 if (root/'buildings/gauss/interior.json').exists():gaussPodium=Polygon()
 court['gaussPodium']=[coords(a.exterior) for a in polygons(gaussPodium) if a.area>.5]
 c['levelLink']['insideGauss']=bool((root/'buildings/gauss/interior.json').exists())
-court.update(name=layout['name'],ring=newring,floors=2,floorHeight=layout['floorHeight'],floorRegions={'lower':regions(lower),'upper':regions(upper),'gaussCourt':regions(gaussCourt),'gaussGarden':regions(gaussGarden)},floorTriangles={'lower':triangles(lower),'upper':triangles(upper),'gaussCourt':triangles(gaussCourt),'gaussGarden':triangles(gaussGarden)},footprints=triangles(unary_union([lowerShape.difference(downStairs),gaussCourt,gaussGarden])),pillars=[p for p in layout['pillars']if upper.contains(Point(p))and not podium.buffer(.5).contains(Point(p))],upperShape='L',huanyuWalkWidth=layout['upperPlan']['huanyuWalkWidth'],accessRampRing=coords(ramp.exterior),rampTargetFloor=1,exteriorAccess=True,interiorFillReverted=True,desc=layout['reference'],alignment={'origin':origin,'along':t,'outward':n,'innerCorner':at(inner_u,front_v),'storeEdge':[at(store_u,uv(rawring[5])[1]),at(store_u,front_v)],'huanyuCornerEdge':[at(corner_u,corner_v),huanyu['ring'][14]],'frontLine':[at(inner_u,front_v),at(store_u,front_v)]},edgeRepairs={'regions':regions(shape.symmetric_difference(original))},zhiliExtension={'regions':extensionRegions,'edges':extensionEdges,'reference':layout.get('zhiliExtension',{}).get('reference','')})
+court.update(name=layout['name'],ring=newring,floors=2,floorHeight=layout['floorHeight'],floorRegions={'lower':regions(lower),'upper':regions(upper),'gaussCourt':regions(gaussCourt),'gaussGarden':regions(gaussGarden)},floorTriangles={'lower':triangles(lower),'upper':triangles(upper),'gaussCourt':triangles(gaussCourt),'gaussGarden':triangles(gaussGarden)},footprints=triangles(unary_union([lowerShape.difference(downStairs),gaussCourt,gaussGarden,planterShape])),pillars=[p for p in layout['pillars']if upper.contains(Point(p))and not podium.buffer(.5).contains(Point(p))],upperShape='L',huanyuWalkWidth=layout['upperPlan']['huanyuWalkWidth'],accessRampRing=coords(ramp.exterior),rampTargetFloor=1,exteriorAccess=True,interiorFillReverted=True,desc=layout['reference'],alignment={'origin':origin,'along':t,'outward':n,'innerCorner':at(inner_u,front_v),'storeEdge':[at(store_u,uv(rawring[5])[1]),at(store_u,front_v)],'huanyuCornerEdge':[at(corner_u,corner_v),huanyu['ring'][14]],'frontLine':[at(inner_u,front_v),at(store_u,front_v)]},edgeRepairs={'regions':regions(shape.symmetric_difference(original))},zhiliExtension={'regions':extensionRegions,'edges':extensionEdges,'reference':layout.get('zhiliExtension',{}).get('reference','')})
 (root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n')
 subprocess.run([sys.executable,str(root/'scripts/build-campus-corridors.py')],check=True)
 print('Built square S05-aligned L; reverted interior fill and restored lower access')

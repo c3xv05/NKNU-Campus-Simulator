@@ -754,3 +754,8 @@ teachingStairs改為三組：zhili-lower（S05主階梯）、zhili-ji（己梯�
 ## 2026-11-19：同空間細縫不成牆；開發者樓層剖切
 
 floor_spaces 在每個空間遮罩做小閉運算（走廊5格、其他3格，0.1m格），且不侵入其他空間，避免圖面細線造成的 gap 牆。developer-floorcut.js：clone 受影響網格材質加 clippingPlanes（renderer.localClippingEnabled），建築群組用牆頂高度、廣場網格再低0.3m（避免上層廣場底面殘留），返回地面時還原原材質。
+
+## 2026-11-19：高斯橫梁、高斯／致理縫隙、廣場山體、建築內步道
+
+以由上往下射線（每2m／0.5m）掃描中央廣場，分類最上層命中網格與相對下層廣場高度，找出：高斯東側2m地形溝（實建牆與圖面外框不一致）、高斯1F屋頂與致理1F西牆0.16m細縫、西側花台被+1.6m地形覆蓋、致理演講廳牆頂與上層廣場0.16m細縫。修正見 build-teaching-courtyard（gaussEast、上層補縫、花台切地形）、index.html（groundOutline 切地形、pathCuts）、road-renderer（步道段與圓角略過 pathCuts）、interior.js（斜邊水平判斷、len 用 hypot）。剩餘：致理沿S05／北側路緣有 sidewalk-15cm-curbs 三角形中心落在外框內（貼邊、既有）。
+
