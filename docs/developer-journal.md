@@ -771,3 +771,6 @@ floor_spaces 在每個空間遮罩做小閉運算（走廊5格、其他3格，0.
 
 見 next-chat 同日條目。技術要點：人行道curb-cut以「自人行道平面挖出＋路面高度磁磚鋪面」實作，路緣由sidewalk-surface沿挖除邊界自動產生；車道/坡道/平台支援函式掛在 campus.zhiliCurbCutSupport／zhiliPlatformSupport（stairHeightAt 優先於走廊地板）；測試 photo-access/campus-plazas/frontage-alignment 已隨新幾何更新。
 
+## 2026-11-22：致理 B1 牆面（廁所、右下角外框、關閉的門）
+
+見 buildings/zhili/README.md 與 next-chat 同日條目；分支 claude/zhili-walls-fix-k4wvtk。
