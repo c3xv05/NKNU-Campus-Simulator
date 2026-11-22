@@ -779,6 +779,10 @@ floor_spaces 在每個空間遮罩做小閉運算（走廊5格、其他3格，0.
 
 詳見 docs/next-chat.md 同日條目：S06/S07 取消人工加高；食巢依平面圖矩形、飛燕圓弓形（間距約13.8m）、詠絮樓依平面圖L形（兩翼13.52×42.92m、6.45m內角斜邊）；腳本 relocate-swallow-quarter.py / relocate-yongxu.py。
 
+## 2026-11-22：S06 東側花圃與人行道外移
+
+使用者指出 S06 從寰宇向上到碰 S21 之間，人行道外有約 100 cm 草花圃（無花）。依「人行道向遠離道路方向移動、再補花圃」處理：新增 facilities/s06-planter（詳見其 README）；人行道 182.5–285 m 外移 1.0 m（頭端 10 m 平滑漸進），路緣與人行道間補草面（高於路面 0.11 m），人行道仍 3.6 m 寬、高於路面 0.15 m。`sidewalkSections` 新增 `band` 參數；`build-motor-pavement-plan.py` 排除花圃條帶不當路緣補瀝青。周遭地形沿用原連續高度場，裁切邊界隨人行道外緣外移，路緣面接地。
+驗證：tests/s06-planter.mjs（寬度、草面高度、無重疊、順接）及全部 Node 測試（僅既有 photo-buildings 失敗）。
 ## 2026-11-23：S05 致理／高斯前均勻縱坡
 
 使用者記得S05在致理與高斯前坡度很平均、沒有完全平緩的部分。新增局部偏移 `data/s05-frontage-grade.js`／`local-road-grade.js`，把z=-292至z=-170一段拉成單一約3%縱坡，兩端平滑接回；原始高程檔、路線、路寬與其他路段不變。詳見 docs/next-chat.md 同日條目。

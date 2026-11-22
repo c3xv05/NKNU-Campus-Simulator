@@ -8,7 +8,6 @@
 - 重建順序：place-drawn-buildings → build-building-catalog → refit-yongxu-forecourt → build-campus-plazas → build-zhili-curbcuts → build-walk-obstacles → build-pedestrian-patches → build-sidewalk-plan → build-motor-pavement-plan → build-court-access → build-road-regions → build-sidewalk-sections → build-r04-vegetation。
 - 測試：更新court-yongxu-r04／photo-access（頂點數、草皮點數、forecourt貼新外牆）與arrival-landscape-geometry；photo-buildings為既有失敗；其餘Node測試通過。
 - 待辦／疑點：燕窩外框取二至六樓，一樓與地下一樓（餐廳延伸到花園下）不同；三棟樓層數與高度未依圖面改（詠絮圖1–5層、科技圖1–5層＋B1，模型分別6層／6層）；燕窩新輪廓與環手星月大道218881799有約33㎡重疊待查；詠絮草皮縮成小月牙（路徑改走新外牆旁）；科技大樓西南尖端離人行道僅約0.9m；新外框超出舊台地處依地形（建築底座沿用舊台地高度）。外觀、入口細節待他人補。
-=======
 
 （合併main #120後：詠絮樓外框以本節的平面圖外框取代#120的剛體移動結果；`relocate-yongxu.py`若重跑會覆蓋，需再跑`place-drawn-buildings.py`與`refit-yongxu-forecourt.py`。植栽種子改由#120的凍結快照處理，本節`landscape.js`改動已捨棄。）
 
@@ -575,6 +574,9 @@ main上8個Node測試早已失敗（最早自PR40），多數是規格更新後�
 - **詠絮樓**：與 PR #121（place-drawn-buildings.py，同樣依平面圖描外框）重複，合併時以 #121 為準，本分支的詠絮改動已捨棄。食巢／飛燕腳本 `relocate-swallow-quarter.py` 會讀取 #121 的詠絮輪廓來算共同平台。重建順序見上方 #121 條目（relocate-swallow-quarter 於 build-building-catalog 之前執行）。
 - 已知：`tests/photo-buildings.mjs`（S？道路 218881795 接縫）及 7 個 Python 幾何測試（campus-corridors/court-yongxu-r04/eight-step-access/garage-s11/gauss-stop/jiyuan-interior/spatial-corrections）在本批改動前就失敗，非本次造成，尚未處理。霽遠樓未動。
 
+## 2026-11-22：S06 東側花圃（人行道外移 100 cm）
+
+S06（293423729）里程 182.5（寰宇T橫段後）～285 m（S21 路口）之間，人行道外移 1.0 m 並在路緣與人行道間補 100 cm 草花圃（`facilities/s06-planter`，README 說明）。範圍／漸進長度／草面高度為模型選值，改動後須重跑 `build-sidewalk-plan.py`、`build-motor-pavement-plan.py`。起點／終點（S21 路口、寰宇平台端）已目視檢查；「花圃在人行道外側（遠離道路）」的另一種解讀未採用，若現場其實是人行道外緣的花圃，需改成另一種配置。
 ## 2026-11-23：S05 致理／高斯前改為均勻縱坡（使用者記憶中該段坡度很平均、沒有完全平緩處）
 
 - 原始S05高程在致理前先隆起（d≈38 m 最高約38.2m）、高斯前反而凹成谷底（d≈113 m 約33.0m，其後又往南微升），出現近乎平坦／反向的段落。新增 `data/s05-frontage-grade.js` + `local-road-grade.js`：取致理北端（z=-292，原高37.84m）至高斯南端（z=-170，原高33.89m）的兩端原高程拉成單一直線縱坡（約3.0%，取樣2.6–3.3%），兩端各約21／22 m 用平滑步階漸變（C1）接回原高程；以**加到共用高度場的偏移量**實作（roads.js `localGrade`，與向陽路 `roadGrade` 並存），道路、人行道、鄰側地形同步，核心21m（須大於人行道外緣＋格網平滑半徑，否則橫坡超過2%；同時讓東側坡面不比原狀更陡）／融合30m，建築地形墊底保護沿用buildingBlend。最大改動：致理前約 −1.0m（d≈48）、高斯前約 +2.2m（d≈100）；高斯前道路因此更貼近高斯地面（37.0m，樓層基準35.2m），原本約3.5m落差縮小。

@@ -14,13 +14,17 @@ for a in c['places']+c['buildings']:
 walk_text=(root/'data/sidewalk-plan.js').read_text();walk=json.loads(walk_text.split('=',1)[1].rstrip(';\n'));walk_shape=unary_union([Polygon(r[0],r[1:]) for r in walk['regions']]);original=shape
 # Close only the narrow gaps beside a real kerb; the walkway remains unchanged.
 apron=Polygon(c['entranceApron']['ring'],c['entranceApron']['holes']);kerb_source=shape.union(apron)
-near_kerb=kerb_source.buffer(.4,quad_segs=16).intersection(walk_shape.boundary.buffer(.41,quad_segs=16)).difference(apron);shape=shape.union(near_kerb).difference(walk_shape).difference(Polygon(c['flowerbed']['ring']))
+near_kerb=kerb_source.buffer(.4,quad_segs=16).intersection(walk_shape.boundary.buffer(.41,quad_segs=16)).difference(apron);# S06 planter strip (facilities/s06-planter): grass between the asphalt edge and the set-back walkway, never kerb infill.
+js_planter="""import fs from 'node:fs';import{createRoadNetwork}from'./roads.js';import{sidewalkSections}from'./site-physics.js';const c=JSON.parse(fs.readFileSync('data/campus.json')),n=createRoadNetwork(c.roads,()=>0,JSON.parse(fs.readFileSync('data/road-tags.json')),{apron:c.entranceApron,pavedAreas:c.pavedAreas,junctionFillets:c.junctionFillets});process.stdout.write(JSON.stringify(sidewalkSections(c,n,'planter').map(s=>s.points)));"""
+planter_shape=unary_union([Polygon(p).buffer(0) for p in json.loads(subprocess.check_output(['node','--input-type=module','-e',js_planter],cwd=root)) if Polygon(p).area>1e-7]) if c.get('sidewalkRoadIds') else Polygon()
+shape=shape.union(near_kerb).difference(walk_shape).difference(planter_shape).difference(Polygon(c['flowerbed']['ring']))
 for a in c['places']+c['buildings']:
  if a.get('height'):shape=shape.difference(Polygon(a['ring'],a.get('holes',[])).buffer(.015,join_style=2))
 # Ramp mouths replace only kerb infill; the original carriageways are preserved.
 for a in c.get('campusTransitions',[]):
  for r in a['regions']:shape=shape.difference(Polygon(r[0],r[1:]))
-infill=shape.difference(original);infill_triangles=[[[round(x,7),round(z,7)] for x,z in list(t.exterior.coords)[:-1]] for t in constrained_delaunay_triangles(infill).geoms if t.area>.0000001]
+infill=shape.difference(original).difference(planter_shape.buffer(.01));# millimetre rounding slivers beside the planter are not kerb infill
+infill_triangles=[[[round(x,7),round(z,7)] for x,z in list(t.exterior.coords)[:-1]] for t in constrained_delaunay_triangles(infill).geoms if t.area>.0000001]
 regions=list(shape.geoms) if hasattr(shape,'geoms') else [shape];step=1.25;points=[];indices=[];lookup={};rings=[]
 def coords(r):return [[round(x,7),round(z,7)] for x,z in list(r.coords)[:-1]]
 def vertex(p):
