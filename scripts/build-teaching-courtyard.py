@@ -90,7 +90,7 @@ gaussInt=json.loads((root/'buildings/gauss/interior.json').read_text()) if (root
 gaussRooms=unary_union([zw(gaussInt['floors'][0]['outline']).difference(zw(gplan['deck2F']['ring'])),zw(gaussInt['floors'][1]['outline'])]) if gaussInt else None
 buildingsLower=unary_union([Polygon(a['ring']).buffer(.01,join_style=2) for a in c['places']+c['buildings'] if a.get('height') and a['osm']!=444867693 and not (gaussInt and a['osm']==444867692)]+[podium.buffer(.01,join_style=2)]+([gaussRooms.buffer(.01,join_style=2)] if gaussInt else []))
 gauss1FRooms=zw(gaussInt['floors'][0]['outline']) if gaussInt else Polygon()
-extension=extension.union(gaussEast).union(zhiliPlanters.buffer(.4,join_style=2).difference(zhiliPlanters).intersection(zw([[25.9,60.0],[27.2,60.0],[27.2,68.0],[25.9,68.0]]))).union(gaussDeck.difference(gauss1FRooms)).union(unary_union([zw(r) for r in zplan['paving1F']['rings']]).difference(gauss1F.difference(gaussDeck)))
+extension=extension.union(gaussEast).union(Polygon()).union(gaussDeck.difference(gauss1FRooms)).union(unary_union([zw(r) for r in zplan['paving1F']['rings']]).difference(gauss1F.difference(gaussDeck)))
 sidewalkGrade=unary_union([Polygon(st['ring']) for st in c['levelLink']['stairs'] if st.get('topLevel','zhili-ground')=='zhili-ground']+[Polygon(c['teachingAccess'][k]) for k in ('frontApron','gapFootprint') if c['teachingAccess'].get(k)]).buffer(.02,join_style=2)
 extension=extension.difference(sidewalkGrade)
 # Zhili driveway ramp (user 2026-11-22): the lower plaza/extension is open over the ramp aisle (rims become the low perimeter wall).
@@ -98,7 +98,7 @@ import sys;sys.path.insert(0,str(root/'scripts'))
 import zhili_curbcuts as zc
 driveOpen=zc.shapes(root)[0]['open']
 extension=extension.difference(driveOpen)
-lowerShape=shape.union(extension).union(gaussDeck).union(Polygon(c['teachingAccess']['lowerLanding'])).difference(driveOpen).difference(buildingsLower).difference(gaussClosed).difference(sidewalkGrade).difference(planterShape);lower=lowerShape.difference(unary_union([Polygon(st['ring']) for st in c['levelLink']['stairs'] if st.get('topLevel','zhili-ground')=='zhili-ground']))
+lowerShape=shape.union(extension).union(gaussDeck).union(Polygon(c['teachingAccess']['lowerLanding'])).difference(driveOpen).difference(buildingsLower).difference(gaussClosed).difference(sidewalkGrade).difference(planterShape);lowerShape=lowerShape.buffer(0);lower=lowerShape.difference(unary_union([Polygon(st['ring']) for st in c['levelLink']['stairs'] if st.get('topLevel','zhili-ground')=='zhili-ground']));lower=lower.buffer(0)
 # Exposed rims of the extension get a solid base (drop side) or retaining wall (uphill side) at runtime.
 extensionRegions=[];extensionEdges=[];extensionBase=[]
 if not extension.is_empty:

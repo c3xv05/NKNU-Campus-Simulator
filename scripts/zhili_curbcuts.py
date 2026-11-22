@@ -47,5 +47,5 @@ def plaza_items(t):
     items=[{'kind':'planter','ring':ring(p)} for p in planters]+[{'kind':'bench','ring':ring(b)} for b in benches]
     sk=[34.06,41.3,43.4,45.16]
     sky={'outer':ring(box(sk[0],sk[1],sk[2],sk[3])),'cells':[ring(box(sk[0]+.25+i*(sk[2]-sk[0]-.5)/8,sk[1]+.2+j*(sk[3]-sk[1]-.4)/3,sk[0]+.25+(i+1)*(sk[2]-sk[0]-.5)/8,sk[1]+.2+(j+1)*(sk[3]-sk[1]-.4)/3)) for j in range(3) for i in range(8)]}
-    pillars=[ring(box(16.7,65.85,17.2,66.35))]
+    pillars=[ring(box(16.5,65.8,17.3,66.6))]
     return items,sky,pillars
