@@ -22,12 +22,23 @@ CEN=tuple(Polygon(src_k).centroid.coords[0])
 def T(pt):
     g=translate(rotate(Polygon([pt,(pt[0]+1e-9,pt[1]),(pt[0],pt[1]+1e-9)]),TH,origin=CEN),*SHIFT);x,y=list(g.exterior.coords)[0];return [round(x,6),round(y,6)]
 Tm=lambda pts:[T(p) for p in pts]
-k['geometry']['ring']=Tm(src_k);f['geometry']['ring']=Tm(src_f)
-k['appearance']['frontHint']=T([sum(src_k[i][j] for i in (6,7))/2 for j in (0,1)])
-f['appearance']['frontHint']=T(f['appearance'].get('beforeRelocationFrontHint',f['appearance']['frontHint']));f['appearance'].setdefault('beforeRelocationFrontHint',f['appearance']['frontHint'])
+# 2026-11-23 shapes (user: canteen per floor plans, Feiyan per orthophoto) replace the moved OSM outlines
+import math as _m
+_u=(_m.cos(_m.radians(-41.2)),_m.sin(_m.radians(-41.2)));_n=(-_u[1],_u[0])   # canteen long axis / normal (+n = towards Feiyan)
+_c=(-213.9+1.6*_n[0],-20.05+1.6*_n[1])                                       # +1.6 m keeps the front wall >=1.5 m from the S22 asphalt
+def _pt(a,b,c0=_c):return [round(c0[0]+a*_u[0]+b*_n[0],6),round(c0[1]+a*_u[1]+b*_n[1],6)]
+KL,KW=57.6,20.6                                                              # axes A-C 7+13 m plus walls, plan 1F-4F
+k['geometry']['ring']=[_pt(KL/2,-KW/2),_pt(KL/2,KW/2),_pt(-KL/2,KW/2),_pt(-KL/2,-KW/2)]   # edge 3 = front (NW) wall
+_o=(-196.05+1.6*_n[0],0.2+1.6*_n[1]);_r=12.3;_m_=(_o[0]-2.9*_n[0],_o[1]-2.9*_n[1]);_h=_m.sqrt(_r*_r-2.9*2.9)
+_a1=_m.atan2(_m_[1]-_h*_u[1]-_o[1],_m_[0]-_h*_u[0]-_o[0]);_a2=_m.atan2(_m_[1]+_h*_u[1]-_o[1],_m_[0]+_h*_u[0]-_o[0])
+_sweep=(_a2-_a1)%(2*_m.pi);_mid=_a1+_sweep/2
+if (_m.cos(_mid)*_n[0]+_m.sin(_mid)*_n[1])<0:_sweep-=2*_m.pi             # arc must bulge away from the canteen
+f['geometry']['ring']=[[round(_o[0]+_r*_m.cos(_a1+_sweep*i/28),6),round(_o[1]+_r*_m.sin(_a1+_sweep*i/28),6)] for i in range(29)]
+kr=k['geometry']['ring'];k['appearance']['frontHint']=[round((kr[3][j]+kr[0][j])/2,6) for j in (0,1)];k['appearance']['frontEdge']=3;k['appearance']['frontEdges']=[3];k.setdefault('frontageAlignment',{}).update(edges=[3],entryEdge=3)
+f['appearance'].setdefault('beforeRelocationFrontHint',f['appearance']['frontHint']);f['appearance']['frontHint']=f['geometry']['ring'][14]
 note='2026-11-22依國土測繪中心2023正射影像：歸燕食巢與飛燕以剛體一起移動（繞食巢重心轉1.0°、平移[10.0,6.25]m），食巢與飛燕7.2m間距不變；擬合時避開S22瀝青。取代先前向S07人行道貼齊的位置。'
-k.setdefault('frontageAlignment',{})['relocation']=note
-f['appearance']['reference']=f['appearance']['reference'].split('；2026-11-22')[0]+'；'+note
+k['frontageAlignment']['relocation']=note+'；2026-11-23外型改依平面圖：57.6×20.6m矩形（A–C軸7+13m加牆厚），與S22瀝青間距≥1.5m；飛燕改依空拍為半徑12.3m圓弓形（弦平行食巢，離食巢後牆約13.8m），取代7.2m間距。'
+f['appearance']['reference']=f['appearance']['reference'].split('；2026-11-22')[0]+'；'+note+'；2026-11-23外型依空拍改為圓弓形（半徑12.3m）。'
 save(kp,k);save(fp,f)
 # --- shared level area, walkways
 lp='facilities/campus-plazas/layout.json';L=load(lp)
