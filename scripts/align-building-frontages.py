@@ -4,7 +4,9 @@ from pathlib import Path
 from shapely.geometry import LineString,Point,Polygon
 from shapely.ops import nearest_points,unary_union
 root=Path(__file__).resolve().parents[1];path=root/'data/campus.json';c=json.loads(path.read_text());width=3.6
-settings={'swallow-restaurant':([6,7],6,[293423729,382869349]),'gauss':([0],0,[218881800]),'zhili':([1],1,[218881800])}
+# 歸燕食巢 was removed from this list on 2026-11-22: it now sits at its orthophoto position (scripts/relocate-swallow-quarter.py),
+# so it must not be pulled back against the S07 walkway.
+settings={'gauss':([0],0,[218881800]),'zhili':([1],1,[218881800])}
 frontages=[];deltas={};entrance_roads={};keep_buildings='--keep-buildings' in sys.argv or any(json.loads((root/'buildings'/name/'building.json').read_text()).get('roadSetback') for name in settings)
 for name,(edges,entry,roadids) in settings.items():
  p=root/'buildings'/name/'building.json';d=json.loads(p.read_text());a=d['geometry'];appearance=d['appearance'];meta=d.setdefault('frontageAlignment',{});source=meta.setdefault('sourceRing',a['ring']);meta.update(edges=edges,entryEdge=entry,roadIds=roadids,reference='依使用者要求向指定道路人行道貼齊；平移與門前鋪面為模型近似，非實測')
