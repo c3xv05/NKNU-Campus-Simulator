@@ -53,5 +53,5 @@ export function addZhiliCurbCuts(THREE,group,campus,terrain,network,tileMaterial
  const inRamp=(x,z)=>ringDistance(x,z,d.ramp)===0,inPad=(x,z)=>pads.some(p=>ringDistance(x,z,p.ring)===0),inWall=(x,z,r)=>d.walls.some(w=>ringDistance(x,z,w)<r);
  return{blockers,
   supportAt(x,z,currentY){if(inAda(x,z)){const h=adaH(x,z)+.08;return Math.abs(currentY-h)<.85?h:null;}if(inRamp(x,z)){const h=rampH(x,z)+.08;return Math.abs(currentY-h)<.85?h:null;}if(inPad(x,z)){const h=roadBase(x,z)+.08;return Math.abs(currentY-h)<.85?h:null;}return null;},
-  blocked(x,z,r,currentY){if(ringDistance(x,z,ada.ring)<r&&currentY<adaH(x,z)-.35)return true;if(solids.some(p=>currentY<p.top-.1&&ringDistance(x,z,p.ring)<r))return true;return inWall(x,z,r)&&currentY<rampH(x,z)+d.wallAbove-.1;}};
+  blocked(x,z,r,currentY){if(ringDistance(x,z,ada.ring)<r&&currentY<adaH(x,z)-.35)return true;if(solids.some(p=>currentY>upperLevel-.6&&currentY<p.top-.1&&ringDistance(x,z,p.ring)<r))return true;return inWall(x,z,r)&&currentY<rampH(x,z)+d.wallAbove-.1;}};
 }
