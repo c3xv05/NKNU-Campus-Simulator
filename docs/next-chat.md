@@ -574,3 +574,9 @@ main上8個Node測試早已失敗（最早自PR40），多數是規格更新後�
 - **飛燕**：改為半徑12.3m 的圓弓形（29點，弦平行食巢長軸；弧向外），離食巢後牆約13.8m，**取代舊的7.2m間距規定**（`photo-access` 測試已改）。
 - **詠絮樓**：與 PR #121（place-drawn-buildings.py，同樣依平面圖描外框）重複，合併時以 #121 為準，本分支的詠絮改動已捨棄。食巢／飛燕腳本 `relocate-swallow-quarter.py` 會讀取 #121 的詠絮輪廓來算共同平台。重建順序見上方 #121 條目（relocate-swallow-quarter 於 build-building-catalog 之前執行）。
 - 已知：`tests/photo-buildings.mjs`（S？道路 218881795 接縫）及 7 個 Python 幾何測試（campus-corridors/court-yongxu-r04/eight-step-access/garage-s11/gauss-stop/jiyuan-interior/spatial-corrections）在本批改動前就失敗，非本次造成，尚未處理。霽遠樓未動。
+
+## 2026-11-23：S05 致理／高斯前改為均勻縱坡（使用者記憶中該段坡度很平均、沒有完全平緩處）
+
+- 原始S05高程在致理前先隆起（d≈38 m 最高約38.2m）、高斯前反而凹成谷底（d≈113 m 約33.0m，其後又往南微升），出現近乎平坦／反向的段落。新增 `data/s05-frontage-grade.js` + `local-road-grade.js`：取致理北端（z=-292，原高37.84m）至高斯南端（z=-170，原高33.89m）的兩端原高程拉成單一直線縱坡（約3.0%，取樣2.6–3.3%），兩端各約21／22 m 用平滑步階漸變（C1）接回原高程；以**加到共用高度場的偏移量**實作（roads.js `localGrade`，與向陽路 `roadGrade` 並存），道路、人行道、鄰側地形同步，核心21m（須大於人行道外緣＋格網平滑半徑，否則橫坡超過2%；同時讓東側坡面不比原狀更陡）／融合30m，建築地形墊底保護沿用buildingBlend。最大改動：致理前約 −1.0m（d≈48）、高斯前約 +2.2m（d≈100）；高斯前道路因此更貼近高斯地面（37.0m，樓層基準35.2m），原本約3.5m落差縮小。
+- 這**不是**先前被撤回的PR61/62整條S05調坡（s05-grade.js）：只作用在致理～高斯前一段，原始高程檔、路線、路寬、其餘路段不變。若使用者想換端點或坡度，改 `fromZ/toZ`、`rampNorth/rampSouth` 即可；關閉用 `createRoadNetwork(..., {localFrontageGrade:false})`。
+- 數值為模型近似，非實測。S05主階梯／高斯玄關階梯／候車棚等是否需配合新道路高度，見本輪驗證結果。
