@@ -6,16 +6,21 @@ def load(root):
     t=json.loads((root/'buildings/zhili/building.json').read_text())['geometry']['drawingFootprint']['transform']
     return lay,t
 def world(t,pts):return [(t['a']*x-t['b']*y+t['tx'],t['b']*x+t['a']*y+t['tz']) for x,y in pts]
-def flare_polygon(t,x0,x1,y0,y1,R,cap,step=.2):
-    def f(d):
-        d=min(d,R);return min(cap,R-math.sqrt(R*R-d*d))
-    ys=[y0+k*step for k in range(int((y1-y0)/step)+1)]+[y1]
-    left=[(x0-f(y-y0),y) for y in ys];right=[(x1+f(y-y0),y) for y in ys]
+def flare_polygon(t,x0,x1,y0,y1,RL,RR,yf,step=.2):
+    """Pad from y0 to y1 between x0..x1; straight until yf, then a quarter-circle curb return (radius RL west / RR east)
+    that reaches horizontal after R metres (shape read from the 1F drawing: straight curb lines, then R~2.8-3.5 arcs)."""
+    def f(d,R):
+        d=min(max(d-(yf-y0),0),R);return R-math.sqrt(R*R-(R-d)**2) if d>0 else 0.0
+    ys=sorted({y0+k*step for k in range(int((y1-y0)/step)+1)}|{y1,yf})
+    # quarter circle tangent to the straight curb line at yf: x offset = R - sqrt(R^2-(y-yf)^2)
+    def off(y,R):
+        d=min(max(y-yf,0),R);return R-math.sqrt(R*R-d*d)
+    left=[(x0-off(y,RL),y) for y in ys];right=[(x1+off(y,RR),y) for y in ys]
     return Polygon(world(t,left+right[::-1])).buffer(0)
 def shapes(root):
     lay,t=load(root);end=lay['padEndY'];out={'pads':{},'ramps':{},'walls':{},'open':None}
     for k in('driveway','entrance'):
-        d=lay[k];out['pads'][k]=flare_polygon(t,d['x'][0],d['x'][1],d['padStartY'],end,d['flareR'],d['flareMax'])
+        d=lay[k];px=d.get('padX',d['x']);out['pads'][k]=flare_polygon(t,px[0],px[1],d['padStartY'],end,d['flareRL'],d['flareRR'],d['flareStartY'])
     d=lay['driveway'];(x0,x1),(r0,r1)=d['x'],d['rampY']
     out['ramps']['driveway']=Polygon(world(t,[[x0,r0],[x1,r0],[x1,r1],[x0,r1]]))
     a=lay['adaRamp'];(ax0,ax1),(ay0,ay1)=a['x'],a['y']

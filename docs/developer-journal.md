@@ -1,5 +1,9 @@
 # 開發者紀錄與後續討論入口
 
+## 2026-11-23：詠絮樓依正射影像移動與植栽種子凍結
+
+詠絮樓只動建築（前庭／草皮留在真實位置並被新輪廓裁切，北橫翼牆前補條帶）；入口道路延伸改短、P02/P03改接路端。植栽改用凍結排除範圍快照（data/landscape-seed-areas.js，取自24e614a）產生再過濾，取代先前只替建築用舊輪廓的做法。高程對照結果見next-chat同日條目。
+
 ## 2026-11-22：建築依正射影像重新定位（霽遠樓、歸燕食巢／飛燕）與S22
 
 方法：國土測繪中心WMTS PHOTO2（z20）拼圖→用經緯度公式（與sample-terrain.py同原點）把遊戲座標疊上去→以影像地標（霽遠樓兩端樓梯間與半圓中心）求剛體轉移，或以屋頂四角的IoU搜尋（轉角±數度、平移±16m、並要求離道路／人行道的最小距離）。結果寫在各自的building.json（beforeRelocationRing保留舊輪廓）與plan.json／layout.json。種子植栽用舊輪廓＋凍結R04快照產生再過濾，使其他區域植栽不變。詳見next-chat同日條目。
@@ -767,3 +771,6 @@ floor_spaces 在每個空間遮罩做小閉運算（走廊5格、其他3格，0.
 
 見 next-chat 同日條目。技術要點：人行道curb-cut以「自人行道平面挖出＋路面高度磁磚鋪面」實作，路緣由sidewalk-surface沿挖除邊界自動產生；車道/坡道/平台支援函式掛在 campus.zhiliCurbCutSupport／zhiliPlatformSupport（stairHeightAt 優先於走廊地板）；測試 photo-access/campus-plazas/frontage-alignment 已隨新幾何更新。
 
+## 2026-11-22：致理 B1 牆面（廁所、右下角外框、關閉的門）
+
+見 buildings/zhili/README.md 與 next-chat 同日條目；分支 claude/zhili-walls-fix-k4wvtk。

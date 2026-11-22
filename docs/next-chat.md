@@ -8,6 +8,29 @@
 - 重建順序：place-drawn-buildings → build-building-catalog → refit-yongxu-forecourt → build-campus-plazas → build-zhili-curbcuts → build-walk-obstacles → build-pedestrian-patches → build-sidewalk-plan → build-motor-pavement-plan → build-court-access → build-road-regions → build-sidewalk-sections → build-r04-vegetation。
 - 測試：更新court-yongxu-r04／photo-access（頂點數、草皮點數、forecourt貼新外牆）與arrival-landscape-geometry；photo-buildings為既有失敗；其餘Node測試通過。
 - 待辦／疑點：燕窩外框取二至六樓，一樓與地下一樓（餐廳延伸到花園下）不同；三棟樓層數與高度未依圖面改（詠絮圖1–5層、科技圖1–5層＋B1，模型分別6層／6層）；燕窩新輪廓與環手星月大道218881799有約33㎡重疊待查；詠絮草皮縮成小月牙（路徑改走新外牆旁）；科技大樓西南尖端離人行道僅約0.9m；新外框超出舊台地處依地形（建築底座沿用舊台地高度）。外觀、入口細節待他人補。
+=======
+
+（合併main #120後：詠絮樓外框以本節的平面圖外框取代#120的剛體移動結果；`relocate-yongxu.py`若重跑會覆蓋，需再跑`place-drawn-buildings.py`與`refit-yongxu-forecourt.py`。植栽種子改由#120的凍結快照處理，本節`landscape.js`改動已捨棄。）
+
+## 2026-11-23：詠絮樓依正射影像移動；高程對照調查（接續Issue #104）
+
+**高程對照（只調查，未改資料）**：內政部光達10m等高線（WMTS MOI_CONTOUR，裸地，約±3m）對照遊戲與SRTM。大門約88m（±3）。高於大門：S07交匯真實約52（SRTM 52、遊戲68）；歸燕食巢約48（SRTM 50.5、遊戲64.3）；飛燕約46（47.7／64.3）；詠絮樓約45（50.2／64.3）；霽遠樓52～62（兩條140m線之間的脊，沒有150m線；SRTM 54.5、遊戲72.0）。遊戲在大門到中央坡地一帶與SRTM差<1m，只有S07／食巢區／霽遠樓偏高14～17m，原因是2026-11-11使用者要求的現場校正（data/yongji-terrain.js：S06附加14m、S07再8m，紀錄寫明「非實測」）。依等高線估：S06真實爬約15～17m（約5%）、S07約2～5m（約3%）；遊戲分別28.5m（8.9%）、12m（10.2%）。食巢／飛燕／詠絮樓遊戲同一平台（64.3），真實是緩坡（約136／134／133m）。**是否改回接近真實由使用者決定（尚未決定）。**
+
+**詠絮樓移動**：scripts/relocate-yongxu.py（冪等，保留before*）。轉3.0°、平移[-10,-7]m（空拍屋頂IoU 0.31→0.75，屋頂輪廓為肉眼描，約±2m）。只動建築：前庭瀝青與草皮原本就在真實停車場／花園位置，保留並扣除新輪廓（精確裁切，仍與北橫翼內牆共邊；北橫翼牆往西北移約5m，所以補入舊前庭北緣與新牆間的條帶）；platformAnchor不動（平台高度不變）；共同平台ring納入新輪廓（由relocate-swallow-quarter.py統一計算，該腳本現在讀詠絮樓ring）；yongxuAccess：門跟著移，S21入口道路延伸改到離新建築≥1.5m的最遠處（約[-159,-56]）停止，離門16.5m，前庭窄帶通到門前；P02/P03終點改接到路端（pedestrianLinks relocatedEnd）。
+
+**植栽種子序列改法（重要）**：landscape.js改用凍結的排除範圍快照data/landscape-seed-areas.js（取自搬移前的24e614a，258個區域）與凍結R04快照data/r04-vegetation-seed.js產生種子植栽，再依現況（landscapeAreas(campus)、coverAt）過濾。這樣搬建築或步道不會再讓全校後續亂數樹位移（先前只靠舊輪廓，步道一動就局部位移再對齊）。**兩個snapshot檔絕對不要重新產生**。與24e614a相比，樹只差34棵被新建築擠掉＋1棵在S22交匯處。
+
+測試：photo-access（前庭沿新輪廓）、spatial-corrections（路端在機動道路上、離門<20m）調整；全部Node測試通過（photo-buildings為已知失敗）；arrival-landscape-geometry通過；court-yongxu-r04-geometry、spatial-corrections-geometry在24e614a本來就失敗。
+
+待辦：食巢／飛燕外框仍是OSM形狀（比真實屋頂大約20%）；霽遠樓離空拍位置差約5m；詠絮樓東側翼形狀未收小（只剛體移動）；是否調整S06／S07加高。
+
+## 2026-11-23（B1 續）
+
+B02／B03 外框依圖面補齊（階梯範圍仍留缺口＝實心）、車道口橫梁移除、車道／入口人行道圓弧改依 1F 圖（R≈2.8／3.5／3.1，straight→arc）。細節與重建順序見 `buildings/zhili/README.md` 同日條目。待辦：準備室由使用者自畫；B02／B03 門位置暫定；入口圓弧的圖面讀值為目測；瀏覽器套件測試未跑。
+
+## 2026-11-22（B1 牆面對話）：廁所重畫、右下角外框、關閉的門
+
+詳見 `buildings/zhili/README.md` 同日條目。完成：B1 兩間廁所依線稿重畫（男／女側、隔間、設備；男女依器具判斷待確認）、B1 右下角外框補回線稿位置、B01／B02／B03 加關閉木門（B02／B03 位置暫定）、準備室工具（`scripts/zhili-plan-crop.py`、`scripts/zhili-coords.py`）。待辦：B02／B03 下半部牆與車道入口（使用者要調整但未說方向）、準備室由使用者自畫。驗證：`tests/zhili-interior.mjs`、`tests/gauss-interior.mjs` 通過；**瀏覽器測試本環境未跑**（無 playwright）。注意：提交前的 `interior.json` 與腳本不同步（B1／1F 樓板曾是舊的），重建後 1F slab／ceiling 三角形有差。
 
 ## 2026-11-22：霽遠樓與歸燕食巢／飛燕依正射影像移動、S22東移、水滴形安全島（接續Issue #104）
 
@@ -33,7 +56,7 @@ PR #116 已合併。使用者追加：階梯花台邊緣對齊樓體邊緣（花
 - 主階梯：圖面x7.67–16.26、y62.41–66.82，**8階＋歇腳平台＋8階**（layout.json teachingStairs[0]，levelRestLanding）；高出人行道約3.07m。
 - facilities/zhili-curbcuts（layout.json、renderer.js、scripts/zhili_curbcuts.py、build-zhili-curbcuts.py→campus.zhiliCurbCuts）：
   車道（x1.75–7.07，B1樓板y59.62接至S05路面高度，瀝青＋兩側牆，車庫口開牆、花台甲板y57.9–59.62只留外圍矮牆、延伸基座挖隧道）；
-  車道與致理入口階梯下方的「路面同高」磁磚鋪面（pad）：由build-sidewalk-plan自人行道挖出（sidewalkPlan.curbCuts），兩側圓弧（flareR/flareMax），人行道自動生出路緣；
+  車道與致理入口階梯下方的「路面同高」磁磚鋪面（pad）：由build-sidewalk-plan自人行道挖出（sidewalkPlan.curbCuts），兩側圓弧（padX/flareStartY/flareRL/flareRR，2026-11-23 起依圖面），人行道自動生出路緣；
   殘障坡道（圖面x44.48–54.15、y66.82–68.33，西端1F高、東端接人行道，實心）；
   2F平台花圃（高0.9m）與椅子（高0.45m）：兩條緊密線＝花圃、外圍多一線＝椅子（使用者說明，左欄四個U形框已做；右欄緊貼建築的框、樹穴尚未做）；
   B1天窗（圖面x34.06–43.4、y41.3–45.16，3×8四角錐玻璃）——該處在遊戲中似落在致理2F室內，位置待確認；
