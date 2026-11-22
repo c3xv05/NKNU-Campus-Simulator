@@ -104,6 +104,9 @@ extensionRegions=[];extensionEdges=[];extensionBase=[]
 if not extension.is_empty:
  ext=extension.difference(buildingsLower).intersection(lowerShape);closed=unary_union([lowerShape,buildingsLower.buffer(.35,join_style=2),podium.buffer(.35,join_style=2),*([_zhili1F.buffer(.35,join_style=2)] if gaussInt else []),planterShape.buffer(.35,join_style=2),Polygon(c['levelLink']['ring']),Polygon(c['teachingAccess']['lowerLanding']),*[Polygon(s['ring']) for s in c['levelLink']['stairs']]])
  tunnel=zw([[1.75,53.0],[7.07,53.0],[7.07,59.62],[1.75,59.62]])
+ # User 2026-11-23: the solid base fills the ground up to plaza level; where the B1 basement (walkable driveway etc.) is underneath it showed
+ # up inside B1 as red walls you could walk through. Keep it out of the basement outline.
+ _zi=json.loads((root/'buildings/zhili/interior.json').read_text());tunnel=unary_union([tunnel,zw(_zi['floors'][0]['outline'])])
  for piece in polygons(ext):
   if piece.area<1:continue
   extensionRegions.append(coords(piece.exterior))
