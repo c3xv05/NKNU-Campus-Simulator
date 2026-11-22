@@ -92,7 +92,7 @@ STAIR = {'甲梯': {'entrance': 'y1', 'door': ('y1', .5, 1.6)}, '乙梯': {'entr
 DRIVE_CLEAR_B1 = [1.76, 59.3, 7.04, 60.5]   # garage mouth: no wall across the driveway ramp (2026-11-22)
 # User 2026-11-23: the driveway floor is a real slope from the garage mouth (B1 floor) down to the sidewalk-tile pad at the road
 # (y66.6). Measured in the running game: B1 floor top 35.449, pad top 35.129 -> drop 0.32 m (scripts/ + interior.js ramp mesh).
-RAMP_SLOPE = {'rect': [1.76, 60.5, 7.07, 66.6], 'drop': 0.32}
+RAMP_SLOPE = {'rect': [1.76, 60.5, 7.07, 66.6], 'tileFrom': 62.3, 'drop': -1.05}   # default only: interior.js re-measures it from the live road height; negative = the ramp climbs to the road
 DRIVE_OPEN_B1 = [1.75, 59.62, 7.07, 62.3]   # driveway ramp aisle: open to the sky (no ceiling), 2026-11-22
 VOID_CLEAR_2F = [16.3, 58.2, 21.2, 66.8]   # 2F corner void (挑空): no outer walls on the west and south sides, only the corner column (user 2026-11-22 photo)
 OPEN_2F = [19.0, 46.3, 21.45, 55.4]     # walls cleared (top landing opens onto the plaza)
