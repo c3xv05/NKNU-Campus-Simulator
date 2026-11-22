@@ -17,6 +17,11 @@ export function addZhiliCurbCuts(THREE,group,campus,terrain,network,tileMaterial
  const d=cfg.driveway,[a,b]=d.axis,len=Math.hypot(b[0]-a[0],b[1]-a[1]),ux=(b[0]-a[0])/len,uz=(b[1]-a[1])/len,nx=-uz,nz=ux,b1=lower+d.b1Level;
  // Ramp surface: B1 floor at the garage mouth, S05 road height where the pad begins.
  const rampT=(x,z)=>clamp(((x-a[0])*ux+(z-a[1])*uz)/len,0,1),rampH=(x,z)=>{const t=rampT(x,z);return b1+(roadBase(x,z)-b1)*t;};
+ // L wall along the east side of the ramp / west side of the main steps (cap slopes down with the steps).
+ if(cfg.lwall){const c=cfg.lwall.corners,wm=new THREE.MeshStandardMaterial({color:0xa66b58,roughness:.95,side:THREE.DoubleSide}),cm=new THREE.MeshStandardMaterial({color:0xb8bab2,roughness:1,side:THREE.DoubleSide}),H0=lower+cfg.lwall.northTop,[sx,sz]=[(c[2][0]+c[3][0])/2,(c[2][1]+c[3][1])/2],H1=roadBase(sx,sz)+cfg.lwall.southTop,low=Math.min(roadBase(sx,sz),lower-3.6)-1.2;
+  const P=(q,h)=>[q[0],h,q[1]],top=[P(c[0],H0),P(c[1],H0),P(c[2],H1),P(c[3],H1)],bot=[P(c[0],low),P(c[1],low),P(c[2],low),P(c[3],low)],quad=(a,b,cc,dd)=>[...up(a,b,cc).flat(),...up(a,cc,dd).flat()];
+  blockers.push(add(quad(...top),cm,'zhili-lwall-cap'));
+  const sides=[];for(let i=0;i<4;i++){const j=(i+1)%4;sides.push(...quad(top[i],top[j],bot[j],bot[i]));}blockers.push(add(sides,wm,'zhili-lwall'));}
  const half=d.width/2,N=Math.ceil(len/.4),M=Math.ceil(d.width/.5),corner=(i,j)=>[a[0]+ux*len*i/N+nx*half*(2*j/M-1),a[1]+uz*len*i/N+nz*half*(2*j/M-1)];
  const rampPos=[];for(let i=0;i<N;i++)for(let j=0;j<M;j++){const q=[corner(i,j),corner(i+1,j),corner(i+1,j+1),corner(i,j+1)].map(([x,z])=>[x,rampH(x,z)+.004,z]);rampPos.push(...up(q[0],q[1],q[2]).flat(),...up(q[0],q[2],q[3]).flat());}
  const asphalt=new THREE.MeshStandardMaterial({color:0x3b3c3e,roughness:1,side:THREE.DoubleSide});if(!d.interiorRamp)blockers.push(add(rampPos,asphalt,'zhili-driveway-ramp'));
