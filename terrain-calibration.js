@@ -10,5 +10,12 @@ export function yongjiHeightAdjustment(x,z){
  const west=project(x,z,s06),ridge=west.side>0?config.westRiseHeight*ease(config.westRiseStart,config.westRiseFull,west.side)*(1-ease(config.westRiseFadeStart,config.westRiseFadeEnd,west.side))*ease(0,30,west.station)*(1-ease(s06.length-20,s06.length,west.station))*(1-ease(0,35,west.beyond)):0;
  return lift*across*endFade+ridge;
 }
+// Region where the 2026-11-11 added rise (s06/s07AddedRise, set to 0 on 2026-11-23) used to lift the ground. Tests use it to tell
+// which terrain/road/plant heights may legitimately differ from older baselines after the rise was removed.
+export function yongjiLiftInfluence(x,z){
+ const p=project(x,z,combined);if(p.distance>Math.max(config.westRiseFadeEnd,config.eastLiftFade,150)+10)return 0;
+ const across=p.side>=0?1-ease(config.nearRoad,config.westLiftFade,p.side):1-ease(config.eastLiftNear,config.eastLiftFade,-p.side),endFade=1-ease(70,150,p.beyond);
+ return (p.station>0||p.beyond<40)?across*endFade:0;   // also the ~40 m north of the S06 start: the junction re-grades when the S06 profile changes
+}
 export function isS06WestForest(x,z){if(z<config.s06[0][1]||z>config.s06.at(-1)[1])return false;for(const s of s06.segments)if(z>=Math.min(s.a[1],s.b[1])&&z<=Math.max(s.a[1],s.b[1])){const t=(z-s.a[1])/s.dz;return x<s.a[0]+s.dx*t;}return false;}
 export const yongjiCalibration=config;
