@@ -37,7 +37,12 @@ New = Polygon(g['ring'])
 sp = 'facilities/yongxu-access/satellite-sketch.json'; s = load(sp)
 s.setdefault('beforeRelocationBuildingRing', s['buildingRing']); s['buildingRing'] = Tm(s['beforeRelocationBuildingRing'])
 road0 = s.setdefault('beforeRelocationRoadRing', s['roadRing'])
-clip = Polygon(road0).difference(New.buffer(.3))
+# The sketch brought the forecourt up to the north wing's inner wall ("空地向北補至北橫翼外牆"). The wall moved ~5 m north-west, so the
+# strip between the old forecourt edge and the new wall is added; the cut along the new footprint is exact, so the wall edge stays shared.
+A, B = (-153.2, -84.1), (-167.9, -87.9)      # old forecourt north edge (= old north wing inner wall)
+C, D = tuple(g['ring'][5]), tuple(g['ring'][6])  # new north wing inner wall
+road_all = Polygon(road0).union(Polygon([A, B, D, C]).buffer(0))
+clip = road_all.difference(New)
 clip = max(getattr(clip, 'geoms', [clip]), key=lambda q: q.area).simplify(.02)
 s['roadRing'] = [[round(x, 6), round(z, 6)] for x, z in list(clip.exterior.coords)[:-1]]
 save(sp, s)
