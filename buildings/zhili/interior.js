@@ -29,6 +29,8 @@ export function createPlanSurface(campus,terrain,osm){
   for(const fl of floors){if(y<fl.y-.5||y>fl.y+H+.6)continue;for(const s of fl.stairs){if(!inRect(p,s.rect))continue;for(const t of s.treads)if(inRect(p,t.rect)){const h=fl.y+t.height+ZHILI_CLEARANCE,e=Math.abs(y-h);if(e<.44&&e<error){best=h;error=e;}}}}
   for(const fl of floors)for(const e of fl.exits)for(const t of e.steps||[])if(inRect(p,t.rect)){const h=fl.y+t.height+ZHILI_CLEARANCE,er=Math.abs(y-h);if(er<.44&&er<error){best=h;error=er;}}
   if(best!==null)return best;
+  // Driveway ramp (B1): the floor slopes from the garage mouth down to the sidewalk-tile pad at the road.
+  for(const fl of floors){const r=fl.ramp;if(!r||y<fl.y-.75||y>fl.y+.9||!inRect(p,r.rect))continue;const t=Math.min(1,Math.max(0,(p[1]-r.rect[1])/(r.rect[3]-r.rect[1])));return fl.y+ZHILI_CLEARANCE-r.drop*t;}
   for(const fl of floors)if(Math.abs(y-fl.y-ZHILI_CLEARANCE)<.85&&insideRegions(p,fl.slab))return fl.y+ZHILI_CLEARANCE;
   return null;
  }
@@ -102,10 +104,19 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
  let shell=null;
  for(const fl of data.floors){const y=base+fl.level;
   const s=slab(fl.slabTriangles,y,y-SLAB,'floor',key+'-floor-'+fl.label);shell??=s;
-  if(fin&&fl.garageTriangles){surface(fl.garageTriangles,y+.004,surf.garage,4,key+'-garage-'+fl.label);for(const r of fl.stallLines||[])rectBox(r,y+.004,y+.014,'paint');if(fl.laneTriangles?.length)surface(fl.laneTriangles,y+.012,mats.paint,1,key+'-lanes-'+fl.label);for(const p of fl.garageLights||[])rectBox([p[0]-.6,p[1]-.06,p[0]+.6,p[1]+.06],y+H-SLAB-.1,y+H-SLAB-.04,'lamp');}
+  if(fin&&fl.garageTriangles){surface(fl.garageTriangles,y+.004,surf.garage,4,key+'-garage-'+fl.label);for(const r of fl.stallLines||[])rectBox(r,y+.004,y+.014,'paint');if(fl.laneTriangles?.length)surface(fl.laneTriangles,y+.012,mats.paint,1,key+'-lanes-'+fl.label);
+  if(fl.ramp){const r=fl.ramp.rect,drop=fl.ramp.drop,N=Math.max(2,Math.ceil((r[3]-r[1])/.4)),low=Math.min(...(data.foundationRing||fl.outline).map(([x,yy])=>{const [wx,wz]=f.toWorld(x,yy);return terrain.height(wx,wz);}))-.6;
+   const top=yy=>y+.004-drop*(yy-r[1])/(r[3]-r[1]),V=(x,yy,h)=>{const [wx,wz]=f.toWorld(x,yy);return[wx,h,wz];};
+   const posT=[],uvT=[],posS=[];const T=(a,b,c)=>{for(const q of [a,b,c])posT.push(...q);};const S=(a,b,c)=>{for(const q of [a,b,c])posS.push(...q);};
+   for(let i=0;i<N;i++){const y0=r[1]+(r[3]-r[1])*i/N,y1=r[1]+(r[3]-r[1])*(i+1)/N,a=V(r[0],y0,top(y0)),b=V(r[2],y0,top(y0)),c=V(r[2],y1,top(y1)),d=V(r[0],y1,top(y1));T(a,c,b);T(a,d,c);
+    for(const [x,x2] of [[r[0],r[0]],[r[2],r[2]]]){const p0=V(x,y0,top(y0)),p1=V(x,y1,top(y1)),q0=V(x,y0,low),q1=V(x,y1,low);S(p0,p1,q1);S(p0,q1,q0);}}
+   {const e=V(r[0],r[3],top(r[3])),e2=V(r[2],r[3],top(r[3])),l1=V(r[0],r[3],low),l2=V(r[2],r[3],low);S(e,e2,l2);S(e,l2,l1);}
+   for(let k=0;k<posT.length;k+=3){const d=f.toDrawing(posT[k],posT[k+2]);uvT.push(d[0]/4,d[1]/4);}
+   const gT=new THREE.BufferGeometry();gT.setAttribute('position',new THREE.Float32BufferAttribute(posT,3));gT.setAttribute('uv',new THREE.Float32BufferAttribute(uvT,2));gT.computeVertexNormals();const mT=new THREE.Mesh(gT,surf.garage||surf.floor);mT.name=key+'-ramp-'+fl.label;mT.receiveShadow=true;group.add(mT);blockers.push(mT);
+   const gS=new THREE.BufferGeometry();gS.setAttribute('position',new THREE.Float32BufferAttribute(posS,3));gS.computeVertexNormals();const mS=new THREE.Mesh(gS,mats.outer);mS.name=key+'-ramp-base-'+fl.label;group.add(mS);}for(const p of fl.garageLights||[])rectBox([p[0]-.6,p[1]-.06,p[0]+.6,p[1]+.06],y+H-SLAB-.1,y+H-SLAB-.04,'lamp');}
   if(fin){surface(fl.tileTriangles||fl.slabTriangles,y+.004,surf.floor,surf.floorRepeat,key+'-tiles-'+fl.label);if(fl.ceilingTriangles)surface(fl.ceilingTriangles,y+fin.ceilingHeight,surf.ceiling,surf.ceilingRepeat,key+'-ceiling-'+fl.label);}
   for(const w of fl.walls)wall(w,y,fl.outline);
-  for(const w of fl.sills||[])wall(w.rect,y,fl.outline,y,y+w.top);
+  for(const w of fl.sills||[])wall(w.rect,y,fl.outline,y-.45,y+w.top);
   for(const w of fl.heads||[])wall(w.rect,y,fl.outline,y+w.bottom,y+H-SLAB,false);
   for(const w of fl.windows||[])pane(w,y,-.12);
   for(const l of fl.lintels)rectBox(l,y+2.25,y+H-SLAB,'inner');
@@ -122,7 +133,7 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
  }
  // Foundation: where the ground under the lowest walkable floor is lower than its slab, fill down to the ground
  // (the floor's ground cut would otherwise open a see-through gap along the facade).
- {const fl0=data.floors[0],ring=fl0.outline,top=base+fl0.level-SLAB,low=Math.min(...ring.map(([x,y])=>{const [wx,wz]=f.toWorld(x,y);return terrain.height(wx,wz);}))-.6;
+ {const fl0=data.floors[0],ring=data.foundationRing||fl0.outline,top=base+fl0.level-SLAB,low=Math.min(...ring.map(([x,y])=>{const [wx,wz]=f.toWorld(x,y);return terrain.height(wx,wz);}))-.6;
   if(low<top-.05){const sh=new THREE.Shape();ring.forEach(([x,y],i)=>{const [wx,wz]=f.toWorld(x,y);i?sh.lineTo(wx,-wz):sh.moveTo(wx,-wz);});sh.closePath();const g=new THREE.ExtrudeGeometry(sh,{depth:top-low,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,mats.outer);m.position.y=low;m.name=key+'-foundation';m.receiveShadow=true;group.add(m);blockers.push(m);}}
  for(const r of data.exposedRoofs||[]){const ry=base+r.level;slab(r.triangles,ry-.01,ry-SLAB,'ceiling',key+'-exposed-roof-'+r.level);}
  const roofY=base+data.roofLevel;slab(data.roofTriangles,roofY-.01,roofY-SLAB,'ceiling',key+'-roof');

@@ -90,6 +90,9 @@ STAIR = {'甲梯': {'entrance': 'y1', 'door': ('y1', .5, 1.6)}, '乙梯': {'entr
 # 己梯 (user 2026-11-18 "己梯要蓋"): open straight stair from the 1F ±0 paving (y55.3) up to the 2F plaza (y48.7);
 # the 2F floor is open over it and its top opens onto the plaza.
 DRIVE_CLEAR_B1 = [1.76, 59.3, 7.04, 60.5]   # garage mouth: no wall across the driveway ramp (2026-11-22)
+# User 2026-11-23: the driveway floor is a real slope from the garage mouth (B1 floor) down to the sidewalk-tile pad at the road
+# (y66.6). Measured in the running game: B1 floor top 35.449, pad top 35.129 -> drop 0.32 m (scripts/ + interior.js ramp mesh).
+RAMP_SLOPE = {'rect': [1.76, 60.5, 7.07, 66.6], 'drop': 0.32}
 DRIVE_OPEN_B1 = [1.75, 59.62, 7.07, 62.3]   # driveway ramp aisle: open to the sky (no ceiling), 2026-11-22
 VOID_CLEAR_2F = [16.3, 58.2, 21.2, 66.8]   # 2F corner void (挑空): no outer walls on the west and south sides, only the corner column (user 2026-11-22 photo)
 OPEN_2F = [19.0, 46.3, 21.45, 55.4]     # walls cleared (top landing opens onto the plaza)
@@ -557,6 +560,7 @@ for k in ALL_FLOORS:
 
 for i, fl in enumerate(floors_out):
     slab = OUTLINE[fl['key']]
+    if fl['key'] == 'B': slab = slab.difference(box(*RAMP_SLOPE['rect'])); fl['ramp'] = RAMP_SLOPE
     if i > 0:
         for st in stairs_by_floor[ORDER[i - 1]]: slab = slab.difference(box(*st['hole']))
     vm = fl.pop('voidMask')
@@ -593,7 +597,7 @@ top = OUTLINE[ORDER[-1]]
 out = {'version': 2, 'building': 444867693, 'floorHeight': FLOOR_H, 'slab': SLAB, 'transform': T,
        # Interior finish (user 2026-11-19): square floor tiles, off-white walls, black skirting, light-steel (T-bar)
        # suspended ceiling with recessed lights.
-       'finish': {'tile': .6, 'wall': '#efe9da', 'skirting': '#1c1c1e', 'skirtingHeight': .1, 'ceilingHeight': 3.0, 'ceilingPanel': .6}, 'outline': ring_coords(unary_union([OUTLINE[k] for k in ORDER])),
+       'finish': {'tile': .6, 'wall': '#efe9da', 'skirting': '#1c1c1e', 'skirtingHeight': .1, 'ceilingHeight': 3.0, 'ceilingPanel': .6}, 'foundationRing': ring_coords(OUTLINE['B'].difference(box(*RAMP_SLOPE['rect']))), 'outline': ring_coords(unary_union([OUTLINE[k] for k in ORDER])),
        'towerOutline': ring_coords(TOWER), 'podiumRoofLevel': LEVEL['2'],
        'source': {'plan': 'buildings/zhili/plan.json', 'basis': '使用者確認的平面圖判讀；各層外框依圖面（1F含裙樓與北側門廳），牆為房間分區交界與0.25m外牆，梯間四周封牆、門依圖面方位，外牆依房間開窗；門窗尺寸為模型近似。空房間。',
                   'scope': '使用者2026-11-18：先做2樓以下（B1～2F可走），3F以上為實心量體但外牆窗依圖面；B1只含1F建物下方，室外鋪面下方的停車場待做。'},
