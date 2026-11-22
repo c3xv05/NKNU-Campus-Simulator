@@ -1,5 +1,17 @@
 # 新對話接續摘要
 
+## 2026-11-22（晚2）：詠絮樓、燕窩、科技大樓依平面圖重描外框並依正射影像定位
+
+使用者提供宿舍逃生動線圖PDF（霽遠樓、詠絮樓、燕窩）與工教大樓（科技大樓）平面圖壓縮檔，要求「先決定位置與形狀，外觀細節之後由他人補」。霽遠樓圖面與既有plan.json相同，未動。
+- `scripts/place-drawn-buildings.py`（冪等）：三棟外框由圖面描出（像素輪廓寫在腳本與各building.json的`drawingPlacement`），比例取圖上尺寸，旋轉／平移依NLSC 2023正射影像擬合（詠絮198°、燕窩-8°、科技70°）。舊輪廓＝`beforeRelocationRing`、地形台地＝`terrainRing`（地形／道路高程不重算）。PDF已複製到各棟`source/`。
+- 詠絮：內角斜邊為`frontEdge`；`scripts/refit-yongxu-forecourt.py`重配S21延伸段、內側道路、草皮，並把restaurant-quarter共同平台補入新外框＋4m；`landscape.js`對草皮與詠絮內側道路改用`beforeRelocationRing`，避免全校隨機植栽序列位移。
+- 重建順序：place-drawn-buildings → build-building-catalog → refit-yongxu-forecourt → build-campus-plazas → build-zhili-curbcuts → build-walk-obstacles → build-pedestrian-patches → build-sidewalk-plan → build-motor-pavement-plan → build-court-access → build-road-regions → build-sidewalk-sections → build-r04-vegetation。
+- 測試：更新court-yongxu-r04／photo-access（頂點數、草皮點數、forecourt貼新外牆）與arrival-landscape-geometry；photo-buildings為既有失敗；其餘Node測試通過。
+- 待辦／疑點：燕窩外框取二至六樓，一樓與地下一樓（餐廳延伸到花園下）不同；三棟樓層數與高度未依圖面改（詠絮圖1–5層、科技圖1–5層＋B1，模型分別6層／6層）；燕窩新輪廓與環手星月大道218881799有約33㎡重疊待查；詠絮草皮縮成小月牙（路徑改走新外牆旁）；科技大樓西南尖端離人行道僅約0.9m；新外框超出舊台地處依地形（建築底座沿用舊台地高度）。外觀、入口細節待他人補。
+=======
+
+（合併main #120後：詠絮樓外框以本節的平面圖外框取代#120的剛體移動結果；`relocate-yongxu.py`若重跑會覆蓋，需再跑`place-drawn-buildings.py`與`refit-yongxu-forecourt.py`。植栽種子改由#120的凍結快照處理，本節`landscape.js`改動已捨棄。）
+
 ## 2026-11-23：詠絮樓依正射影像移動；高程對照調查（接續Issue #104）
 
 **高程對照（只調查，未改資料）**：內政部光達10m等高線（WMTS MOI_CONTOUR，裸地，約±3m）對照遊戲與SRTM。大門約88m（±3）。高於大門：S07交匯真實約52（SRTM 52、遊戲68）；歸燕食巢約48（SRTM 50.5、遊戲64.3）；飛燕約46（47.7／64.3）；詠絮樓約45（50.2／64.3）；霽遠樓52～62（兩條140m線之間的脊，沒有150m線；SRTM 54.5、遊戲72.0）。遊戲在大門到中央坡地一帶與SRTM差<1m，只有S07／食巢區／霽遠樓偏高14～17m，原因是2026-11-11使用者要求的現場校正（data/yongji-terrain.js：S06附加14m、S07再8m，紀錄寫明「非實測」）。依等高線估：S06真實爬約15～17m（約5%）、S07約2～5m（約3%）；遊戲分別28.5m（8.9%）、12m（10.2%）。食巢／飛燕／詠絮樓遊戲同一平台（64.3），真實是緩坡（約136／134／133m）。**是否改回接近真實由使用者決定（尚未決定）。**
@@ -560,5 +572,5 @@ main上8個Node測試早已失敗（最早自PR40），多數是規格更新後�
 - **S06/S07 改回現實地形**：`data/yongji-terrain.js` 的 `s06AddedRise`/`s07AddedRise` 改 0（西側山脊 `westRise*` 保留）；S06/S07 的 `uphillGrade.minimumSlope` 改 0（舊值存於 `beforeRealTerrain`）。實際爬升：S06 約13.5m、S07 約5.0m（均約4.2%）。測試：`yongji-slope`（真實爬升）、`campus-refinements`（允許平緩不下坡）、`relocation-window` 以新增的 `yongjiLiftInfluence`（terrain-calibration.js）把原加高範圍納入允許差異區。
 - **歸燕食巢**：依 `buildings/swallow-restaurant/source/floor-*.pdf`（B1、1–4F）改為 57.6×20.6m 矩形（A–C軸 7+13m 加牆厚），方位／位置取自正射影像並外移 1.6m 以與 S22 瀝青保持 ≥1.5m；正面為西北長牆（ring edge 3）。D軸外的拱廊／陽台／門廊（約4.5m，門廊約13m寬）尚未建模：通用 renderer 只擠出單一輪廓，需另建附屬量體，**待辦**。
 - **飛燕**：改為半徑12.3m 的圓弓形（29點，弦平行食巢長軸；弧向外），離食巢後牆約13.8m，**取代舊的7.2m間距規定**（`photo-access` 測試已改）。
-- **詠絮樓**：外型改依 `buildings/foresight/source/dormitory-plans.pdf` p3/p4（1F、2–5F）：兩翼寬13.52m、外側各長42.92m（角塊18.35m＋翼24.57m）、內角6.45m斜邊（大門／交誼廳）。ring 維持7點同順序（A,B,C,D,E,F,G），門與 frontHint 取內側牆（edge 3）中點；S21 入口延伸改為離新輪廓 ≥1.5m 處截止。以上全由 `scripts/relocate-swallow-quarter.py`、`scripts/relocate-yongxu.py` 產生（皆可重跑）。細部（陽台、凹凸、核心樓梯間）待辦。
+- **詠絮樓**：與 PR #121（place-drawn-buildings.py，同樣依平面圖描外框）重複，合併時以 #121 為準，本分支的詠絮改動已捨棄。食巢／飛燕腳本 `relocate-swallow-quarter.py` 會讀取 #121 的詠絮輪廓來算共同平台。重建順序見上方 #121 條目（relocate-swallow-quarter 於 build-building-catalog 之前執行）。
 - 已知：`tests/photo-buildings.mjs`（S？道路 218881795 接縫）及 7 個 Python 幾何測試（campus-corridors/court-yongxu-r04/eight-step-access/garage-s11/gauss-stop/jiyuan-interior/spatial-corrections）在本批改動前就失敗，非本次造成，尚未處理。霽遠樓未動。
