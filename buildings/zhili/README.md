@@ -84,4 +84,4 @@
 - **車道口橫梁**：`MANUAL_EXITS` 車道口的出入口帶 `header:false`，`interior.js` 不再在開口上方畫 y+2.4 以上的橫梁（原本整段 1.85–7.05、y66.46–66.66）。
 - **車道／入口圓弧**（`facilities/zhili-curbcuts/layout.json`、`scripts/zhili_curbcuts.py`）：舊的「R4、自 y66.6 起外擴 1m」是猜的。依 1F 圖：車道口兩側路緣是直線（x1.61、x7.4）到 y70，再各接 R≈2.8 m 四分之一圓弧到路緣線（y≈72.8）；致理入口鋪面 x36.45–44.4，路緣直線至 y69.3，西側 R≈3.5、東側 R≈3.1。參數 `padX`／`flareStartY`／`flareRL`／`flareRR`（取代 `flareR`／`flareMax`）。重建：`build-zhili-curbcuts.py` → `build-sidewalk-plan.py`（約 40 秒）。
 - 驗證：`tests/zhili-interior.mjs` 與其他 `tests/*.mjs` 通過（`photo-buildings.mjs` 的 15cm 接縫斷言在 main 即失敗，非本次造成）；用本機 chromium 實際看過車道口：兩側圓弧、開口無橫梁。
-
+- 2026-11-23（續）：B02 下半部補進 B1 外框時蓋住了階梯旁三層花台（x16.5–26.7、y62.5–66.6）。`B1_SW` 現在扣掉 `campus.courtyard.planters`（source zhili）範圍，該處外框回到 y62.5。另：下層廣場延伸區實心基座（`zhiliExtension.baseRegions`）讓出 B1 外框，否則在地下室車道內呈現可穿過的紅牆。
