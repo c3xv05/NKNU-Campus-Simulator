@@ -50,7 +50,10 @@ STAIR_KEEP = unary_union([Polygon([drawing(q) for q in st['ring']]).buffer(.3, j
 # User 2026-11-23: B1 walls follow the drawing. B02/B03 and the strip below them (x7.07-26.8, y55-66.6) belong to the drawing's B1 even
 # though the 1F outline / lower plaza stop short. Where the old south teaching stairs (STAIR_KEEP) overlap, the basement is NOT hollowed
 # out: the outline keeps its notch there, so the stair mass stays solid ground and nobody can fall through it.
-B1_SW = box(7.07, 55.0, 26.8, 66.6)
+# The stepped planters beside the main steps (campus.courtyard.planters, source 'zhili') stand on the ground there: B1 must not
+# cover them with its outer wall (user 2026-11-23), so the strip stops short of them.
+PLANTERS_Z = unary_union([Polygon([drawing(q) for q in pl['ring']]) for pl in camp['courtyard'].get('planters', []) if pl.get('source') == 'zhili']).buffer(.1, join_style=2)
+B1_SW = box(7.07, 55.0, 26.8, 66.6).difference(PLANTERS_Z)
 # Current 1F sheet (user 2026-11-19: "以我後來上傳的平面圖為準"): 全家超商B區 extends south of the old west-lobby
 # front to y≈50.2 (7.8 m wide, x 8.5–16.25); west of it is the open 學生休憩廣場.
 OUTLINE_1F = unary_union([OUTLINE_1F, box(8.5, 46.2, 16.25, 50.25)]).buffer(.05, join_style=2).buffer(-.05, join_style=2)
