@@ -1,5 +1,21 @@
 # 新對話接續摘要
 
+## 2026-11-22（完成）：車道、入口坡道、花台、中央廣場、L型己梯
+
+依 floor-1F-current.pdf / floor-2F.pdf 向量線稿判讀（pymupdf；1F仿射 x=0.1313·px−15.678、y=0.1313·py−0.557；2F x=−py·S+89.32、y=px·S−1.8，S=0.0817·110/72）。
+- 主階梯：圖面x7.67–16.26、y62.41–66.82，**8階＋歇腳平台＋8階**（layout.json teachingStairs[0]，levelRestLanding）；高出人行道約3.07m。
+- facilities/zhili-curbcuts（layout.json、renderer.js、scripts/zhili_curbcuts.py、build-zhili-curbcuts.py→campus.zhiliCurbCuts）：
+  車道（x1.75–7.07，B1樓板y59.62接至S05路面高度，瀝青＋兩側牆，車庫口開牆、花台甲板y57.9–59.62只留外圍矮牆、延伸基座挖隧道）；
+  車道與致理入口階梯下方的「路面同高」磁磚鋪面（pad）：由build-sidewalk-plan自人行道挖出（sidewalkPlan.curbCuts），兩側圓弧（flareR/flareMax），人行道自動生出路緣；
+  殘障坡道（圖面x44.48–54.15、y66.82–68.33，西端1F高、東端接人行道，實心）；
+  2F平台花圃（高0.9m）與椅子（高0.45m）：兩條緊密線＝花圃、外圍多一線＝椅子（使用者說明，左欄四個U形框已做；右欄緊貼建築的框、樹穴尚未做）；
+  B1天窗（圖面x34.06–43.4、y41.3–45.16，3×8四角錐玻璃）——該處在遊戲中似落在致理2F室內，位置待確認；
+  2F挑空角落承重柱一支（x16.95、y66.1）。
+- 階梯下層花台（三排）頂高隨人行道坡度（aboveSidewalk 1.7/0.9/0.12），移除最低排外側矮牆（延伸基座環只留東側縫）。
+- 己梯L型：西段5階往東（teachingStairs zhili-ji-low）→轉角平台（platforms，x19.32–21.44、y53.08–55.18，高0.818m）→北段17階上2F（zhili-ji，bottomRel/topRel）。stair-layout.js支援topRel/bottomRel；平台支援經 stairHeightAt 優先。
+- 重建順序新增 build-zhili-curbcuts（在 build-campus-plazas 後、build-pedestrian-patches 前）。
+- README已移除開發者代碼；developer-auth.js／tests仍有明碼（待使用者決定）。
+
 ## 2026-11-22：使用者新需求（尚未實作，依平面圖 buildings/zhili/source/floor-1F-current.pdf、floor-B1.pdf）
 
 使用者原話整理（Claude 看不到使用者貼的截圖；以下以 PDF 圖面為準，有出入請使用者補圖並提交到 repo）：

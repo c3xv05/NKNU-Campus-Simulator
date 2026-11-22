@@ -759,3 +759,7 @@ floor_spaces 在每個空間遮罩做小閉運算（走廊5格、其他3格，0.
 
 以由上往下射線（每2m／0.5m）掃描中央廣場，分類最上層命中網格與相對下層廣場高度，找出：高斯東側2m地形溝（實建牆與圖面外框不一致）、高斯1F屋頂與致理1F西牆0.16m細縫、西側花台被+1.6m地形覆蓋、致理演講廳牆頂與上層廣場0.16m細縫。修正見 build-teaching-courtyard（gaussEast、上層補縫、花台切地形）、index.html（groundOutline 切地形、pathCuts）、road-renderer（步道段與圓角略過 pathCuts）、interior.js（斜邊水平判斷、len 用 hypot）。剩餘：致理沿S05／北側路緣有 sidewalk-15cm-curbs 三角形中心落在外框內（貼邊、既有）。
 
+## 2026-11-22：車道、入口坡道、花台、中央廣場、L型己梯
+
+見 next-chat 同日條目。技術要點：人行道curb-cut以「自人行道平面挖出＋路面高度磁磚鋪面」實作，路緣由sidewalk-surface沿挖除邊界自動產生；車道/坡道/平台支援函式掛在 campus.zhiliCurbCutSupport／zhiliPlatformSupport（stairHeightAt 優先於走廊地板）；測試 photo-access/campus-plazas/frontage-alignment 已隨新幾何更新。
+

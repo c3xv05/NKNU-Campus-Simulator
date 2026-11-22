@@ -31,6 +31,7 @@ export function sidewalkSections(campus,network){
 }
 export function platformHeightAt(x,z,currentY,campus,terrain,network){
  const interior=jiyuanSupportAt(x,z,currentY,campus,terrain);if(interior!==null)return interior;
+ const platform=campus.zhiliPlatformSupport?.(x,z,currentY);if(platform!=null)return platform;
  const zhili=zhiliSupportAt(x,z,currentY,campus,terrain);if(zhili!==null)return zhili;
  const curbCut=campus.zhiliCurbCutSupport?.(x,z,currentY);if(curbCut!=null)return curbCut;
  const parking=parkingSupportAt(x,z,currentY,campus,terrain,network);if(parking!==null)return parking;

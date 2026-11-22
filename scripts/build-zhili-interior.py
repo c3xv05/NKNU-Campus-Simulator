@@ -69,11 +69,11 @@ STAIR = {'甲梯': {'entrance': 'y1', 'door': ('y1', .5, 1.6)}, '乙梯': {'entr
 # the 2F floor is open over it and its top opens onto the plaza.
 DRIVE_CLEAR_B1 = [1.76, 59.3, 7.04, 60.5]   # garage mouth: no wall across the driveway ramp (2026-11-22)
 DRIVE_OPEN_B1 = [1.75, 59.62, 7.07, 62.3]   # driveway ramp aisle: open to the sky (no ceiling), 2026-11-22
-OPEN_2F = [19.0, 46.3, 21.3, 55.4]     # walls cleared (top landing opens onto the plaza)
+OPEN_2F = [19.0, 46.3, 21.45, 55.4]     # walls cleared (top landing opens onto the plaza)
 # Open (semi-outdoor) outline edges, no wall (user 2026-11-19): 2F west of 己梯 between the two columns opens onto
 # the upper plaza walkway.
 OPEN_EDGES = {'2': [[16.2, 46.85, 16.9, 55.05]]}
-HOLE_2F = [19.0, 48.7, 21.3, 55.4]     # 2F slab open over the flight  # B05 演講廳 double door to the south 門廳
+HOLE_2F = [19.0, 48.7, 21.45, 55.4]     # 2F slab open over the flight  # B05 演講廳 double door to the south 門廳
 # Entrances on the 1F outline (drawing metres): north lobby, corridor south end, east main lobby, two west-lobby doors.
 MANUAL_EXITS = {'1': [[[64.4, 26.6], [64.4, 29.4]], [[26.7, 55.4], [26.7, 57.5]], [[38.4, 66.6], [42.4, 66.6]],
                       [[7.9, 46.3], [10.9, 46.3]], [[13.2, 46.3], [16.0, 46.3]]],
