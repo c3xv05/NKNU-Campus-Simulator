@@ -14,9 +14,12 @@ export function entranceBed(){
  for(const curve of curves)for(let i=0;i<16;i++)ring.push(bezier(...curve,i/16));
  return ring;
 }
+// 歸燕食巢／飛燕 moved to their orthophoto position (2026-11-22). The seeded plant sequence is generated with the
+// old rings (and old walkways) so no later random tree/flower shifts; plants crossing the new footprint are filtered below.
+const legacyRing=a=>a.beforeRelocationRing?{...a,ring:a.beforeRelocationRing}:a;
 export function createLandscapeLayout(campus,network,height){
  let seed=170491;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- const bed=entranceBed(),areas=[...(campus.campusTransitions||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.bioConnection.corridor?.regions||[]).map(([ring])=>({ring})),...(campus.gaussStop?[campus.gaussStop]:[]),...(campus.grassParking?[campus.grassParking]:[]),...(campus.courtParking?.entrance?[campus.courtParking.entrance]:[]),...(campus.yongxuLandscape?[campus.yongxuLandscape.lawn]:[]),...(campus.huanyuAccess?[campus.huanyuAccess,campus.huanyuAccess.ramp]:[]),campus.bioConnection.stairs,...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[]),...campus.places,...campus.buildings,...campus.water,...campus.courts,...(campus.sportsAccess?.surfaces||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.sportsGardens||[]),...(campus.pavedAreas||[]),...(campus.junctionFillets||[]),...(campus.sidewalkFrontages||[]),...(campus.pedestrianAreas||[]),...(campus.pedestrianLinks||[]),...perimeterWallRings(campus.perimeterWalls).map(ring=>({ring})),...(campus.sideGate?sidegateWalls(campus.sideGate).map(ring=>({ring})):[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.levelLink?.ring?[campus.levelLink]:[]),...(campus.welcomeBoard?[campus.welcomeBoard]:[])].map(a=>{const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{...a,west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs)};});
+ const bed=entranceBed(),areas=[...(campus.campusTransitions||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.bioConnection.corridor?.regions||[]).map(([ring])=>({ring})),...(campus.gaussStop?[campus.gaussStop]:[]),...(campus.grassParking?[campus.grassParking]:[]),...(campus.courtParking?.entrance?[campus.courtParking.entrance]:[]),...(campus.yongxuLandscape?[campus.yongxuLandscape.lawn]:[]),...(campus.huanyuAccess?[campus.huanyuAccess,campus.huanyuAccess.ramp]:[]),campus.bioConnection.stairs,...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[]),...campus.places.map(legacyRing),...campus.buildings.map(legacyRing),...campus.water,...campus.courts,...(campus.sportsAccess?.surfaces||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.sportsGardens||[]),...(campus.pavedAreas||[]),...(campus.junctionFillets||[]),...(campus.sidewalkFrontages||[]),...(campus.pedestrianAreas||[]),...(campus.pedestrianLinks||[]),...perimeterWallRings(campus.perimeterWalls).map(ring=>({ring})),...(campus.sideGate?sidegateWalls(campus.sideGate).map(ring=>({ring})):[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.levelLink?.ring?[campus.levelLink]:[]),...(campus.welcomeBoard?[campus.welcomeBoard]:[])].map(a=>{const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{...a,west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs)};});
  function eligible(x,z,margin=0){
   if(ringDistance(x,z,campus.boundary)!==0)return false;
   const road=network.nearest(x,z);if(road){const s=road.segment,side=Math.sign((x-s.a.x)*(-s.dz)+(z-s.a.z)*s.dx),walk=(campus.sidewalkRoadIds||[]).includes(s.route.osm)&&sidewalkSides(campus,s.route.osm).includes(side)?SIDEWALK_WIDTH:0;if(road.d<road.width/2+walk+margin)return false;}
@@ -26,14 +29,14 @@ export function createLandscapeLayout(campus,network,height){
  const trees=[],flowers=[],weeds=[];
  for(let z=-545;z<535;z+=9)for(let x=-410;x<425;x+=9){
   const px=x+(random()-.5)*7,pz=z+(random()-.5)*7;
-  if(coverAt(px,pz)==='forest'&&r04RegionAt(px,pz)?.category!=='forest'&&observedRegionAt(px,pz)!=='R09'&&eligible(px,pz,3))trees.push({x:px,z:pz,y:height(px,pz),size:.85+random()*.65,tint:random()});
+  if(coverAt(px,pz,true)==='forest'&&r04RegionAt(px,pz,true)?.category!=='forest'&&observedRegionAt(px,pz)!=='R09'&&eligible(px,pz,3))trees.push({x:px,z:pz,y:height(px,pz),size:.85+random()*.65,tint:random()});
  }
- for(let z=-305;z<530;z+=r04Vegetation.forestSpacing)for(let x=-420;x< -25;x+=r04Vegetation.forestSpacing){const px=x+(random()-.5)*4,pz=z+(random()-.5)*4;if(r04RegionAt(px,pz)?.category==='forest'&&eligible(px,pz,3))trees.push({x:px,z:pz,y:height(px,pz),size:1+random()*.6,tint:random()});}
+ for(let z=-305;z<530;z+=r04Vegetation.forestSpacing)for(let x=-420;x< -25;x+=r04Vegetation.forestSpacing){const px=x+(random()-.5)*4,pz=z+(random()-.5)*4;if(r04RegionAt(px,pz,true)?.category==='forest'&&eligible(px,pz,3))trees.push({x:px,z:pz,y:height(px,pz),size:1+random()*.6,tint:random()});}
  for(let z=-520;z< -9;z+=observedLandscape.r09.spacing)for(let x=-350;x<20;x+=observedLandscape.r09.spacing){const px=x+(random()-.5)*4,pz=z+(random()-.5)*4;if(observedRegionAt(px,pz)==='R09'&&eligible(px,pz,3))trees.push({x:px,z:pz,y:height(px,pz),size:1+random()*.6,tint:random()});}
  let flowerSeed=observedLandscape.r02.seed;const flowerRandom=()=>{flowerSeed=(Math.imul(flowerSeed,1664525)+1013904223)>>>0;return flowerSeed/4294967296;};const flowerCells=new Map(),flowerCell=observedLandscape.r02.minimumSpacing;for(let attempt=0,planted=0;attempt<90000&&planted<observedLandscape.r02.count;attempt++){const px=-306+flowerRandom()*293,pz=87+flowerRandom()*391;if(observedRegionAt(px,pz)!=='R02'||!eligible(px,pz,.65))continue;const ix=Math.floor(px/flowerCell),iz=Math.floor(pz/flowerCell);let near=false;for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(const f of flowerCells.get((ix+a)+','+(iz+b))||[])if(Math.hypot(px-f.x,pz-f.z)<flowerCell)near=true;if(near)continue;const f={x:px,z:pz,y:height(px,pz),size:.55+flowerRandom()*.85,tint:Math.floor(flowerRandom()*flowerPalette.length),angle:flowerRandom()*Math.PI*2};flowers.push(f);const key=ix+','+iz;if(!flowerCells.has(key))flowerCells.set(key,[]);flowerCells.get(key).push(f);planted++;}
  for(let z=-480;z<500;z+=5)for(let x=-400;x<425;x+=5){
   const px=x+(random()-.5)*4,pz=z+(random()-.5)*4;
-  if(coverAt(px,pz)==='weeds'&&eligible(px,pz,.5))weeds.push({x:px,z:pz,y:height(px,pz),size:.6+random()*.9,tint:random()});
+  if(coverAt(px,pz,true)==='weeds'&&eligible(px,pz,.5))weeds.push({x:px,z:pz,y:height(px,pz),size:.6+random()*.9,tint:random()});
  }
  for(let z=483;z<519;z+=1.1)for(let x=-277;x< -258;x+=1.1)if(ringDistance(x,z,bed)===0)flowers.push({x,z,y:height(x,z)+.2,size:.65,tint:(Math.round(x+z)%3+3)%3});
  const wall=[]; // Retaining walls removed at the user’s request.
@@ -41,6 +44,9 @@ export function createLandscapeLayout(campus,network,height){
  // Filtering after generation avoids shifting every later random tree/flower in the campus.
  const interiorRings=(campus.jiyuanInterior?.floors[0].regions||[]).map(r=>r[0]);
  if(interiorRings.length)for(const [items,margin]of [[trees,t=>3.6*t.size],[flowers,()=>.35],[weeds,()=>.35]])for(let i=items.length-1;i>=0;i--)if(interiorRings.some(r=>ringDistance(items[i].x,items[i].z,r)<margin(items[i])))items.splice(i,1);
+ const movedRings=[...campus.places,...campus.buildings].filter(a=>a.beforeRelocationRing).map(a=>a.ring);
+ if(movedRings.length){for(let i=trees.length-1;i>=0;i--)if(coverAt(trees[i].x,trees[i].z)!=='forest')trees.splice(i,1);for(let i=weeds.length-1;i>=0;i--)if(coverAt(weeds[i].x,weeds[i].z)!=='weeds')weeds.splice(i,1);}
+ if(movedRings.length)for(const [items,margin]of [[trees,t=>3.6*t.size],[flowers,()=>.35],[weeds,()=>.35]])for(let i=items.length-1;i>=0;i--)if(movedRings.some(r=>ringDistance(items[i].x,items[i].z,r)<margin(items[i])))items.splice(i,1);
  const treeCells=new Map();for(const tree of trees){const key=`${Math.floor(tree.x/15)},${Math.floor(tree.z/15)}`;if(!treeCells.has(key))treeCells.set(key,[]);treeCells.get(key).push(tree);}
  function blocked(x,z,radius=.5){
   if(ringDistance(x,z,bed)<radius)return true;

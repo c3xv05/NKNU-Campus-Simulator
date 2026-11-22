@@ -8,6 +8,19 @@ B02／B03 外框依圖面補齊（階梯範圍仍留缺口＝實心）、車道�
 
 詳見 `buildings/zhili/README.md` 同日條目。完成：B1 兩間廁所依線稿重畫（男／女側、隔間、設備；男女依器具判斷待確認）、B1 右下角外框補回線稿位置、B01／B02／B03 加關閉木門（B02／B03 位置暫定）、準備室工具（`scripts/zhili-plan-crop.py`、`scripts/zhili-coords.py`）。待辦：B02／B03 下半部牆與車道入口（使用者要調整但未說方向）、準備室由使用者自畫。驗證：`tests/zhili-interior.mjs`、`tests/gauss-interior.mjs` 通過；**瀏覽器測試本環境未跑**（無 playwright）。注意：提交前的 `interior.json` 與腳本不同步（B1／1F 樓板曾是舊的），重建後 1F slab／ceiling 三角形有差。
 
+## 2026-11-22：霽遠樓與歸燕食巢／飛燕依正射影像移動、S22東移、水滴形安全島（接續Issue #104）
+
+使用者質疑霽遠樓位置與前方道路奇怪（碰到馬路）。以國土測繪中心2023正射影像（WMTS PHOTO2，z20，約0.14m/px；座標與sample-terrain.py同原點[120.407,22.7865]）疊圖後確認：模型建物普遍偏東南／偏西北，與空拍差6～20m（#97已記）。使用者指示三件事：
+- **霽遠樓**往西北貼近真實位置，離人行道最近保持1.5m：轉4.879°、平移[-8.75,-3.5]m（大門步道前人行道限制，實際約1.66m，仍差空拍約5m）。plan.json placement（origin、angle）、building.json ring（beforeRelocationRing保留）、門前平台（campus-plazas foresight-forecourt，原範圍全保留並加4m，另併入S20正對正面的一段路使門檻與路面齊平）、P05、花台、室內全跟著動；室內／衛浴不重做。
+- **S22**（383447314）使用者准許調整：改從S07既有節點[-254.5,-29.5]岔出、走水滴形安全島東側（[-251,-14]→[-243,-1]→[-235,11]→終點[-227.5,23]）；只改這條路，**不要重跑全校build-road-curves.mjs**（會把381735518改回舊形）。安全島白磚（facilities/jiyuan-access beforeNorthTransition）依影像重描為水滴形（約147㎡），岔口（junctionMouth）改瀝青；build-jiyuan-transition.py支援junctionMouth。
+- **歸燕食巢＋飛燕**（使用者選第一個做法）：食巢OSM外框比真實屋頂大且偏西北約12m，與新S22重疊。以影像描出屋頂四角、IoU擬合並避開S22瀝青，兩棟剛體一起轉1.0°、平移[10.0,6.25]m（scripts/relocate-swallow-quarter.py，冪等，保留beforeRelocationRing），7.2m間距不變；詠絮樓不動。同時：共同平台restaurant-quarter補入新輪廓外4m（原範圍保留）；P01–P04連接步道跟著移；刪除舊入口補磚swallow-entrance-infill與食巢sidewalkFrontages／entranceRoadIds；新增P06食巢入口步道（食巢入口離最近人行道約13m）；align-building-frontages.py的settings不再含食巢（否則會被拉回S07人行道）。
+- **植栽種子序列**：landscape.js改以舊環（legacyRing／beforeRelocationRing）與凍結的R04快照（data/r04-vegetation-seed.js，由r04-vegetation.js的r04RegionAt(x,z,true)提供）產生，再依新輪廓過濾，避免全校後續亂數樹／花／草位移。重建R04時不要覆寫seed檔。landcover.coverAt與site-levels.siteLawnAt多一個legacy參數。
+- 測試：新增tests/relocation-window.mjs（共用的「搬移窗口」，由新舊level area環推得）；jiyuan-interior、sports-and-gentle-access改用它（窗口外地形／路面逐點相同、窗口內道路端點<5cm、植物y<0.1m）；developer-travel改驗P06整段鋪面；frontage-alignment食巢移出三立面清單、傳送點只要求在機動道路且<19m。
+- 重建順序（本次）：relocate-swallow-quarter → build-building-catalog → build-campus-plazas → build-zhili-curbcuts → build-walk-obstacles → build-pedestrian-patches → build-sidewalk-plan → build-motor-pavement-plan → build-court-access → build-road-regions → build-sidewalk-sections → build-r04-vegetation；S22／安全島另需build-junction-fillets（會呼叫build-jiyuan-transition）。
+- 驗證：全部Node測試（photo-buildings為既有已知失敗）、jiyuan-interior-geometry（照舊跳過過時基準行）、jiyuan-interior-browser（桌機＋手機）通過；與空拍疊圖、遊戲內空拍／近景截圖確認。
+
+待辦：詠絮樓與其他建築仍可能偏離空拍6～20m，需要時用同一方法（影像IoU擬合＋避開道路／人行道）逐棟處理；霽遠樓離人行道1.66m的限制來自迴車道外圈人行道；外觀照片；campus-corridors-browser在main已失敗（見上一筆）。
+
 ## 2026-11-22（晚）：階梯旁花台對齊樓體、整體提高
 
 PR #116 已合併。使用者追加：階梯花台邊緣對齊樓體邊緣（花台凸到樓梯）、花台整體再提高一個花台高度、柱子。已做：花台 x16.5–26.7（西＝2F外框、東＝1F外框）、南緣 y66.6（南牆線），頂高 aboveSidewalk 2.6/1.8/1.02（最高排約與1F同高）；承重柱移到2F挑空西南角（x16.5–17.0、y66.1–66.6）；移除花台外環延伸鋪面；build-teaching-courtyard 對 lowerShape 加 buffer(0)。
