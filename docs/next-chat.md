@@ -1,5 +1,14 @@
 # 新對話接續摘要
 
+## 2026-11-22（晚2）：詠絮樓、燕窩、科技大樓依平面圖重描外框並依正射影像定位
+
+使用者提供宿舍逃生動線圖PDF（霽遠樓、詠絮樓、燕窩）與工教大樓（科技大樓）平面圖壓縮檔，要求「先決定位置與形狀，外觀細節之後由他人補」。霽遠樓圖面與既有plan.json相同，未動。
+- `scripts/place-drawn-buildings.py`（冪等）：三棟外框由圖面描出（像素輪廓寫在腳本與各building.json的`drawingPlacement`），比例取圖上尺寸，旋轉／平移依NLSC 2023正射影像擬合（詠絮198°、燕窩-8°、科技70°）。舊輪廓＝`beforeRelocationRing`、地形台地＝`terrainRing`（地形／道路高程不重算）。PDF已複製到各棟`source/`。
+- 詠絮：內角斜邊為`frontEdge`；`scripts/refit-yongxu-forecourt.py`重配S21延伸段、內側道路、草皮，並把restaurant-quarter共同平台補入新外框＋4m；`landscape.js`對草皮與詠絮內側道路改用`beforeRelocationRing`，避免全校隨機植栽序列位移。
+- 重建順序：place-drawn-buildings → build-building-catalog → refit-yongxu-forecourt → build-campus-plazas → build-zhili-curbcuts → build-walk-obstacles → build-pedestrian-patches → build-sidewalk-plan → build-motor-pavement-plan → build-court-access → build-road-regions → build-sidewalk-sections → build-r04-vegetation。
+- 測試：更新court-yongxu-r04／photo-access（頂點數、草皮點數、forecourt貼新外牆）與arrival-landscape-geometry；photo-buildings為既有失敗；其餘Node測試通過。
+- 待辦／疑點：燕窩外框取二至六樓，一樓與地下一樓（餐廳延伸到花園下）不同；三棟樓層數與高度未依圖面改（詠絮圖1–5層、科技圖1–5層＋B1，模型分別6層／6層）；燕窩新輪廓與環手星月大道218881799有約33㎡重疊待查；詠絮草皮縮成小月牙（路徑改走新外牆旁）；科技大樓西南尖端離人行道僅約0.9m；新外框超出舊台地處依地形（建築底座沿用舊台地高度）。外觀、入口細節待他人補。
+
 ## 2026-11-22：霽遠樓與歸燕食巢／飛燕依正射影像移動、S22東移、水滴形安全島（接續Issue #104）
 
 使用者質疑霽遠樓位置與前方道路奇怪（碰到馬路）。以國土測繪中心2023正射影像（WMTS PHOTO2，z20，約0.14m/px；座標與sample-terrain.py同原點[120.407,22.7865]）疊圖後確認：模型建物普遍偏東南／偏西北，與空拍差6～20m（#97已記）。使用者指示三件事：

@@ -6,6 +6,6 @@ root=Path(__file__).resolve().parents[1];c=json.loads((root/'data/campus.json').
 b=Polygon(next(p for p in c['places']if p['osm']==381735221)['ring']);arrival=LineString(next(r for r in c['roads']if r['osm']==399908546)['line']).buffer(2.25);
 if c.get('wencuiArrival'): assert arrival.intersection(b).area<.001
 else: assert next(r for r in c['roads']if r['osm']==399908546)['line']==json.loads((root/'facilities/wencui-arrival/layout.json').read_text())['restoredLine']
-fore=Polygon(next(p for p in c['pavedAreas']if p['id']=='yongxu-forecourt')['ring']);y=next(p for p in c['places']if p['osm']==381735423);north=LineString([y['ring'][5],y['ring'][6]]);assert fore.boundary.intersection(north.buffer(.00001)).length>15
+fore=Polygon(next(p for p in c['pavedAreas']if p['id']=='yongxu-forecourt')['ring']);y=next(p for p in c['places']if p['osm']==381735423);wall=Polygon(y['ring']).buffer(.3);assert fore.boundary.intersection(wall).length>15 and fore.intersection(Polygon(y['ring'])).area<1  # 2026-11-22: forecourt re-fitted to the drawing-based footprint
 entrance=Polygon(c['courtParking']['entrance']['ring']);assert entrance.is_valid;assert entrance.intersection(walk).area<.01;assert len(c['courtParking']['entrance']['groundCuts'])>1
 print('PASS: boundary wall clear of asphalt/walks, Wencui service road restored, Yongxu north wing shared frontage, garage trench removes sidewalk and has explicit ground cutouts')
