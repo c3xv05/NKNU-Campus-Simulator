@@ -1,11 +1,12 @@
 import {addCampusCorridors} from './facilities/campus-corridors/renderer.js';
+import {addZhiliCurbCuts} from './facilities/zhili-curbcuts/renderer.js';
 import {addTeachingCourtyard} from './facilities/teaching-courtyard/renderer.js';
 import {accessStairs,stairBands,stairRing,supportOnStair,stairSurface,stairWidth} from './stair-layout.js';
 import {connectionRing} from './building-layout.js';
 import {subtract} from './road-ground.js';
 import {ringDistance} from './terrain.js';
 import {projectOnLine,platformHeightAt} from './site-physics.js';
-export function stairHeightAt(x,z,currentY,campus,terrain,network){for(const stairs of accessStairs(campus,terrain,network)){const height=supportOnStair(x,z,currentY,stairs);if(height!==null)return height;}return null;}
+export function stairHeightAt(x,z,currentY,campus,terrain,network){const platform=campus.zhiliPlatformSupport?.(x,z,currentY);if(platform!=null)return platform;for(const stairs of accessStairs(campus,terrain,network)){const height=supportOnStair(x,z,currentY,stairs);if(height!==null)return height;}return null;}
 export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
  const concrete=new THREE.MeshStandardMaterial({color:0xb9b7a9,roughness:.95}),brick=new THREE.MeshStandardMaterial({color:0xa66b58,roughness:.95});const blockers=[];
  function box(w,h,d,x,y,z,mat,angle=0,name=''){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y,z);m.rotation.y=angle;m.name=name;m.receiveShadow=true;group.add(m);return m;}
@@ -18,6 +19,7 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
  if(campus.teachingAccess){const landing=campus.teachingAccess.lowerLanding,base=Math.min(...landing.map(([x,z])=>terrain.height(x,z)-1));for(const [i,piece]of cutPieces(landing,[linkRing,...teaching.map(s=>stairRing(s))]).entries())blockers.push(prism(piece,bridgeLevel-.25,base,brick,'compact-teaching-landing-foundation-'+i));}
  const plaza=addTeachingCourtyard(THREE,group,campus,terrain,tileMaterial);blockers.push(...plaza.blockers);
  const corridors=addCampusCorridors(THREE,group,campus,terrain,network,tileMaterial);blockers.push(...corridors.blockers);
+ const curbCuts=addZhiliCurbCuts(THREE,group,campus,terrain,network,tileMaterial);if(curbCuts){blockers.push(...curbCuts.blockers);campus.zhiliCurbCutSupport=curbCuts.supportAt;campus.zhiliPlatformSupport=curbCuts.platformSupportAt;}
  if(campus.courtyard&&!campus.courtyard.exteriorAccess)ramp(campus.courtyard.ramp,campus.courtyard.width,network.walkHeight(...campus.courtyard.ramp[0],terrain.height(...campus.courtyard.ramp[0])),campus.courtyard.rampTargetFloor===1?bridgeLevel:courtyardLevel,'courtyard-access-ramp');
  const bio=campus.bioConnection,bioLevel=terrain.platformHeight(campus.places.find(a=>a.osm===bio.from))+3.6,bioRing=connectionRing(bio),stairs=bio.stairs,bioStairRing=stairRing(stairs),bottom=network.walkHeight(...stairs.line[1],terrain.height(...stairs.line[1]));
  const pieces=subtract(bioRing.map(([x,z])=>[x,0,z]),bioStairRing).map(p=>p.map(([x,,z])=>[x,z]));
@@ -45,7 +47,7 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
  for(const side of [-1,1])box(.65,3.1,.65,sa[0]+normal[0]*side*(stairs.topWidth/2+.2)-1.2,entranceLevel+1.55,sa[1]+normal[1]*side*(stairs.topWidth/2+.2),concrete);
  const canvas=document.createElement('canvas');canvas.width=768;canvas.height=128;const ctx=canvas.getContext('2d');ctx.fillStyle='#b9b7a9';ctx.fillRect(0,0,768,128);ctx.fillStyle='#c9ad62';ctx.font='bold 70px serif';ctx.textAlign='center';ctx.fillText('生 科 大 樓',384,90);const sign=new THREE.Mesh(new THREE.PlaneGeometry(8,.85),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(canvas),side:THREE.DoubleSide}));sign.position.set(sa[0]+.05,entranceLevel+2.8,sa[1]);sign.rotation.y=yaw;sign.name='biology-central-lintel-sign';group.add(sign);
  return{blockers,bridgeLevel,courtyardLevel,bioLevel,corridorGroundAt:corridors.groundHeightAt,stairsBottom:bottom,solidBlocked(x,z,r,currentY=Infinity){
-  if(plaza.blocked(x,z,r,currentY)||corridors.blocked(x,z,r,currentY))return true;
+  if(plaza.blocked(x,z,r,currentY)||corridors.blocked(x,z,r,currentY)||curbCuts?.blocked(x,z,r,currentY))return true;
   if(!campus.courtyard.exteriorAccess&&campus.courtyard.accessRampRing&&ringDistance(x,z,campus.courtyard.accessRampRing)===0&&platformHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(planters.some(p=>Math.hypot(x-p.x,z-p.z)<p.radius+r&&Math.abs(currentY-p.y)<2))return true;
   if(stairDefinitions.some(s=>ringDistance(x,z,stairRing(s))===0)&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;

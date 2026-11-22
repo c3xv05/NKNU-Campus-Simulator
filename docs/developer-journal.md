@@ -1,5 +1,18 @@
 # 開發者紀錄與後續討論入口
 
+## 2026-11-19：致理新一樓圖、二樓梯間修正
+
+2026-11-19（續2）：使用者提供較新的一樓平面圖（source/floor-1F-current.pdf，單位公分，房號113-1/113-2、102-1/102-2、106-1/106-2、114/116/117/118、全家超商A～C區、郵局移位），取代舊1F圖頁：對舊1F牆線套合為 x=0.1313·頁x−15.678、y=0.1313·頁y−0.557（平均殘差2.7cm，無旋轉）。此圖門弧為貝茲曲線、尺寸數字也是曲線，門只認R≥0.6m且≥60°（0.6～0.75m需鉸鏈貼牆）；輕隔間是單一實線（≥2m、牆到牆、軸向、非等距重複線）視為0.1m牆。1F房名改用圖上文字：新牆圍出的區域內有房號即成房間（外漏到走廊者以舊房間範圍切出），門牌與家具依新房名。HALL_OPEN_1F縮為座位區（x≥6.6），演講廳空調機房與118全家超商A區有1F樓板。2F：使用者指出露台無門（目前無開口）、右上兩梯間牆未對齊、右下乙梯上下沒描牆、左下己梯左側無牆（半戶外）→梯間矩形改依該層圖面牆擬合，非門側依圖面線補牆；2F己梯西側x=16.5兩柱間開放接上層廣場。
+
+## 2026-11-19：致理廁所暫不做、室內裝修
+
+2026-11-19（續）：使用者要求「先不要做廁所」：廁所門封牆、廁所內隔間與器具清除、整間封閉不可進入（build-zhili-interior.py；判讀資料walls.json保留）。室內裝修：方形地磚（60cm）、米白牆面（外牆內側半邊亦米白）、黑色踢腳板（10cm）、輕鋼架天花板（60cm格、離地3.0m、60×120嵌入燈具），由interior.json的finish與各層ceilingTriangles驅動（只有致理有finish，高斯不受影響）；開發者樓層剖切高度改在天花板下。 天花板用不受光材質（半球光會把受光天花板照成綠色）。
+
+## 2026-11-19：致理牆與門改由圖面向量直接讀取
+
+使用者不滿：很多門被當成牆、很多牆漏掉。原因是牆由plan.json房間分區交界推算、門只在共用牆中點猜一個。新增scripts/extract-zhili-walls.py（PyMuPDF讀PDF向量線稿，各頁offset已對齊plan.json圖面公尺）：牆＝相距0.05～0.42m且重疊的平行雙線帶＋貼牆的柱方塊（排除樓梯踏階／座椅列等等距重複線、階梯教室座位區、廁所內的短線（器具與文字）；短雙線只在接觸長牆時採用以去除文字）；門＝門弧（細碎折線叢集以RANSAC找圓，R 0.46～1.4m，四分之一弧或雙向門半圓；同一中框的整圓沿門扇線拆成兩扇），以門扇直線判斷開／關位置，門扇線不參與雙線配對；整個開啟扇形淨空。輸出buildings/zhili/walls.json（B1～8F）。build-zhili-interior.py改用walls.json：牆＝圖面雙線＋外牆帶＋電梯，門洞＝弧的鉸鏈到關閉端整段淨空（含牆厚），門的房名由plan.json最小包含空間判定；梯間只在圖面有牆處保留外圈、不再強制單一門；外框上R≥0.7的圖面門自動成為入口（同高可走，否則玻璃）。scripts/render-zhili-plan-review.py把建成結果疊在原圖（review/，不納入git）。
+驗證：zhili-interior.mjs、gauss-interior.mjs通過；以實際supportAt/blocked（半徑0.3m）做BFS，B1～2F房間皆可走到，例外：B02／B03／B06圖面沒有畫門、1F北側廁所（入口需使用者確認）、1F西側廁所門開向室外、器材室在階梯教室挑空範圍內（既有）。
+
 ## 2026-11-18：霽遠樓一樓花台、會客室內縮、兩端洗衣間弧牆
 
 plan.json新增groundPlanters與semicircle.groundPolygon；產生器floor0改用groundPolygon並輸出planters（世界座標）。renderer以ExtrudeGeometry做花台（基礎下1.16到+1.0，土面與灌木instanced），surface.blocked在樓層邊界判斷前先測花台。洗衣間多邊形改為1/4圓弧。jiyuan-interior.mjs的1.1倍形狀比對改用2F半圓（1F刻意內縮），並新增花台碰撞檢查。
@@ -733,3 +746,20 @@ teachingStairs改為三組：zhili-lower（S05主階梯）、zhili-ji（己梯�
 ## 2026-11-18：高斯 1F～3F 室內
 
 物理館平面圖無文字層，房間以線稿分區＋手動標註（使用者確認）；各層以外框對齊線稿求平移（1F (13,-109.5)、2F (52,-74.5)、3F (11,-31.5) v 像素）。scripts/build-gauss-interior.py 由致理產生器複製改參數；門洞依圖面方向投射到外框、門內 1.4m 淨空。interior.js 改為多棟共用（createPlanSurface/planSurfaces/PLAN_OSMS），出口高度依中央廣場各樓層（lower/upper/gaussCourt）判斷，最低層補基礎，exposedRoofs 畫未被上層覆蓋的屋頂。courtyard：gaussCourt＋平台＋門前條帶、gaussGarden、下層廣場以高斯 1F（扣露台）＋2F 外框扣除、露台下若有室內不做實心基座、levelLink.insideGauss 停用舊連通廊基礎。2F 露台外框改為圖面手描（較早先目測框西端延長約 2.6m）。
+
+## 2026-11-19：致理內部裝潢（scripts/furnish.py）
+
+房名關鍵字對應家具組；每間取「扣牆後內縮0.3m的最大矩形」，前側依房型（教室取離門較遠的短邊、櫃台型取門側），外牆側（開窗）不放櫃。門口淨空改以 door_list 線段（舊 doors 遮罩與門位不一致）。桌椅改為桌面＋側板、椅面＋側板＋椅背的方塊組，碰撞以整體底面。執行端 interior.js 加家具材質與 furnitureBlocks。瀏覽器檢查：可進入的 30 個房門中僅既有 4 個不易走入（與家具無關）。
+
+## 2026-11-19：同空間細縫不成牆；開發者樓層剖切
+
+floor_spaces 在每個空間遮罩做小閉運算（走廊5格、其他3格，0.1m格），且不侵入其他空間，避免圖面細線造成的 gap 牆。developer-floorcut.js：clone 受影響網格材質加 clippingPlanes（renderer.localClippingEnabled），建築群組用牆頂高度、廣場網格再低0.3m（避免上層廣場底面殘留），返回地面時還原原材質。
+
+## 2026-11-19：高斯橫梁、高斯／致理縫隙、廣場山體、建築內步道
+
+以由上往下射線（每2m／0.5m）掃描中央廣場，分類最上層命中網格與相對下層廣場高度，找出：高斯東側2m地形溝（實建牆與圖面外框不一致）、高斯1F屋頂與致理1F西牆0.16m細縫、西側花台被+1.6m地形覆蓋、致理演講廳牆頂與上層廣場0.16m細縫。修正見 build-teaching-courtyard（gaussEast、上層補縫、花台切地形）、index.html（groundOutline 切地形、pathCuts）、road-renderer（步道段與圓角略過 pathCuts）、interior.js（斜邊水平判斷、len 用 hypot）。剩餘：致理沿S05／北側路緣有 sidewalk-15cm-curbs 三角形中心落在外框內（貼邊、既有）。
+
+## 2026-11-22：車道、入口坡道、花台、中央廣場、L型己梯
+
+見 next-chat 同日條目。技術要點：人行道curb-cut以「自人行道平面挖出＋路面高度磁磚鋪面」實作，路緣由sidewalk-surface沿挖除邊界自動產生；車道/坡道/平台支援函式掛在 campus.zhiliCurbCutSupport／zhiliPlatformSupport（stairHeightAt 優先於走廊地板）；測試 photo-access/campus-plazas/frontage-alignment 已隨新幾何更新。
+

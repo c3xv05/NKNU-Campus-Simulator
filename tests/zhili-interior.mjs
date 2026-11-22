@@ -23,6 +23,13 @@ for(const [i,f] of d.floors.entries()){
  // Slab above each flight opens over the flights, keeping the entrance landing solid.
  const up=d.floors[i+1];for(const s of f.stairs){if(s.tiers)continue;const [x0,y0,x1,y1]=s.hole,c=[(x0+x1)/2,(y0+y1)/2];assert(!up.slab.some(([o,...holes])=>ringDistance(c[0],c[1],o)===0&&!holes.some(h=>ringDistance(c[0],c[1],h)===0)),'stair hole in '+up.label);}
 }
-assert.equal(d.floors[1].exits.filter(e=>e.manual).length,5,'1F north lobby, south corridor end, east main entrance and two west lobby doors');
+assert.equal(d.floors[1].exits.filter(e=>e.manual).length,4,'1F north lobby, south corridor end, east main entrance and the west lobby door (current sheet: the other west doors are inside 全家超商B區)');
 assert(treads>150&&doors>20,JSON.stringify({treads,doors}));
+// Furniture from room names (scripts/furnish.py): key rooms furnished, every piece inside its floor outline, nothing in doorways.
+{const rooms=new Set(d.floors.flatMap(f=>(f.furniture||[]).map(i=>i.room)));for(const r of ['112 ','113-1 ','116 ','108 ','101 ','102-1 ','111 ','215 ','216 ','202 ','201 ','211 ','208 ','理學院階梯教室'])assert([...rooms].some(n=>n.startsWith(r)),'furnished '+r);  // 1F names from the current sheet (2026-11-19)
+ for(const f of d.floors){for(const it of f.furniture||[]){const c=[(it.r[0]+it.r[2])/2,(it.r[1]+it.r[3])/2];assert(ringDistance(c[0],c[1],f.outline)===0,'furniture inside '+f.label);}
+  const T=d.transform,dr=(x,z)=>[T.a*(x-T.tx)+T.b*(z-T.tz),-T.b*(x-T.tx)+T.a*(z-T.tz)];
+  for(const door of f.doors){const [a,b]=door.line.map(p=>dr(...p)),m=[(a[0]+b[0])/2,(a[1]+b[1])/2];for(const r of f.furnitureBlocks||[])assert(Math.hypot(Math.max(r[0]-m[0],0,m[0]-r[2]),Math.max(r[1]-m[1],0,m[1]-r[3]))>1.0,'doorway kept clear '+f.label+' '+door.name);}}}
+// 2026-11-19: hairlines across one space (the 1F north–south corridor at y≈40.5, world X≈-145.7) must not become walls.
+{const f1=d.floors.find(f=>f.label==='1F');for(let y=34;y<=46;y+=.1)assert(!f1.walls.some(r=>54.2>=r[0]&&54.2<=r[2]&&y>=r[1]&&y<=r[3])&&!f1.walls.some(r=>54.8>=r[0]&&54.8<=r[2]&&y>=r[1]&&y<=r[3]),'1F corridor open at y '+y.toFixed(1));}
 console.log('PASS: Zhili B1–2F empty-room interior (3F+ solid), stacked four-core stairwells reaching every floor, stair openings, doors for numbered rooms',{treads,doors});
