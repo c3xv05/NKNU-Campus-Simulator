@@ -575,3 +575,21 @@ main上8個Node測試早已失敗（最早自PR40），多數是規格更新後�
 - **樹與路距離**：R04／R09森林的樹距路邊淨距由2.8m改為3m，和其他樹及yongji-slope測試一致；yongji-slope已移出known-failures。
 - **tests/browser.py**：分區按鈕數改為讀zones.js實際數量（R04拆分後為18）。
 仍待處理（未改）：霽遠前草坪內步道貼平台高度、靠近草坪邊緣時與草地有0.4–0.7m落差；S…人行道沿陡坡(-152…-162,-4…-7)與旁邊坡面有0.4–1.7m橫向落差；籃球場東側樓梯側面到地下停車場地面約2.9m無側牆（可從樓梯側邊直接掉下）；網球場shoulder局部0.6m落差；排球場邊0.5–0.6m。
+
+## 2026-11-23：S06/S07 改回現實、食巢／飛燕／詠絮樓外型（使用者同意）
+
+- **S06/S07 改回現實地形**：`data/yongji-terrain.js` 的 `s06AddedRise`/`s07AddedRise` 改 0（西側山脊 `westRise*` 保留）；S06/S07 的 `uphillGrade.minimumSlope` 改 0（舊值存於 `beforeRealTerrain`）。實際爬升：S06 約13.5m、S07 約5.0m（均約4.2%）。測試：`yongji-slope`（真實爬升）、`campus-refinements`（允許平緩不下坡）、`relocation-window` 以新增的 `yongjiLiftInfluence`（terrain-calibration.js）把原加高範圍納入允許差異區。
+- **歸燕食巢**：依 `buildings/swallow-restaurant/source/floor-*.pdf`（B1、1–4F）改為 57.6×20.6m 矩形（A–C軸 7+13m 加牆厚），方位／位置取自正射影像並外移 1.6m 以與 S22 瀝青保持 ≥1.5m；正面為西北長牆（ring edge 3）。D軸外的拱廊／陽台／門廊（約4.5m，門廊約13m寬）尚未建模：通用 renderer 只擠出單一輪廓，需另建附屬量體，**待辦**。
+- **飛燕**：改為半徑12.3m 的圓弓形（29點，弦平行食巢長軸；弧向外），離食巢後牆約13.8m，**取代舊的7.2m間距規定**（`photo-access` 測試已改）。
+- **詠絮樓**：與 PR #121（place-drawn-buildings.py，同樣依平面圖描外框）重複，合併時以 #121 為準，本分支的詠絮改動已捨棄。食巢／飛燕腳本 `relocate-swallow-quarter.py` 會讀取 #121 的詠絮輪廓來算共同平台。重建順序見上方 #121 條目（relocate-swallow-quarter 於 build-building-catalog 之前執行）。
+- 已知：`tests/photo-buildings.mjs`（S？道路 218881795 接縫）及 7 個 Python 幾何測試（campus-corridors/court-yongxu-r04/eight-step-access/garage-s11/gauss-stop/jiyuan-interior/spatial-corrections）在本批改動前就失敗，非本次造成，尚未處理。霽遠樓未動。
+
+## 2026-11-23：S05 致理／高斯前改為均勻縱坡（使用者記憶中該段坡度很平均、沒有完全平緩處）
+
+- 原始S05高程在致理前先隆起（d≈38 m 最高約38.2m）、高斯前反而凹成谷底（d≈113 m 約33.0m，其後又往南微升），出現近乎平坦／反向的段落。新增 `data/s05-frontage-grade.js` + `local-road-grade.js`：取致理北端（z=-292，原高37.84m）至高斯南端（z=-170，原高33.89m）的兩端原高程拉成單一直線縱坡（約3.0%，取樣2.6–3.3%），兩端各約21／22 m 用平滑步階漸變（C1）接回原高程；以**加到共用高度場的偏移量**實作（roads.js `localGrade`，與向陽路 `roadGrade` 並存），道路、人行道、鄰側地形同步，核心21m（須大於人行道外緣＋格網平滑半徑，否則橫坡超過2%；同時讓東側坡面不比原狀更陡）／融合30m，建築地形墊底保護沿用buildingBlend。最大改動：致理前約 −1.0m（d≈48）、高斯前約 +2.2m（d≈100）；高斯前道路因此更貼近高斯地面（37.0m，樓層基準35.2m），原本約3.5m落差縮小。
+- 這**不是**先前被撤回的PR61/62整條S05調坡（s05-grade.js）：只作用在致理～高斯前一段，原始高程檔、路線、路寬、其餘路段不變。若使用者想換端點或坡度，改 `fromZ/toZ`、`rampNorth/rampSouth` 即可；關閉用 `createRoadNetwork(..., {localFrontageGrade:false})`。
+- 數值為模型近似，非實測。S05主階梯／高斯玄關階梯／候車棚等是否需配合新道路高度，見本輪驗證結果。
+
+## 2026-11-23（續）：S05 均勻坡度延伸到 S27 路口
+
+使用者要求把致理／高斯前的均勻坡度延伸到與 S27（道路 418049574）交界的路口（S05 z≈-125.1，沿線約199m，原高28.62m）。`data/s05-frontage-grade.js` 改用 `knotsZ:[-292,-170,-125.1]`：三節點取原高程，相鄰兩節點各拉成單一縱坡（致理～高斯約3%；高斯南端～S27路口約11%，該段原本就是約12%陡坡，偏移最大約 −0.9m），節點處 ±8m 平均圓順；路口原高程不動，路口以南不再另做漸變（rampSouth 6m），避免把路口南側原本約20%的坡拉得更陡。tests/s05-frontage-grade.mjs 改為分段檢查。

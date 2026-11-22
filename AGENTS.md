@@ -48,3 +48,7 @@ Gauss uses its own floor-plan drawings (buildings/gauss/plan.json, source PDFs) 
 ## Orthophoto relocation (2026-11-22)
 
 Jiyuan, 歸燕食巢, 飛燕 and 詠絮樓 (scripts/relocate-yongxu.py, 2026-11-23) were moved to their NLSC 2023 orthophoto positions (user instruction). Read docs/next-chat.md (2026-11-22 entry) before moving any building again. Jiyuan keeps >=1.5 m from the walkway; S22 (383447314) was re-routed east of the teardrop island; 歸燕食巢 and 飛燕 move rigidly together (7.2 m gap) via scripts/relocate-swallow-quarter.py and are no longer in align-building-frontages.py. Never run the whole-campus build-road-curves.mjs (it reverts road 381735518). landscape.js generates the seeded plants from the FROZEN snapshots data/landscape-seed-areas.js and data/r04-vegetation-seed.js (taken at 24e614a, before the relocations) and then filters against the current data; never regenerate either snapshot. Tests that compare against older baselines use tests/relocation-window.mjs.
+
+## S05 frontage grade (2026-11-23)
+
+S05 (218881800) in front of Zhili and Gauss falls at one even ~3% grade (user: real slope is uniform, no level stretch). Implemented as an additive offset in local-road-grade.js / data/s05-frontage-grade.js (z=-292..-170, smooth ramps back to the original heights); original elevation data, route and width are unchanged. This is NOT the withdrawn PR61/62 whole-road S05 regrade. Keep lateral core >= 21 m (sidewalk crossfall < 2%); tests/s05-frontage-grade.mjs guards it.
