@@ -39,38 +39,39 @@
       ],
       "width": 12,
       "topWidth": 12,
-      "steps": 15,
-      "flights": 1,
-      "landingFraction": 0,
-      "name": "S05至致理一樓主階梯（依圖面）",
+      "steps": 16,
+      "flights": 2,
+      "landingFraction": 0.297,
+      "name": "S05至致理一樓主階梯（8階＋歇腳平台＋8階，依圖面）",
       "topLevel": "zhili-ground",
       "bottomLevel": "road",
-      "desc": "致理1F圖面S05側主階梯，寬8.6m、單跑；階數由S05人行道至1F高差約2.6–2.8m推算為15階。",
+      "desc": "致理1F圖面S05側主階梯：寬8.59m，上段（y62.41–63.95）、歇腳平台（y63.95–65.26，1.31m）、下段（y65.26–66.82）；使用者2026-11-22指定各八階。",
       "bottomProfile": "sidewalk",
       "landingSidewalls": false,
-      "levelRestLanding": false
+      "levelRestLanding": true
     },
     {
       "id": "zhili-ji",
-      "name": "己梯（致理1F→2F中央廣場，依圖面）",
+      "name": "己梯北段（轉角平台→2F中央廣場，L型，依1F圖面）",
       "line": [
         [
-          -126.747459,
-          -247.13591
+          -126.871851,
+          -247.335727
         ],
         [
-          -120.531379,
-          -249.354096
+          -122.699543,
+          -248.8246
         ]
       ],
-      "width": 2.3,
-      "topWidth": 2.3,
-      "steps": 22,
+      "width": 2.12,
+      "topWidth": 2.12,
+      "steps": 17,
       "flights": 1,
       "landingFraction": 0,
       "topLevel": "teaching-courtyard",
       "bottomLevel": "zhili-ground",
-      "desc": "致理1F／2F圖面己梯：開放直跑，寬2.3m。"
+      "desc": "己梯為L型（1F圖面）：西段往東5階、轉角平台，北段17階上2F中央廣場；總升3.6m。",
+      "bottomRel": 0.818
     },
     {
       "id": "gauss-west",
@@ -93,6 +94,30 @@
       "topLevel": "zhili-ground",
       "bottomLevel": "gauss-ground",
       "desc": "物理1F圖面西側庭院W梯，寬3.4m。"
+    },
+    {
+      "id": "zhili-ji-low",
+      "name": "己梯西段（1F→轉角平台，L型，依1F圖面）",
+      "line": [
+        [
+          -121.354367,
+          -248.179153
+        ],
+        [
+          -120.91409,
+          -246.945356
+        ]
+      ],
+      "width": 2.1,
+      "topWidth": 2.1,
+      "steps": 5,
+      "flights": 1,
+      "landingFraction": 0,
+      "topLevel": "zhili-ground",
+      "bottomLevel": "zhili-ground",
+      "topRel": 0.818,
+      "bottomRel": 0.0,
+      "desc": "己梯西段：自西向東5階（圖面x18.01–19.32），接轉角平台（x19.32–21.44、y53.08–55.18）。"
     }
   ],
   "courtyardStairs": [],
@@ -177,15 +202,16 @@
     "frontLineReference": "致理外殼改為平面圖塔樓後，便利商店階梯固定在原致理frontEdge=1（北→南）線段，不隨新外殼移動。",
     "drawingStair": {
       "u": [
-        -5.0,
-        -0.8
+        -4.19,
+        0.22
       ],
       "v": [
-        -13.91,
-        -5.31
+        -14.14,
+        -5.55
       ],
       "landingBack": 3.0,
-      "reference": "致理1F圖面主階梯：圖面x 7.9–16.5、y 61.6–65.8（寬8.6m，S05人行道上到1F ±0鋪面，約15階）。座標為compactAccess框架（u向外、v沿S05向南，原點＝原致理東南角）。"
+      "reference": "致理1F新圖(floor-1F-current.pdf)主階梯：圖面x7.67–16.26、y62.41–66.82（寬8.59m；上段y62.41–63.95、歇腳平台至65.26、下段至66.82）。座標為compactAccess框架（u向外、v沿S05向南，u=y−66.6、v=x−21.81）。",
+      "note": "2026-11-22：階梯為兩段各8階＋歇腳平台（圖面橫線：上段62.41–63.95、平台至65.26、下段至66.82）"
     }
   },
   "beforeRestLanding": {
