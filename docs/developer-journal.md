@@ -774,3 +774,7 @@ floor_spaces 在每個空間遮罩做小閉運算（走廊5格、其他3格，0.
 ## 2026-11-22：致理 B1 牆面（廁所、右下角外框、關閉的門）
 
 見 buildings/zhili/README.md 與 next-chat 同日條目；分支 claude/zhili-walls-fix-k4wvtk。
+
+## 2026-11-23：S06/S07 改回現實、食巢／飛燕／詠絮樓外型
+
+詳見 docs/next-chat.md 同日條目：S06/S07 取消人工加高；食巢依平面圖矩形、飛燕圓弓形（間距約13.8m）、詠絮樓依平面圖L形（兩翼13.52×42.92m、6.45m內角斜邊）；腳本 relocate-swallow-quarter.py / relocate-yongxu.py。

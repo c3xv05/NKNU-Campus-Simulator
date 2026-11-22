@@ -9,7 +9,7 @@ What is re-routed: the S21 approach extension (it ran into the new footprint) an
 The pad anchor (platformAnchor) is NOT moved, so the shared platform height stays identical.
 Run before build-building-catalog.py / build-campus-plazas.py (this script also runs relocate-swallow-quarter.py last).
 """
-import json, runpy
+import json, math, runpy
 from pathlib import Path
 from shapely.geometry import Polygon
 from shapely.affinity import rotate, translate
@@ -25,17 +25,28 @@ def T(pt):
     q = translate(rotate(Polygon([pt, (pt[0] + 1e-9, pt[1]), (pt[0], pt[1] + 1e-9)]), TH, origin=CEN), *SHIFT)
     x, y = list(q.exterior.coords)[0]; return [round(x, 6), round(y, 6)]
 Tm = lambda pts: [T(p) for p in pts]
-g['ring'] = Tm(src)
-sk = g.setdefault('beforeRelocationSatelliteSketch', g['beforeSatelliteSketch']); g['beforeSatelliteSketch'] = Tm(sk)
-a = b['appearance']; a['frontHint'] = T(a.setdefault('beforeRelocationFrontHint', a['frontHint']))
+ring0 = Tm(src)
+# 2026-11-23 exterior from the floor plans (dormitory-plans.pdf p3/p4, cm): two 13.52 m wide arms, each 42.92 m on the outer side
+# (24.57 m beyond the 18.35 m corner block), inner corner cut by the 6.45 m diagonal of the main entrance / lounge.
+# Orientation and centroid follow the orthophoto-fitted ring0 (the plan is axis-aligned, ring0 is the placed L).
+PW, PL, PC = 13.52, 42.92, ((13.52, 17.8), (18.35, 13.52))
+plan = [(PL, 0), (0, 0), (0, PL), (PW, PL), PC[0], PC[1], (PL, PW)]          # A, B(outer corner), C, D, E, F, G = same order as before
+a1 = math.atan2(ring0[0][1] - ring0[1][1], ring0[0][0] - ring0[1][0]); a2 = math.atan2(ring0[2][1] - ring0[1][1], ring0[2][0] - ring0[1][0])
+mid = math.atan2(math.sin(a1 - math.pi / 2) + math.sin(a2), math.cos(a1 - math.pi / 2) + math.cos(a2))   # mean direction of arm 2 (arm 1 = arm 2 rotated +90 deg)
+w2 = (math.cos(mid), math.sin(mid)); w1 = (-math.sin(mid), math.cos(mid))
+raw = [(e * w1[0] + n * w2[0], e * w1[1] + n * w2[1]) for e, n in plan]
+cr = Polygon(raw).centroid; c0 = Polygon(ring0).centroid
+g['ring'] = [[round(x - cr.x + c0.x, 6), round(y - cr.y + c0.y, 6)] for x, y in raw]
+sk = g.setdefault('beforeRelocationSatelliteSketch', g['beforeSatelliteSketch']); g['beforeSatelliteSketch'] = list(g['ring'])
+a = b['appearance']; a.setdefault('beforeRelocationFrontHint', a['frontHint']); a['frontHint'] = [round((g['ring'][3][j] + g['ring'][4][j]) / 2, 6) for j in (0, 1)]
 note = '2026-11-23依國土測繪中心2023正射影像移動詠絮樓（繞重心轉3.0°、平移[-10,-7]m，吻合度0.31→0.75）；前庭瀝青與草皮原本就在真實停車場／花園位置，保留並扣除新輪廓；平台錨點與共同平台高度不變。'
-b['relocation'] = note; a['reference'] = a['reference'].split('；2026-11-23')[0] + '；' + note
+b['relocation'] = note; a['reference'] = a['reference'].split('；2026-11-23')[0] + '；' + note + '；2026-11-23外型改依平面圖（一至五樓）：兩翼寬13.52m、外側各長42.92m、內角為6.45m斜邊（大門／交誼廳），方位與位置沿用正射影像擬合。'
 save(bp, b)
 New = Polygon(g['ring'])
 
 # --- user sketch: building ring follows, forecourt is clipped by the new footprint
 sp = 'facilities/yongxu-access/satellite-sketch.json'; s = load(sp)
-s.setdefault('beforeRelocationBuildingRing', s['buildingRing']); s['buildingRing'] = Tm(s['beforeRelocationBuildingRing'])
+s.setdefault('beforeRelocationBuildingRing', s['buildingRing']); s['buildingRing'] = list(g['ring'])
 road0 = s.setdefault('beforeRelocationRoadRing', s['roadRing'])
 # The sketch brought the forecourt up to the north wing's inner wall ("空地向北補至北橫翼外牆"). The wall moved ~5 m north-west, so the
 # strip between the old forecourt edge and the new wall is added; the cut along the new footprint is exact, so the wall edge stays shared.
@@ -50,8 +61,11 @@ save(sp, s)
 # --- door + approach road: the old extension ran into the new footprint
 ap = 'facilities/yongxu-access/layout.json'; y = load(ap)
 for k in ('door', 'roadEnd', 'approachExtension'): y.setdefault('beforeRelocation_' + k, y[k])
-y['door'] = T(y['beforeRelocation_door'])
-y['approachExtension'] = [[-181.008312, -59.668693], [-169.410224, -55.673698], [-159.010, -56.040]]   # as far as possible while the 7 m road stays >=1.5 m from the new footprint
+y['door'] = [round((g['ring'][3][j] + g['ring'][4][j]) / 2, 6) for j in (0, 1)]   # middle of the inner wall facing the forecourt
+from shapely.geometry import Point
+_p, _q = (-169.410224, -55.673698), (-159.010, -56.040)                       # trim the last leg until the 7 m road is >=1.5 m from the new footprint
+_t = max(i / 400 for i in range(401) if New.distance(Point(_p[0] + (_q[0] - _p[0]) * i / 400, _p[1] + (_q[1] - _p[1]) * i / 400)) >= 5.0)
+y['approachExtension'] = [[-181.008312, -59.668693], list(_p), [round(_p[0] + (_q[0] - _p[0]) * _t, 6), round(_p[1] + (_q[1] - _p[1]) * _t, 6)]]
 y['roadEnd'] = y['approachExtension'][-1]
 y['reference'] += '；2026-11-23詠絮樓依正射影像移動，入口道路延伸改到新建築西南側（離建築≥1.5m）停止，再由步道P07通往新門位。'
 save(ap, y)
