@@ -55,6 +55,9 @@ B1_OUTLINE = B1_PLAN.intersection(unary_union([OUTLINE_1F, *covered]).buffer(.3)
 if B1_OUTLINE.geom_type != 'Polygon': B1_OUTLINE = max(B1_OUTLINE.geoms, key=lambda g: g.area)
 B1_OUTLINE = B1_OUTLINE.difference(STAIR_KEEP)
 if B1_OUTLINE.geom_type != 'Polygon': B1_OUTLINE = max(B1_OUTLINE.geoms, key=lambda g: g.area)
+# The old stair footprint (STAIR_KEEP) lies inside the basement outline at 己梯; punching it out left a walled-off box in the driveway
+# (user 2026-11-22). The stairs rise from the plaza above B1, so the basement floor continues underneath: drop interior holes.
+B1_OUTLINE = Polygon(B1_OUTLINE.exterior).buffer(0)
 # B1 driveway (user 2026-11-19 "地下室加入車道以及停車格"): the drawing's 車道 loop and the ramp to the 車道入口 on the
 # south edge. In the game the ground at the ramp mouth is ~0.16 m below B1, so the ramp is a level cutting open to the sky.
 RAMP = box(1.76, 58.0, 7.07, 66.6)
