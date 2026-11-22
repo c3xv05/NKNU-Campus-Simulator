@@ -2,9 +2,12 @@ import fs from 'node:fs';import assert from 'node:assert/strict';import {createT
 const read=p=>JSON.parse(fs.readFileSync(new URL('../'+p,import.meta.url))),c=read('data/campus.json'),t=createTerrain(read('data/elevation.json'),[...c.places,...c.buildings,...c.water,...c.courts],{levelLink:c.levelLink,courtyard:c.courtyard,bioConnection:c.bioConnection});
 const make=o=>createRoadNetwork(c.roads,t.rawHeight,read('data/road-tags.json'),{apron:c.entranceApron,pavedAreas:c.pavedAreas,junctionFillets:c.junctionFillets,sharedGradeGrid:true,...o}),n=make({}),base=make({localFrontageGrade:false}),g=n.localGrade;
 assert(g,'S05 frontage grade missing');const r=g.route,s=g.stations;
-// Between the Zhili north end and the Gauss south end the centreline falls at one even grade, never level or rising.
-let min=Infinity,max=-Infinity,prev=null;for(let i=0;i<r.points.length;i++){if(s[i]<g.from+1||s[i]>g.to-1)continue;const h=n.surfaceHeight(r.points[i].x,r.points[i].z);if(prev){const slope=(prev.h-h)/(s[i]-prev.s);min=Math.min(min,slope);max=Math.max(max,slope);}prev={s:s[i],h};}
-assert(min>.025&&max<.037,`S05 frontage grade not even: ${min} .. ${max}`);
+// Zhili north end -> Gauss south end -> S27 junction: each piece falls at one even grade, never level or rising.
+const piece=(from,to)=>{let min=Infinity,max=-Infinity,prev=null;for(let i=0;i<r.points.length;i++){if(s[i]<from||s[i]>to)continue;const h=n.surfaceHeight(r.points[i].x,r.points[i].z);if(prev){const slope=(prev.h-h)/(s[i]-prev.s);min=Math.min(min,slope);max=Math.max(max,slope);}prev={s:s[i],h};}return{min,max};};
+const k=g.knots,a1=piece(k[0]+1,k[1]-10),a2=piece(k[1]+10,k[2]-1),min=a1.min,max=a1.max;
+assert(a1.min>.025&&a1.max<.037,`Zhili/Gauss piece not even: ${a1.min} .. ${a1.max}`);
+assert(a2.min>.09&&a2.max<.13,`Gauss-to-S27 piece not even: ${a2.min} .. ${a2.max}`);
+assert(Math.abs(n.surfaceHeight(r.points.find((_,i)=>s[i]>=k[2]).x,r.points.find((_,i)=>s[i]>=k[2]).z)-base.surfaceHeight(r.points.find((_,i)=>s[i]>=k[2]).x,r.points.find((_,i)=>s[i]>=k[2]).z))<.15,'S27 junction height moved');
 // Ends keep the original heights; far outside the ramps nothing changes.
 for(const i of [r.points.length-1,r.points.length-2])assert.equal(n.surfaceHeight(r.points[i].x,r.points[i].z),base.surfaceHeight(r.points[i].x,r.points[i].z));assert(Math.abs(n.surfaceHeight(r.points[0].x,r.points[0].z)-base.surfaceHeight(r.points[0].x,r.points[0].z))<.03,'S06 junction end moved');
 assert(Math.abs(g.lineStart-base.surfaceHeight(...[r.points.find((_,i)=>s[i]>=g.from).x,r.points.find((_,i)=>s[i]>=g.from).z]))<.02);
