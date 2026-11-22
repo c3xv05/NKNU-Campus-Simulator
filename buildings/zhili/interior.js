@@ -20,7 +20,7 @@ export function createPlanSurface(campus,terrain,osm){
  if(!data||!building)return null;
  const f=frame(data.transform),base=terrain.platformHeight(building),H=data.floorHeight;
  // Walls, window glass/sills and glazed entrances all block; open entrances and doors do not.
- const floors=data.floors.map(fl=>{const blocking=[...fl.walls,...(fl.furnitureBlocks||[]),...(fl.sills||[]).map(s=>s.rect),...fl.exits.filter(e=>!e.open).flatMap(e=>e.rect)];return{...fl,y:base+fl.level,near:grid(blocking),blocking};});
+ const floors=data.floors.map(fl=>{const blocking=[...fl.walls,...(fl.furnitureBlocks||[]),...(fl.sills||[]).map(s=>s.rect),...(fl.doorLeaves||[]),...fl.exits.filter(e=>!e.open).flatMap(e=>e.rect)];return{...fl,y:base+fl.level,near:grid(blocking),blocking};});
  const stepRects=floors.flatMap(fl=>fl.exits.flatMap(e=>(e.steps||[]).map(t=>t.rect)));
  function supportAt(x,z,y){
   const p=f.toDrawing(x,z);if(ringDistance(p[0],p[1],data.outline)!==0&&!stepRects.some(r=>inRect(p,r)))return null;
@@ -109,6 +109,7 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
   for(const w of fl.heads||[])wall(w.rect,y,fl.outline,y+w.bottom,y+H-SLAB,false);
   for(const w of fl.windows||[])pane(w,y,-.12);
   for(const l of fl.lintels)rectBox(l,y+2.25,y+H-SLAB,'inner');
+  for(const l of fl.doorLeaves||[])rectBox(l,y,y+2.25,'wood');
   for(const e of fl.exits){for(const r of e.rect){rectBox(r,y+2.4,y+H-SLAB,'outer');if(!e.open){rectBox(r,y,y+.15,'outer');rectBox([r[0]+.08,r[1]+.08,r[2]-.08,r[3]-.08],y+.15,y+2.4,'glass');}}}
   // Room furniture (scripts/furnish.py): instanced boxes with the room's materials.
   for(const it of fl.furniture||[])rectBox(it.r,y+it.y[0],y+it.y[1],it.m);

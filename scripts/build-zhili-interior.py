@@ -61,6 +61,10 @@ B1_OUTLINE = Polygon(B1_OUTLINE.exterior).buffer(0)
 # B1 driveway (user 2026-11-19 "地下室加入車道以及停車格"): the drawing's 車道 loop and the ramp to the 車道入口 on the
 # south edge. In the game the ground at the ramp mouth is ~0.16 m below B1, so the ramp is a level cutting open to the sky.
 RAMP = box(1.76, 58.0, 7.07, 66.6)
+# User 2026-11-22 (B1 SE corner): the 1F outline notches the basement here (toilet block x59.0-64.9 / y58.7-64.4 and the
+# B01 east wall at x59.1 were clipped by 0.45-1 m). The drawing's B1 walls run to those lines, so restore them.
+B1_SE_FIX = unary_union([box(58.6, 58.7, 64.9, 64.4), box(58.6, 64.0, 59.15, 66.6)])
+B1_OUTLINE = unary_union([B1_OUTLINE, B1_SE_FIX.intersection(B1_PLAN.buffer(.3))]).buffer(0)
 B1_OUTLINE = unary_union([B1_OUTLINE, RAMP.intersection(B1_PLAN.buffer(.2))]).buffer(.05, join_style=2).buffer(-.05, join_style=2)
 if B1_OUTLINE.geom_type != 'Polygon': B1_OUTLINE = max(B1_OUTLINE.geoms, key=lambda g: g.area)
 B1_OUTLINE = B1_OUTLINE.simplify(.05)
@@ -326,12 +330,13 @@ for k in ALL_FLOORS:
     for d in WF['doors']:
         h, c, o = np.array(d['hinge']), np.array(d['closed']), np.array(d['open'])
         mid = (h + c) / 2; nrm = (o - h) / max(np.hypot(*(o - h)), 1e-6)
+        if any(e_['kind'] == 'nodoor' and e_['rect'][0] <= mid[0] <= e_['rect'][2] and e_['rect'][1] <= mid[1] <= e_['rect'][3] for e_ in OVERRIDES.get(LABEL[k], [])): continue   # user: drawn swing that is a stall front, not a room door
         def side(sg):   # first room met walking 0.6–1.6 m into that side (plan outlines stop short of some walls)
             hits = [space_at(mid + sg * nrm * t) for t in (.6, 1.0, 1.6)]
             return next((sp for sp in hits if sp and sp['type'] not in OPEN_TO), None) or next((sp for sp in hits if sp), None)
         sides = [side(1), side(-1)]
         # User 2026-11-19: toilets are not built for now — their doors are walled up and the rooms sealed below.
-        if any(sp and sp['type'] == 'toilet' for sp in sides) or (not any(sides) and any(g.buffer(1.0).contains(Point(*mid)) for g in toilet_polys)):
+        if k != 'B' and (any(sp and sp['type'] == 'toilet' for sp in sides) or (not any(sides) and any(g.buffer(1.0).contains(Point(*mid)) for g in toilet_polys))):
             toilet_doors.append((h, c)); continue
         room = next((sp for sp in sides if sp and sp['type'] not in OPEN_TO), None) or next((sp for sp in sides if sp), None)
         if room is None or not Pk.buffer(.3).contains(Point(*mid)): continue
@@ -395,6 +400,7 @@ for k in ALL_FLOORS:
     for d in WF['doors']:
         h, c = np.array(d['hinge']), np.array(d['closed']); mid = (h + c) / 2
         if d['r'] < .7 or Pk.exterior.distance(Point(*mid)) > .45 or any(np.hypot(mid[0] - q[0], mid[1] - q[1]) < 1.6 for q in manual_mid): continue
+        if any(e_['kind'] == 'noexit' and e_['rect'][0] <= mid[0] <= e_['rect'][2] and e_['rect'][1] <= mid[1] <= e_['rect'][3] for e_ in OVERRIDES.get(LABEL[k], [])): continue   # user: a drawn door that is not an exterior exit
         u = (c - h) / max(np.hypot(*(c - h)), 1e-6); nrm = np.array([-u[1], u[0]])
         out_p = mid + nrm * .8
         if Pk.buffer(-.01).contains(Point(*out_p)): out_p = mid - nrm * .8
@@ -413,7 +419,7 @@ for k in ALL_FLOORS:
     for h, c in toilet_doors:
         shut = poly_mask(LineString([h, c]).buffer(.1, cap_style=2)); walls |= shut & O; doors &= 1 - shut
     tmask = np.zeros((H, W), np.uint8)
-    for g in toilet_polys: tmask |= poly_mask(g)
+    for g in toilet_polys: tmask |= poly_mask(g) if k != 'B' else 0   # B1 toilets are hand-drawn (overrides.json)
     zone = cv2.dilate(tmask, disk(6))
     n_t, lab_t, st_t, _ = cv2.connectedComponentsWithStats((O & (1 - walls) & (1 - band)).astype(np.uint8), 4)
     for i in range(1, n_t):
@@ -428,16 +434,31 @@ for k in ALL_FLOORS:
         near_t = cv2.dilate(room_t, disk(8))
         exits = [e for e in exits if not any(near_t[to_px(drawing(q))[1], to_px(drawing(q))[0]] for q in [e['inside']]) or e.get('manual')]
     # User edits from the 致理牆門編輯器 page (buildings/zhili/overrides.json) win over the automatic reading.
+    ov_sills, ov_fixtures, door_leaves = [], [], []; ov_wall = np.zeros((H, W), np.uint8)   # ov_wall: user wall strips survive the small-blob filter
     for ed in OVERRIDES.get(LABEL[k], []):
+        if ed['kind'] in ('noexit', 'nodoor'): continue
+        if ed['kind'] == 'clear':   # rect: drop generated walls inside (exterior band / solid cores stay)
+            walls &= 1 - (rect_mask(ed['rect']) & (1 - solid) & (1 - band)); continue
+        if ed['kind'] == 'fixture':   # rect, h (top above floor), m (material): sinks, toilets, urinals ...
+            r_ = [round(float(v), 3) for v in ed['rect']]
+            ov_fixtures.append({'r': r_, 'y': [float(ed.get('y0', 0)), float(ed['h'])], 'm': ed.get('m', 'white'), 'room': ed.get('room', '廁所')}); continue
         a_, b_ = np.array(ed['a'], float), np.array(ed['b'], float)
+        if ed['kind'] == 'wall' and ed.get('top'):   # low partition (e.g. toilet stall, 'top' metres, half-thickness 'w')
+            w_ = float(ed.get('w', .04)); L_ = LineString([a_, b_]).buffer(w_, cap_style=2)
+            xs_, ys_ = L_.exterior.xy
+            ov_sills.append({'rect': [round(min(xs_), 3), round(min(ys_), 3), round(max(xs_), 3), round(max(ys_), 3)], 'top': float(ed['top'])})
+            walls &= 1 - poly_mask(L_); continue
         if ed['kind'] == 'wall':
-            strip = poly_mask(LineString([a_, b_]).buffer(.08, cap_style=2)) & O; walls |= strip; doors &= 1 - strip
+            strip = poly_mask(LineString([a_, b_]).buffer(float(ed.get('w', .08)), cap_style=2)) & O; walls |= strip; doors &= 1 - strip; ov_wall |= strip
         else:
             u_ = (b_ - a_) / max(np.hypot(*(b_ - a_)), 1e-6)
             cut = poly_mask(LineString([a_ - u_ * .05, b_ + u_ * .05]).buffer(.3, cap_style=2))
             # A long stroke along a wall (user: 以平面圖為準) clears the generated blobs but keeps the exterior wall band.
             keep_band = band if np.hypot(*(b_ - a_)) >= 2.5 else 0
             walls &= 1 - (cut & (1 - solid) & (1 - keep_band))
+            if ed['kind'] == 'door' and ed.get('closed'):   # closed leaf standing in the opening (wooden, blocks)
+                lf = LineString([a_, b_]).buffer(.05, cap_style=2).bounds
+                door_leaves.append([round(lf[0], 3), round(lf[1], 3), round(lf[2], 3), round(lf[3], 3)])
             if ed['kind'] == 'door':
                 doors |= poly_mask(LineString([a_, b_]).buffer(.2, cap_style=2))
                 mid = (a_ + b_) / 2; n_ = np.array([-u_[1], u_[0]])
@@ -452,11 +473,11 @@ for k in ALL_FLOORS:
         for r in e['rect']: walls_final &= 1 - rect_mask(r)
     n, cl, st, _ = cv2.connectedComponentsWithStats(walls_final.astype(np.uint8), 8)
     for i in range(1, n):
-        if st[i, 4] * CELL * CELL < .3 and not (band & (cl == i)).any() and not (solid & (cl == i)).any(): walls_final[cl == i] = 0
+        if st[i, 4] * CELL * CELL < .3 and not (band & (cl == i)).any() and not (solid & (cl == i)).any() and not (ov_wall & (cl == i)).any(): walls_final[cl == i] = 0
     # Window openings cut through the outer band: sill below, head above, glass in between.
     exit_polys = [[[r[0], r[1]], [r[2], r[1]], [r[2], r[3]], [r[0], r[3]]] for e in exits for r in e['rect']]
     wins = window_plan(k, O, [s for s in spaces if s['type'] != 'void'], exit_polys) if k != 'B' else []
-    sills, heads, glass = [], [], []
+    sills, heads, glass = list(ov_sills), [], []
     for w in wins:
         a, b = w['a'], w['b']; r = [min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1])]
         r = [r[0] - (.4 if abs(w['normal'][0]) > .5 else 0), r[1] - (.4 if abs(w['normal'][1]) > .5 else 0), r[2] + (.4 if abs(w['normal'][0]) > .5 else 0), r[3] + (.4 if abs(w['normal'][1]) > .5 else 0)]
@@ -508,6 +529,7 @@ for k in ALL_FLOORS:
     if k == '2': keep |= rect_mask(OPEN_2F)
     keep = cv2.dilate(keep.astype(np.uint8), disk(int(1.3 / CELL)))
     furniture, fblocks = furnish_floor(spaces, walls_final, keep, O, H, W, CELL, ox, oy, CELL)
+    furniture += ov_fixtures; fblocks += [f['r'] for f in ov_fixtures if f['y'][1] > .3]
     if k == 'B':  # 理學院階梯教室: fixed seats on each rake tier (aisles at both ends and down the middle)
         rk = next(st for st in stairs if st.get('tiers'))
         y0r, y1r = RAKE['rect'][1], RAKE['rect'][3]; ym = (y0r + y1r) / 2
@@ -522,7 +544,7 @@ for k in ALL_FLOORS:
                     fblocks.append(seat)
                 yy += .55
     floors_out.append({'garagePoly': garage_poly, 'stallLines': [[round(v, 3) for v in r] for r in stall_lines], 'garageLights': garage_lights, 'openAreas': [OPEN_2F] if k == '2' else ([DRIVE_OPEN_B1] if k == 'B' else []), 'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'outline': ring_coords(Pk), 'walls': rects(walls_final.astype(np.uint8)), 'lintels': rects(doors.astype(np.uint8)),
-                       'sills': sills, 'heads': heads, 'windows': glass, 'furniture': furniture, 'furnitureBlocks': fblocks, 'doors': door_list, 'exits': exits, 'stairs': stairs, 'voidMask': void,
+                       'sills': sills, 'heads': heads, 'windows': glass, 'furniture': furniture, 'furnitureBlocks': fblocks, 'doors': door_list, 'doorLeaves': door_leaves, 'exits': exits, 'stairs': stairs, 'voidMask': void,
                        'spaces': [{'name': s['name'], 'num': s.get('num'), 'type': s['type'], 'anchor': world(s['anchor']) if s.get('anchor') else None} for s in spaces]})
 
 for i, fl in enumerate(floors_out):

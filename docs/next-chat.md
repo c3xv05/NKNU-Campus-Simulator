@@ -1,5 +1,9 @@
 # 新對話接續摘要
 
+## 2026-11-22（B1 牆面對話）：廁所重畫、右下角外框、關閉的門
+
+詳見 `buildings/zhili/README.md` 同日條目。完成：B1 兩間廁所依線稿重畫（男／女側、隔間、設備；男女依器具判斷待確認）、B1 右下角外框補回線稿位置、B01／B02／B03 加關閉木門（B02／B03 位置暫定）、準備室工具（`scripts/zhili-plan-crop.py`、`scripts/zhili-coords.py`）。待辦：B02／B03 下半部牆與車道入口（使用者要調整但未說方向）、準備室由使用者自畫。驗證：`tests/zhili-interior.mjs`、`tests/gauss-interior.mjs` 通過；**瀏覽器測試本環境未跑**（無 playwright）。注意：提交前的 `interior.json` 與腳本不同步（B1／1F 樓板曾是舊的），重建後 1F slab／ceiling 三角形有差。
+
 ## 2026-11-22（晚）：階梯旁花台對齊樓體、整體提高
 
 PR #116 已合併。使用者追加：階梯花台邊緣對齊樓體邊緣（花台凸到樓梯）、花台整體再提高一個花台高度、柱子。已做：花台 x16.5–26.7（西＝2F外框、東＝1F外框）、南緣 y66.6（南牆線），頂高 aboveSidewalk 2.6/1.8/1.02（最高排約與1F同高）；承重柱移到2F挑空西南角（x16.5–17.0、y66.1–66.6）；移除花台外環延伸鋪面；build-teaching-courtyard 對 lowerShape 加 buffer(0)。
