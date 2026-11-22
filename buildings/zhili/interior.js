@@ -110,7 +110,7 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
   for(const w of fl.windows||[])pane(w,y,-.12);
   for(const l of fl.lintels)rectBox(l,y+2.25,y+H-SLAB,'inner');
   for(const l of fl.doorLeaves||[])rectBox(l,y,y+2.25,'wood');
-  for(const e of fl.exits){for(const r of e.rect){rectBox(r,y+2.4,y+H-SLAB,'outer');if(!e.open){rectBox(r,y,y+.15,'outer');rectBox([r[0]+.08,r[1]+.08,r[2]-.08,r[3]-.08],y+.15,y+2.4,'glass');}}}
+  for(const e of fl.exits){for(const r of e.rect){if(e.header!==false)rectBox(r,y+2.4,y+H-SLAB,'outer');if(!e.open){rectBox(r,y,y+.15,'outer');rectBox([r[0]+.08,r[1]+.08,r[2]-.08,r[3]-.08],y+.15,y+2.4,'glass');}}}
   // Room furniture (scripts/furnish.py): instanced boxes with the room's materials.
   for(const it of fl.furniture||[])rectBox(it.r,y+it.y[0],y+it.y[1],it.m);
   for(const e of fl.exits)for(const t of e.steps||[])rectBox(t.rect,y+(t.bottom??0),y+t.height,'tread');

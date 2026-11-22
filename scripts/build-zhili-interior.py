@@ -47,11 +47,15 @@ covered += [Polygon([drawing(q) for q in camp['levelLink']['ring']]).buffer(0), 
 # them on B1 and the 1F podium until the steps are redone from the Zhili drawing (pending user decision with Gauss).
 STAIR_KEEP = unary_union([Polygon([drawing(q) for q in st['ring']]).buffer(.3, join_style=2) for st in camp['levelLink']['stairs']]
                        + [Polygon([drawing(q) for q in camp['teachingAccess'][k]]).buffer(.3, join_style=2) for k in ('frontApron', 'gapFootprint') if camp.get('teachingAccess', {}).get(k)])
+# User 2026-11-23: B1 walls follow the drawing. B02/B03 and the strip below them (x7.07-26.8, y55-66.6) belong to the drawing's B1 even
+# though the 1F outline / lower plaza stop short. Where the old south teaching stairs (STAIR_KEEP) overlap, the basement is NOT hollowed
+# out: the outline keeps its notch there, so the stair mass stays solid ground and nobody can fall through it.
+B1_SW = box(7.07, 55.0, 26.8, 66.6)
 # Current 1F sheet (user 2026-11-19: "以我後來上傳的平面圖為準"): 全家超商B區 extends south of the old west-lobby
 # front to y≈50.2 (7.8 m wide, x 8.5–16.25); west of it is the open 學生休憩廣場.
 OUTLINE_1F = unary_union([OUTLINE_1F, box(8.5, 46.2, 16.25, 50.25)]).buffer(.05, join_style=2).buffer(-.05, join_style=2)
 OUTLINE_1F = OUTLINE_1F.difference(STAIR_KEEP).buffer(0)
-B1_OUTLINE = B1_PLAN.intersection(unary_union([OUTLINE_1F, *covered]).buffer(.3).buffer(-.3)).intersection(box(-50, -50, 200, 66.6)).buffer(0)
+B1_OUTLINE = B1_PLAN.intersection(unary_union([OUTLINE_1F, *covered, B1_SW]).buffer(.3).buffer(-.3)).intersection(box(-50, -50, 200, 66.6)).buffer(0)
 if B1_OUTLINE.geom_type != 'Polygon': B1_OUTLINE = max(B1_OUTLINE.geoms, key=lambda g: g.area)
 B1_OUTLINE = B1_OUTLINE.difference(STAIR_KEEP)
 if B1_OUTLINE.geom_type != 'Polygon': B1_OUTLINE = max(B1_OUTLINE.geoms, key=lambda g: g.area)
@@ -393,7 +397,7 @@ for k in ALL_FLOORS:
         for sgn in (1, -1):
             q = [p[0] + (0 if horiz else sgn * .8), p[1] + (sgn * .8 if horiz else 0)]
             if not Pk.buffer(-.01).contains(Polygon([(q[0] - .01, q[1] - .01), (q[0] + .01, q[1] - .01), (q[0], q[1] + .01)])): probe = q
-        exits.append({'manual': True, 'rect': rects(sel), 'line': [world(a0), world(a1)], 'outside': world(probe), 'inside': world([2 * p[0] - probe[0], 2 * p[1] - probe[1]])})
+        exits.append({'manual': True, 'rect': rects(sel), 'line': [world(a0), world(a1)], 'outside': world(probe), 'inside': world([2 * p[0] - probe[0], 2 * p[1] - probe[1]])} | ({'header': False} if k == 'B' else {}))   # driveway mouth: no beam across the opening (user 2026-11-23)
     # Drawn exterior doors (swing arcs on the outline) not covered above: open when level with the ground
     # outside, otherwise glazed (runtime).
     manual_mid = [((a0[0] + a1[0]) / 2, (a0[1] + a1[1]) / 2) for a0, a1 in MANUAL_EXITS.get(k, [])]

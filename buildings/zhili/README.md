@@ -77,3 +77,11 @@
 - **關閉的門**：B01 康樂室北牆雙開門（x39.5–42.05、y54.9，通車道側；圖面上 B01 唯一通往室外側的門）；B02 配電室北牆 x13.5–14.4、B03 機械室北牆 x8.6–9.5（**圖面未畫門，位置是暫定**，使用者可改 `overrides.json` 的 `closed` 門座標）。門牌 plate 仍顯示 B01／B02／B03。
 - 準備室：未動，使用者自畫。工具：`scripts/zhili-plan-crop.py <樓層> x0 y0 x1 y1 [out.png] [px/m]`（帶公尺格線的圖面＋建成結果，讀座標用）、`scripts/zhili-coords.py`（開發者「複製座標」JSON 的 x,z ⇄ 圖面公尺）。畫法：`edits` 加 `{"id":"自取","floor":"B1","kind":"wall|door|open","a":[x,y],"b":[x,y]}`，最後執行 `python scripts/build-zhili-interior.py`；`review/` 預覽用 `render-zhili-plan-review.py`（需 `pip install pymupdf shapely opencv-python-headless`）。
 - **待辦／待確認**：B02／B03 下半部（y>62.3）牆被舊 STAIR_KEEP／1F 外框裁成 y62.3–62.6、x26.5 的人工邊界（圖面實為 x11.2 一路到 y67、南牆 y67），使用者要「調整」但尚未說明方向；車道入口（x1.8–7.4、y58–66.6）牆高／出入口待使用者指示；右下角南側 y>64.4 的圖面細節；廁所男女確認、衛浴細部（隔間門、鏡子）。
+
+## 2026-11-23（B1 續）：B02／B03 外框、車道口橫梁、車道與入口圓弧
+
+- **B02／B03**：B1 外框原本被「便利商店階梯避讓區」（`STAIR_KEEP`）與 1F 外框／下層廣場（y62.6 以南不算）裁成人工邊界。圖面上 B02 其實一路到南緣、B03 在階梯上方。`build-zhili-interior.py` 新增 `B1_SW`（x7.07–26.8、y55–66.6）併入 B1 外框，B02 完整到南牆。**階梯範圍（x7.07–17、y62.1–66.6）仍保留缺口＝階梯本體維持實心地面，不挖空**（使用者：階梯碰到房間時必須是實心，避免走到一半掉下去）。缺口邊界是外框牆（y62.1、x17）；階梯另一側的圖面牆（B03 東牆 x11.2 下段、南牆）在階梯實心內，不另建。
+- **車道口橫梁**：`MANUAL_EXITS` 車道口的出入口帶 `header:false`，`interior.js` 不再在開口上方畫 y+2.4 以上的橫梁（原本整段 1.85–7.05、y66.46–66.66）。
+- **車道／入口圓弧**（`facilities/zhili-curbcuts/layout.json`、`scripts/zhili_curbcuts.py`）：舊的「R4、自 y66.6 起外擴 1m」是猜的。依 1F 圖：車道口兩側路緣是直線（x1.61、x7.4）到 y70，再各接 R≈2.8 m 四分之一圓弧到路緣線（y≈72.8）；致理入口鋪面 x36.45–44.4，路緣直線至 y69.3，西側 R≈3.5、東側 R≈3.1。參數 `padX`／`flareStartY`／`flareRL`／`flareRR`（取代 `flareR`／`flareMax`）。重建：`build-zhili-curbcuts.py` → `build-sidewalk-plan.py`（約 40 秒）。
+- 驗證：`tests/zhili-interior.mjs` 與其他 `tests/*.mjs` 通過（`photo-buildings.mjs` 的 15cm 接縫斷言在 main 即失敗，非本次造成）；用本機 chromium 實際看過車道口：兩側圓弧、開口無橫梁。
+
