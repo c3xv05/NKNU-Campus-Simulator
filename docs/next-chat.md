@@ -1,5 +1,13 @@
 # 新對話接續摘要
 
+## 2026-11-23（B1 續）
+
+B02／B03 外框依圖面補齊（階梯範圍仍留缺口＝實心）、車道口橫梁移除、車道／入口人行道圓弧改依 1F 圖（R≈2.8／3.5／3.1，straight→arc）。細節與重建順序見 `buildings/zhili/README.md` 同日條目。待辦：準備室由使用者自畫；B02／B03 門位置暫定；入口圓弧的圖面讀值為目測；瀏覽器套件測試未跑。
+
+## 2026-11-22（B1 牆面對話）：廁所重畫、右下角外框、關閉的門
+
+詳見 `buildings/zhili/README.md` 同日條目。完成：B1 兩間廁所依線稿重畫（男／女側、隔間、設備；男女依器具判斷待確認）、B1 右下角外框補回線稿位置、B01／B02／B03 加關閉木門（B02／B03 位置暫定）、準備室工具（`scripts/zhili-plan-crop.py`、`scripts/zhili-coords.py`）。待辦：B02／B03 下半部牆與車道入口（使用者要調整但未說方向）、準備室由使用者自畫。驗證：`tests/zhili-interior.mjs`、`tests/gauss-interior.mjs` 通過；**瀏覽器測試本環境未跑**（無 playwright）。注意：提交前的 `interior.json` 與腳本不同步（B1／1F 樓板曾是舊的），重建後 1F slab／ceiling 三角形有差。
+
 ## 2026-11-22：霽遠樓與歸燕食巢／飛燕依正射影像移動、S22東移、水滴形安全島（接續Issue #104）
 
 使用者質疑霽遠樓位置與前方道路奇怪（碰到馬路）。以國土測繪中心2023正射影像（WMTS PHOTO2，z20，約0.14m/px；座標與sample-terrain.py同原點[120.407,22.7865]）疊圖後確認：模型建物普遍偏東南／偏西北，與空拍差6～20m（#97已記）。使用者指示三件事：
@@ -24,7 +32,7 @@ PR #116 已合併。使用者追加：階梯花台邊緣對齊樓體邊緣（花
 - 主階梯：圖面x7.67–16.26、y62.41–66.82，**8階＋歇腳平台＋8階**（layout.json teachingStairs[0]，levelRestLanding）；高出人行道約3.07m。
 - facilities/zhili-curbcuts（layout.json、renderer.js、scripts/zhili_curbcuts.py、build-zhili-curbcuts.py→campus.zhiliCurbCuts）：
   車道（x1.75–7.07，B1樓板y59.62接至S05路面高度，瀝青＋兩側牆，車庫口開牆、花台甲板y57.9–59.62只留外圍矮牆、延伸基座挖隧道）；
-  車道與致理入口階梯下方的「路面同高」磁磚鋪面（pad）：由build-sidewalk-plan自人行道挖出（sidewalkPlan.curbCuts），兩側圓弧（flareR/flareMax），人行道自動生出路緣；
+  車道與致理入口階梯下方的「路面同高」磁磚鋪面（pad）：由build-sidewalk-plan自人行道挖出（sidewalkPlan.curbCuts），兩側圓弧（padX/flareStartY/flareRL/flareRR，2026-11-23 起依圖面），人行道自動生出路緣；
   殘障坡道（圖面x44.48–54.15、y66.82–68.33，西端1F高、東端接人行道，實心）；
   2F平台花圃（高0.9m）與椅子（高0.45m）：兩條緊密線＝花圃、外圍多一線＝椅子（使用者說明，左欄四個U形框已做；右欄緊貼建築的框、樹穴尚未做）；
   B1天窗（圖面x34.06–43.4、y41.3–45.16，3×8四角錐玻璃）——該處在遊戲中似落在致理2F室內，位置待確認；
