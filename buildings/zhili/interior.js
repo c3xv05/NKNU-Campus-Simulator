@@ -102,7 +102,7 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
  let shell=null;
  for(const fl of data.floors){const y=base+fl.level;
   const s=slab(fl.slabTriangles,y,y-SLAB,'floor',key+'-floor-'+fl.label);shell??=s;
-  if(fin&&fl.garageTriangles){surface(fl.garageTriangles,y+.004,surf.garage,4,key+'-garage-'+fl.label);for(const r of fl.stallLines||[])rectBox(r,y+.004,y+.014,'paint');for(const p of fl.garageLights||[])rectBox([p[0]-.6,p[1]-.06,p[0]+.6,p[1]+.06],y+H-SLAB-.1,y+H-SLAB-.04,'lamp');}
+  if(fin&&fl.garageTriangles){surface(fl.garageTriangles,y+.004,surf.garage,4,key+'-garage-'+fl.label);for(const r of fl.stallLines||[])rectBox(r,y+.004,y+.014,'paint');if(fl.laneTriangles?.length)surface(fl.laneTriangles,y+.012,mats.paint,1,key+'-lanes-'+fl.label);for(const p of fl.garageLights||[])rectBox([p[0]-.6,p[1]-.06,p[0]+.6,p[1]+.06],y+H-SLAB-.1,y+H-SLAB-.04,'lamp');}
   if(fin){surface(fl.tileTriangles||fl.slabTriangles,y+.004,surf.floor,surf.floorRepeat,key+'-tiles-'+fl.label);if(fl.ceilingTriangles)surface(fl.ceilingTriangles,y+fin.ceilingHeight,surf.ceiling,surf.ceilingRepeat,key+'-ceiling-'+fl.label);}
   for(const w of fl.walls)wall(w,y,fl.outline);
   for(const w of fl.sills||[])wall(w.rect,y,fl.outline,y,y+w.top);

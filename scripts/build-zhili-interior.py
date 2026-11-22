@@ -464,7 +464,8 @@ for k in ALL_FLOORS:
             keep_band = band if np.hypot(*(b_ - a_)) >= 2.5 else 0
             walls &= 1 - (cut & (1 - solid) & (1 - keep_band))
             if ed['kind'] == 'door' and ed.get('closed'):   # closed leaf standing in the opening (wooden, blocks)
-                lf = LineString([a_, b_]).buffer(.05, cap_style=2).bounds
+                nn_ = np.array([-u_[1], u_[0]])   # leaf fills the whole opening (the door mask clears 0.2 m beyond each end of the drawn line), thicker than any wall (user: could see through)
+                lf = Polygon([a_ - u_ * .22 - nn_ * .16, b_ + u_ * .22 - nn_ * .16, b_ + u_ * .22 + nn_ * .16, a_ - u_ * .22 + nn_ * .16]).bounds
                 door_leaves.append([round(lf[0], 3), round(lf[1], 3), round(lf[2], 3), round(lf[3], 3)])
             if ed['kind'] == 'door':
                 doors |= poly_mask(LineString([a_, b_]).buffer(.2, cap_style=2))
@@ -581,6 +582,11 @@ for i, fl in enumerate(floors_out):
         tp = slab.difference(gpoly).buffer(0); gp2 = slab.intersection(gpoly).buffer(0)
         tri = lambda P: [[world(q) for q in list(t.exterior.coords)[:-1]] for g in ([P] if P.geom_type == 'Polygon' else [x for x in getattr(P, 'geoms', []) if x.geom_type == 'Polygon']) if g.area > .2 for t in constrained_delaunay_triangles(g).geoms if t.area > 1e-6]
         fl['tileTriangles'] = tri(tp); fl['garageTriangles'] = tri(gp2)
+        # Dashed lane curves from the drawing (scripts/extract-zhili-lanes.py): white paint on the garage floor, user 2026-11-23.
+        lane_f = root / 'buildings/zhili/lanes.json'
+        if fl['key'] == 'B' and lane_f.exists():
+            lanes = unary_union([Polygon(q).buffer(0) for q in json.loads(lane_f.read_text()).get('B1', []) if len(q) > 2]).intersection(gp2).buffer(0)
+            fl['laneTriangles'] = [[world(q) for q in list(t.exterior.coords)[:-1]] for g in (list(lanes.geoms) if hasattr(lanes, 'geoms') else [lanes]) if g.geom_type == 'Polygon' and g.area > .005 for t in constrained_delaunay_triangles(g).geoms if t.area > 1e-7]
     ceil = ceil.buffer(0); cparts = [ceil] if ceil.geom_type == 'Polygon' else [g for g in ceil.geoms if g.geom_type == 'Polygon']
     fl['ceilingTriangles'] = [[world(q) for q in list(t.exterior.coords)[:-1]] for p in cparts if p.area > .5 for t in constrained_delaunay_triangles(p).geoms if t.area > 1e-6]
 top = OUTLINE[ORDER[-1]]
