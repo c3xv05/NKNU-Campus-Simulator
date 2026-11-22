@@ -72,6 +72,10 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
    if(!lightOnly){g.strokeStyle='#e4e6ea';g.lineWidth=2;for(let k=1;k<6;k++){const x=s+4+k*(s-8)/6;g.beginPath();g.moveTo(x,s+6);g.lineTo(x,3*s-6);g.stroke();}}
    g.fillStyle=lightOnly?'#2c2c2a':'#a9aaa5';for(let k=0;k<=P;k++){g.fillRect(k*s-2,0,4,n);g.fillRect(0,k*s-2,n,4);}};
   const ceilMap=canvasTex(512,draw(false));ceilMap.colorSpace=THREE.SRGBColorSpace;
+  // Garage: sealed concrete floor, white stall paint, bare tube lights (B1 parking, user 2026-11-19).
+  const conc=canvasTex(256,(g,n)=>{g.fillStyle='#8f9390';g.fillRect(0,0,n,n);for(let k=0;k<4000;k++){const v=Math.random();g.fillStyle=`rgba(${v<.5?60:200},${v<.5?62:205},${v<.5?60:200},${Math.random()*.08})`;g.fillRect(Math.random()*n,Math.random()*n,2,2);}});
+  conc.colorSpace=THREE.SRGBColorSpace;surf.garage=new THREE.MeshStandardMaterial({map:conc,roughness:.75,emissive:0xffffff,emissiveMap:conc,emissiveIntensity:.25});
+  mats.paint=new THREE.MeshBasicMaterial({color:0xf2f2ec});mats.lamp=new THREE.MeshBasicMaterial({color:0xffffff});
   surf.ceiling=new THREE.MeshBasicMaterial({map:ceilMap,side:THREE.DoubleSide});/* unlit: the hemisphere light tints a lit ceiling green */surf.ceilingRepeat=4*fin.ceilingPanel;}
  // A flat surface over drawing-frame triangles with UVs aligned to the building grid (tiles and ceiling panels).
  function surface(triangles,y,mat,repeat,name){const pos=[],uv=[];for(const t of triangles)for(const[x,z]of t){pos.push(x,y,z);const d=f.toDrawing(x,z);uv.push(d[0]/repeat,d[1]/repeat);}
@@ -98,7 +102,8 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
  let shell=null;
  for(const fl of data.floors){const y=base+fl.level;
   const s=slab(fl.slabTriangles,y,y-SLAB,'floor',key+'-floor-'+fl.label);shell??=s;
-  if(fin){surface(fl.slabTriangles,y+.004,surf.floor,surf.floorRepeat,key+'-tiles-'+fl.label);if(fl.ceilingTriangles)surface(fl.ceilingTriangles,y+fin.ceilingHeight,surf.ceiling,surf.ceilingRepeat,key+'-ceiling-'+fl.label);}
+  if(fin&&fl.garageTriangles){surface(fl.garageTriangles,y+.004,surf.garage,4,key+'-garage-'+fl.label);for(const r of fl.stallLines||[])rectBox(r,y+.004,y+.014,'paint');for(const p of fl.garageLights||[])rectBox([p[0]-.6,p[1]-.06,p[0]+.6,p[1]+.06],y+H-SLAB-.1,y+H-SLAB-.04,'lamp');}
+  if(fin){surface(fl.tileTriangles||fl.slabTriangles,y+.004,surf.floor,surf.floorRepeat,key+'-tiles-'+fl.label);if(fl.ceilingTriangles)surface(fl.ceilingTriangles,y+fin.ceilingHeight,surf.ceiling,surf.ceilingRepeat,key+'-ceiling-'+fl.label);}
   for(const w of fl.walls)wall(w,y,fl.outline);
   for(const w of fl.sills||[])wall(w.rect,y,fl.outline,y,y+w.top);
   for(const w of fl.heads||[])wall(w.rect,y,fl.outline,y+w.bottom,y+H-SLAB,false);

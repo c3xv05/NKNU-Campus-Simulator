@@ -23,7 +23,7 @@ for(const [i,f] of d.floors.entries()){
  // Slab above each flight opens over the flights, keeping the entrance landing solid.
  const up=d.floors[i+1];for(const s of f.stairs){if(s.tiers)continue;const [x0,y0,x1,y1]=s.hole,c=[(x0+x1)/2,(y0+y1)/2];assert(!up.slab.some(([o,...holes])=>ringDistance(c[0],c[1],o)===0&&!holes.some(h=>ringDistance(c[0],c[1],h)===0)),'stair hole in '+up.label);}
 }
-assert.equal(d.floors[1].exits.filter(e=>e.manual).length,5,'1F north lobby, south corridor end, east main entrance and two west lobby doors');
+assert.equal(d.floors[1].exits.filter(e=>e.manual).length,4,'1F north lobby, south corridor end, east main entrance and the west lobby door (current sheet: the other west doors are inside 全家超商B區)');
 assert(treads>150&&doors>20,JSON.stringify({treads,doors}));
 // Furniture from room names (scripts/furnish.py): key rooms furnished, every piece inside its floor outline, nothing in doorways.
 {const rooms=new Set(d.floors.flatMap(f=>(f.furniture||[]).map(i=>i.room)));for(const r of ['112 ','113-1 ','116 ','108 ','101 ','102-1 ','111 ','215 ','216 ','202 ','201 ','211 ','208 ','理學院階梯教室'])assert([...rooms].some(n=>n.startsWith(r)),'furnished '+r);  // 1F names from the current sheet (2026-11-19)
