@@ -574,3 +574,7 @@ main上8個Node測試早已失敗（最早自PR40），多數是規格更新後�
 - **飛燕**：改為半徑12.3m 的圓弓形（29點，弦平行食巢長軸；弧向外），離食巢後牆約13.8m，**取代舊的7.2m間距規定**（`photo-access` 測試已改）。
 - **詠絮樓**：與 PR #121（place-drawn-buildings.py，同樣依平面圖描外框）重複，合併時以 #121 為準，本分支的詠絮改動已捨棄。食巢／飛燕腳本 `relocate-swallow-quarter.py` 會讀取 #121 的詠絮輪廓來算共同平台。重建順序見上方 #121 條目（relocate-swallow-quarter 於 build-building-catalog 之前執行）。
 - 已知：`tests/photo-buildings.mjs`（S？道路 218881795 接縫）及 7 個 Python 幾何測試（campus-corridors/court-yongxu-r04/eight-step-access/garage-s11/gauss-stop/jiyuan-interior/spatial-corrections）在本批改動前就失敗，非本次造成，尚未處理。霽遠樓未動。
+
+## 2026-11-22：S06 東側花圃（人行道外移 100 cm）
+
+S06（293423729）里程 182.5（寰宇T橫段後）～285 m（S21 路口）之間，人行道外移 1.0 m 並在路緣與人行道間補 100 cm 草花圃（`facilities/s06-planter`，README 說明）。範圍／漸進長度／草面高度為模型選值，改動後須重跑 `build-sidewalk-plan.py`、`build-motor-pavement-plan.py`。起點／終點（S21 路口、寰宇平台端）已目視檢查；「花圃在人行道外側（遠離道路）」的另一種解讀未採用，若現場其實是人行道外緣的花圃，需改成另一種配置。
