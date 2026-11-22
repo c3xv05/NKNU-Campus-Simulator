@@ -13,5 +13,6 @@ a=lay['adaRamp'];(ax0,ax1),(ay0,ay1)=a['x'],a['y'];amid=(ay0+ay1)/2
 cc['ada']={'ring':ring(shapes['ramps']['ada']),'axis':[[round(v,7) for v in zc.world(t,[[ax0,amid]])[0]],[round(v,7) for v in zc.world(t,[[ax1,amid]])[0]]],'width':round(ay1-ay0,3)}
 items,sky,pillars=zc.plaza_items(t);cc['plaza']={'pillars':pillars,'planterHeight':0.9,'benchHeight':0.45,'items':items,'skylight':sky,'note':'2026-11-22使用者說明：兩條緊密線＝花圃（磁磚），外圍多一條線＝椅子（較矮、同為白色磁磚），花圃高約為椅子兩倍；方格打叉＝B1天窗（四角錐玻璃）。'}
 cc['platforms']=[{'id':q['id'],'rel':q['rel'],'ring':ring(__import__('shapely.geometry',fromlist=['Polygon']).Polygon(zc.world(t,[[q['x'][0],q['y'][0]],[q['x'][1],q['y'][0]],[q['x'][1],q['y'][1]],[q['x'][0],q['y'][1]]])))} for q in lay.get('platforms',[])]
+cc['driveway']['interiorRamp']=bool(lay['driveway'].get('interiorRamp'))
 c['zhiliCurbCuts']=cc
 (root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n');print('zhiliCurbCuts written')

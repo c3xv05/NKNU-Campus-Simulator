@@ -19,10 +19,10 @@ export function addZhiliCurbCuts(THREE,group,campus,terrain,network,tileMaterial
  const rampT=(x,z)=>clamp(((x-a[0])*ux+(z-a[1])*uz)/len,0,1),rampH=(x,z)=>{const t=rampT(x,z);return b1+(roadBase(x,z)-b1)*t;};
  const half=d.width/2,N=Math.ceil(len/.4),M=Math.ceil(d.width/.5),corner=(i,j)=>[a[0]+ux*len*i/N+nx*half*(2*j/M-1),a[1]+uz*len*i/N+nz*half*(2*j/M-1)];
  const rampPos=[];for(let i=0;i<N;i++)for(let j=0;j<M;j++){const q=[corner(i,j),corner(i+1,j),corner(i+1,j+1),corner(i,j+1)].map(([x,z])=>[x,rampH(x,z)+.004,z]);rampPos.push(...up(q[0],q[1],q[2]).flat(),...up(q[0],q[2],q[3]).flat());}
- const asphalt=new THREE.MeshStandardMaterial({color:0x3b3c3e,roughness:1,side:THREE.DoubleSide});blockers.push(add(rampPos,asphalt,'zhili-driveway-ramp'));
+ const asphalt=new THREE.MeshStandardMaterial({color:0x3b3c3e,roughness:1,side:THREE.DoubleSide});if(!d.interiorRamp)blockers.push(add(rampPos,asphalt,'zhili-driveway-ramp'));
  // Side walls: solid down to the ground, top follows the ramp.
  const wallMat=new THREE.MeshStandardMaterial({color:0xa66b58,roughness:.95,side:THREE.DoubleSide}),capMat=new THREE.MeshStandardMaterial({color:0xb8bab2,roughness:1,side:THREE.DoubleSide});
- for(const [k,ring] of d.walls.entries()){const wallA=ring.map(([x,z])=>[x,z]),proj=ring.map(([x,z])=>((x-a[0])*ux+(z-a[1])*uz)),lo=Math.min(...proj),hi=Math.max(...proj),across=ring.map(([x,z])=>((x-a[0])*nx+(z-a[1])*nz)),minAcross=Math.min(...across),maxAcross=Math.max(...across);
+ for(const [k,ring] of (d.interiorRamp?[]:d.walls).entries()){const wallA=ring.map(([x,z])=>[x,z]),proj=ring.map(([x,z])=>((x-a[0])*ux+(z-a[1])*uz)),lo=Math.min(...proj),hi=Math.max(...proj),across=ring.map(([x,z])=>((x-a[0])*nx+(z-a[1])*nz)),minAcross=Math.min(...across),maxAcross=Math.max(...across);
   const at=(s,o)=>[a[0]+ux*s+nx*o,a[1]+uz*s+nz*o],pos=[],cap=[],S=Math.max(1,Math.ceil((hi-lo)/.5));
   const topAt=(s,o)=>{const [x,z]=at(s,o);return rampH(x,z)+d.wallAbove;},baseAt=(s,o)=>{const [x,z]=at(s,o);return terrain.height(x,z)-1.5;};
   for(let i=0;i<S;i++){const s0=lo+(hi-lo)*i/S,s1=lo+(hi-lo)*(i+1)/S;
@@ -52,7 +52,7 @@ export function addZhiliCurbCuts(THREE,group,campus,terrain,network,tileMaterial
   for(const cell of plz.skylight.cells){const cx=cell.reduce((s,p)=>s+p[0],0)/4,cz=cell.reduce((s,p)=>s+p[1],0)/4,apex=[cx,upperLevel+.18+.55,cz];for(let k=0;k<4;k++){const a=cell[k],b=cell[(k+1)%4];pos.push(a[0],upperLevel+.18,a[1],b[0],upperLevel+.18,b[1],...apex);}}
   const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));gg.computeVertexNormals();const gm=new THREE.Mesh(gg,glass);gm.name='zhili-plaza-skylight-glass';group.add(gm);}
  for(const pf of cfg.platforms||[]){const shape=new THREE.Shape();pf.ring.forEach(([x,z],k)=>k?shape.lineTo(x,-z):shape.moveTo(x,-z));shape.closePath();const bottom=Math.min(...pf.ring.map(([x,z])=>terrain.height(x,z)))-1.5,top=lower+pf.rel,g=new THREE.ExtrudeGeometry(shape,{depth:top-bottom,bevelEnabled:false});g.rotateX(-Math.PI/2);const pos=g.attributes.position,uv=[];for(let i=0;i<pos.count;i++)uv.push(pos.getX(i)/2.4+pos.getY(i)/2.4,pos.getZ(i)/2.4+pos.getY(i)/2.4);g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setAttribute('sidewalkEdgeDistance',new THREE.Float32BufferAttribute(Array(pos.count).fill(1),1));const m=new THREE.Mesh(g,tileMaterial);m.position.y=bottom;m.name='zhili-platform-'+pf.id;m.receiveShadow=true;group.add(m);blockers.push(m);platforms.push({ring:pf.ring,top});}
- const inRamp=(x,z)=>ringDistance(x,z,d.ramp)===0,inPad=(x,z)=>pads.some(p=>ringDistance(x,z,p.ring)===0),inWall=(x,z,r)=>d.walls.some(w=>ringDistance(x,z,w)<r);
+ const inRamp=(x,z)=>!d.interiorRamp&&ringDistance(x,z,d.ramp)===0,inPad=(x,z)=>pads.some(p=>ringDistance(x,z,p.ring)===0),inWall=(x,z,r)=>d.interiorRamp?false:d.walls.some(w=>ringDistance(x,z,w)<r);
  return{blockers,
   platformSupportAt(x,z,currentY){for(const p of platforms)if(ringDistance(x,z,p.ring)===0){const h=p.top+.08;if(Math.abs(currentY-h)<.85)return h;}return null;},
   supportAt(x,z,currentY){if(inAda(x,z)){const h=adaH(x,z)+.08;return Math.abs(currentY-h)<.85?h:null;}if(inRamp(x,z)){const h=rampH(x,z)+.08;return Math.abs(currentY-h)<.85?h:null;}if(inPad(x,z)){const h=roadBase(x,z)+.08;return Math.abs(currentY-h)<.85?h:null;}return null;},

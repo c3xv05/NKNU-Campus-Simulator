@@ -399,19 +399,6 @@
    ]
   },
   {
-   "id": "wgqg652uk6q8q0zvpgnx",
-   "floor": "B1",
-   "kind": "wall",
-   "a": [
-    36.5,
-    27.35
-   ],
-   "b": [
-    36.5,
-    31.85
-   ]
-  },
-  {
    "id": "khnz180o9215nqmbvwym",
    "floor": "B1",
    "kind": "wall",

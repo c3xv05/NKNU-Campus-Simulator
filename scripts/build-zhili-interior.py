@@ -47,10 +47,21 @@ covered += [Polygon([drawing(q) for q in camp['levelLink']['ring']]).buffer(0), 
 # them on B1 and the 1F podium until the steps are redone from the Zhili drawing (pending user decision with Gauss).
 STAIR_KEEP = unary_union([Polygon([drawing(q) for q in st['ring']]).buffer(.3, join_style=2) for st in camp['levelLink']['stairs']]
                        + [Polygon([drawing(q) for q in camp['teachingAccess'][k]]).buffer(.3, join_style=2) for k in ('frontApron', 'gapFootprint') if camp.get('teachingAccess', {}).get(k)])
+# Current 1F sheet (user 2026-11-19: "以我後來上傳的平面圖為準"): 全家超商B區 extends south of the old west-lobby
+# front to y≈50.2 (7.8 m wide, x 8.5–16.25); west of it is the open 學生休憩廣場.
+OUTLINE_1F = unary_union([OUTLINE_1F, box(8.5, 46.2, 16.25, 50.25)]).buffer(.05, join_style=2).buffer(-.05, join_style=2)
 OUTLINE_1F = OUTLINE_1F.difference(STAIR_KEEP).buffer(0)
 B1_OUTLINE = B1_PLAN.intersection(unary_union([OUTLINE_1F, *covered]).buffer(.3).buffer(-.3)).intersection(box(-50, -50, 200, 66.6)).buffer(0)
 if B1_OUTLINE.geom_type != 'Polygon': B1_OUTLINE = max(B1_OUTLINE.geoms, key=lambda g: g.area)
 B1_OUTLINE = B1_OUTLINE.difference(STAIR_KEEP)
+if B1_OUTLINE.geom_type != 'Polygon': B1_OUTLINE = max(B1_OUTLINE.geoms, key=lambda g: g.area)
+# The old stair footprint (STAIR_KEEP) lies inside the basement outline at 己梯; punching it out left a walled-off box in the driveway
+# (user 2026-11-22). The stairs rise from the plaza above B1, so the basement floor continues underneath: drop interior holes.
+B1_OUTLINE = Polygon(B1_OUTLINE.exterior).buffer(0)
+# B1 driveway (user 2026-11-19 "地下室加入車道以及停車格"): the drawing's 車道 loop and the ramp to the 車道入口 on the
+# south edge. In the game the ground at the ramp mouth is ~0.16 m below B1, so the ramp is a level cutting open to the sky.
+RAMP = box(1.76, 58.0, 7.07, 66.6)
+B1_OUTLINE = unary_union([B1_OUTLINE, RAMP.intersection(B1_PLAN.buffer(.2))]).buffer(.05, join_style=2).buffer(-.05, join_style=2)
 if B1_OUTLINE.geom_type != 'Polygon': B1_OUTLINE = max(B1_OUTLINE.geoms, key=lambda g: g.area)
 B1_OUTLINE = B1_OUTLINE.simplify(.05)
 OUTLINE = {'B': B1_OUTLINE, '1': OUTLINE_1F, '2': TOWER, **{k: TOWER for k in ALL_FLOORS[3:]}}
@@ -75,8 +86,9 @@ OPEN_2F = [19.0, 46.3, 21.45, 55.4]     # walls cleared (top landing opens onto 
 OPEN_EDGES = {'2': [[16.2, 46.85, 16.9, 55.05]]}
 HOLE_2F = [19.0, 48.7, 21.45, 55.4]     # 2F slab open over the flight  # B05 演講廳 double door to the south 門廳
 # Entrances on the 1F outline (drawing metres): north lobby, corridor south end, east main lobby, two west-lobby doors.
-MANUAL_EXITS = {'1': [[[64.4, 26.6], [64.4, 29.4]], [[26.7, 55.4], [26.7, 57.5]], [[38.4, 66.6], [42.4, 66.6]],
-                      [[7.9, 46.3], [10.9, 46.3]], [[13.2, 46.3], [16.0, 46.3]]],
+MANUAL_EXITS = {'B': [[[1.9, 66.6], [6.95, 66.6]]],   # 車道入口 (ramp mouth)
+                '1': [[[64.4, 26.6], [64.4, 29.4]], [[26.7, 55.4], [26.7, 57.5]], [[38.4, 66.6], [42.4, 66.6]],
+                      [[6.7, 46.3], [8.45, 46.3]]],   # west lobby → 學生休憩廣場 (the other doors are inside 全家超商B區 now)
                 # 2F: balcony doors onto the plaza walkway, corridor west end onto the plaza.
                 '2': [[[33.4, 26.6], [33.4, 29.8]], [[16.5, 55.4], [16.5, 57.5]]]}
 
@@ -421,7 +433,9 @@ for k in ALL_FLOORS:
         else:
             u_ = (b_ - a_) / max(np.hypot(*(b_ - a_)), 1e-6)
             cut = poly_mask(LineString([a_ - u_ * .05, b_ + u_ * .05]).buffer(.3, cap_style=2))
-            walls &= 1 - (cut & (1 - solid))
+            # A long stroke along a wall (user: 以平面圖為準) clears the generated blobs but keeps the exterior wall band.
+            keep_band = band if np.hypot(*(b_ - a_)) >= 2.5 else 0
+            walls &= 1 - (cut & (1 - solid) & (1 - keep_band))
             if ed['kind'] == 'door':
                 doors |= poly_mask(LineString([a_, b_]).buffer(.2, cap_style=2))
                 mid = (a_ + b_) / 2; n_ = np.array([-u_[1], u_[0]])
@@ -448,6 +462,32 @@ for k in ALL_FLOORS:
         if cut.sum() < 5: continue
         walls_final &= 1 - cut; rr = rects(cut); sills += [dict(rect=q, top=w['sill']) for q in rr]; heads += [dict(rect=q, bottom=w['head']) for q in rr]
         glass.append({'a': a, 'b': b, 'normal': w['normal'], 'sill': w['sill'], 'head': w['head']})
+    garage_poly, stall_lines, garage_lights = None, [], []
+    if k == 'B':
+        # Ramp cutting: its side walls are retaining walls standing ~1 m above the outside ground (low walls, not full height).
+        rr = rect_mask([1.4, 60.2, 7.45, 66.9]); rw = (walls_final & rr).astype(np.uint8); walls_final &= 1 - rr
+        sills += [dict(rect=q, top=2.5) for q in rects(rw)]
+        # Garage: concrete floor, painted stalls and tube lights instead of tiles and a T-bar ceiling.
+        gm = np.zeros((H, W), np.uint8)
+        for s in spaces:
+            if s['type'] == 'garage': gm |= s['mask']
+        gm |= rect_mask([1.76, 58.0, 7.07, 66.6]) & O
+        gm = cv2.morphologyEx(gm & O, cv2.MORPH_CLOSE, disk(3))
+        cs_g, hi_g = cv2.findContours(gm, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE); gp = []
+        for i_g, c_g in enumerate(cs_g):
+            if hi_g[0][i_g][3] != -1 or cv2.contourArea(c_g) < 50: continue
+            holes_g = [[[ox + x * CELL, oy + y * CELL] for x, y in cs_g[j].reshape(-1, 2)] for j in range(len(cs_g)) if hi_g[0][j][3] == i_g and len(cs_g[j]) > 2]
+            gp.append(Polygon([[ox + x * CELL, oy + y * CELL] for x, y in c_g.reshape(-1, 2)], holes_g).buffer(0))
+        garage_poly = unary_union(gp).intersection(Pk).buffer(0)
+        for st_ in plans['B'].get('stalls', []):
+            P_ = Polygon(st_)
+            if not Pk.buffer(-.1).contains(P_.centroid): continue
+            x0_, y0_, x1_, y1_ = P_.bounds; t_ = .06
+            stall_lines += [[x0_ - t_, y0_ - t_, x1_ + t_, y0_ + t_], [x0_ - t_, y1_ - t_, x1_ + t_, y1_ + t_], [x0_ - t_, y0_ - t_, x0_ + t_, y1_ + t_], [x1_ - t_, y0_ - t_, x1_ + t_, y1_ + t_]]
+        inner_g = garage_poly.buffer(-1.0)
+        for gx in np.arange(Pk.bounds[0] + 2, Pk.bounds[2], 4.8):
+            for gy in np.arange(Pk.bounds[1] + 2, Pk.bounds[3], 4.8):
+                if inner_g.contains(Point(gx, gy)) and not RAMP.contains(Point(gx, gy)): garage_lights.append([round(gx, 2), round(gy, 2)])
     for r in OPEN_EDGES.get(k, []):
         walls_final &= 1 - rect_mask(r)
         hit = lambda q: q[0] < r[2] and q[2] > r[0] and q[1] < r[3] and q[3] > r[1]
@@ -479,7 +519,7 @@ for k in ALL_FLOORS:
                                   {'r': [round(r[0] + .02, 3), round(yy, 3), round(r[0] + .08, 3), round(yy + .5, 3)], 'y': [h + .45, h + .95], 'm': 'fabric', 'room': '理學院階梯教室'}]
                     fblocks.append(seat)
                 yy += .55
-    floors_out.append({'openAreas': [OPEN_2F] if k == '2' else ([DRIVE_OPEN_B1] if k == 'B' else []), 'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'outline': ring_coords(Pk), 'walls': rects(walls_final.astype(np.uint8)), 'lintels': rects(doors.astype(np.uint8)),
+    floors_out.append({'garagePoly': garage_poly, 'stallLines': [[round(v, 3) for v in r] for r in stall_lines], 'garageLights': garage_lights, 'openAreas': [OPEN_2F] if k == '2' else ([DRIVE_OPEN_B1] if k == 'B' else []), 'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'outline': ring_coords(Pk), 'walls': rects(walls_final.astype(np.uint8)), 'lintels': rects(doors.astype(np.uint8)),
                        'sills': sills, 'heads': heads, 'windows': glass, 'furniture': furniture, 'furnitureBlocks': fblocks, 'doors': door_list, 'exits': exits, 'stairs': stairs, 'voidMask': void,
                        'spaces': [{'name': s['name'], 'num': s.get('num'), 'type': s['type'], 'anchor': world(s['anchor']) if s.get('anchor') else None} for s in spaces]})
 
@@ -504,6 +544,12 @@ for i, fl in enumerate(floors_out):
         ceil = ceil.difference(box(*st['rect']).buffer(.05, join_style=2))
         if st.get('tiers'): ceil = ceil.difference(box(*HALL_OPEN_1F))
     for r in fl['openAreas']: ceil = ceil.difference(box(*r))
+    gpoly = fl.pop('garagePoly')
+    if gpoly is not None and not gpoly.is_empty:
+        ceil = ceil.difference(gpoly)
+        tp = slab.difference(gpoly).buffer(0); gp2 = slab.intersection(gpoly).buffer(0)
+        tri = lambda P: [[world(q) for q in list(t.exterior.coords)[:-1]] for g in ([P] if P.geom_type == 'Polygon' else [x for x in getattr(P, 'geoms', []) if x.geom_type == 'Polygon']) if g.area > .2 for t in constrained_delaunay_triangles(g).geoms if t.area > 1e-6]
+        fl['tileTriangles'] = tri(tp); fl['garageTriangles'] = tri(gp2)
     ceil = ceil.buffer(0); cparts = [ceil] if ceil.geom_type == 'Polygon' else [g for g in ceil.geoms if g.geom_type == 'Polygon']
     fl['ceilingTriangles'] = [[world(q) for q in list(t.exterior.coords)[:-1]] for p in cparts if p.area > .5 for t in constrained_delaunay_triangles(p).geoms if t.area > 1e-6]
 top = OUTLINE[ORDER[-1]]
