@@ -6,6 +6,7 @@ import {sidewalkSides,SIDEWALK_WIDTH} from './sidewalk-layout.js';
 import {offsetRing} from './building-layout.js';
 import {ringDistance} from './terrain.js';
 import {coverAt} from './landcover.js';
+import {landscapeSeedAreas} from './data/landscape-seed-areas.js';
 import {createTreeSpecies,treeSpeciesIndex,treeCrownPalette} from './tree-models.js';
 function bezier(a,b,c,d,t){const u=1-t;return[u*u*u*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],u*u*u*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]];}
 export function entranceBed(){
@@ -14,17 +15,18 @@ export function entranceBed(){
  for(const curve of curves)for(let i=0;i<16;i++)ring.push(bezier(...curve,i/16));
  return ring;
 }
-// 歸燕食巢／飛燕 moved to their orthophoto position (2026-11-22). The seeded plant sequence is generated with the
-// old rings (and old walkways) so no later random tree/flower shifts; plants crossing the new footprint are filtered below.
-const legacyRing=a=>a.beforeRelocationRing?{...a,ring:a.beforeRelocationRing}:a;
+// The seeded plant sequence is generated with a FROZEN copy of the exclusion areas (data/landscape-seed-areas.js, taken
+// before the 2026-11 relocations of Jiyuan / 歸燕食巢 / 飛燕 / 詠絮樓) so that moving buildings or paths cannot shift the
+// random draws of every later tree. Plants that conflict with the CURRENT areas are removed afterwards. Do not overwrite the snapshot.
+export function landscapeAreas(campus){return [...(campus.campusTransitions||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.bioConnection.corridor?.regions||[]).map(([ring])=>({ring})),...(campus.gaussStop?[campus.gaussStop]:[]),...(campus.grassParking?[campus.grassParking]:[]),...(campus.courtParking?.entrance?[campus.courtParking.entrance]:[]),...(campus.yongxuLandscape?[campus.yongxuLandscape.lawn]:[]),...(campus.huanyuAccess?[campus.huanyuAccess,campus.huanyuAccess.ramp]:[]),campus.bioConnection.stairs,...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[]),...campus.places,...campus.buildings,...campus.water,...campus.courts,...(campus.sportsAccess?.surfaces||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.sportsGardens||[]),...(campus.pavedAreas||[]),...(campus.junctionFillets||[]),...(campus.sidewalkFrontages||[]),...(campus.pedestrianAreas||[]),...(campus.pedestrianLinks||[]),...perimeterWallRings(campus.perimeterWalls).map(ring=>({ring})),...(campus.sideGate?sidegateWalls(campus.sideGate).map(ring=>({ring})):[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.levelLink?.ring?[campus.levelLink]:[]),...(campus.welcomeBoard?[campus.welcomeBoard]:[])].map(a=>{const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{...a,west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs)};});}
 export function createLandscapeLayout(campus,network,height){
  let seed=170491;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- const bed=entranceBed(),areas=[...(campus.campusTransitions||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.bioConnection.corridor?.regions||[]).map(([ring])=>({ring})),...(campus.gaussStop?[campus.gaussStop]:[]),...(campus.grassParking?[campus.grassParking]:[]),...(campus.courtParking?.entrance?[campus.courtParking.entrance]:[]),...(campus.yongxuLandscape?[campus.yongxuLandscape.lawn]:[]),...(campus.huanyuAccess?[campus.huanyuAccess,campus.huanyuAccess.ramp]:[]),campus.bioConnection.stairs,...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[]),...campus.places.map(legacyRing),...campus.buildings.map(legacyRing),...campus.water,...campus.courts,...(campus.sportsAccess?.surfaces||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.sportsGardens||[]),...(campus.pavedAreas||[]),...(campus.junctionFillets||[]),...(campus.sidewalkFrontages||[]),...(campus.pedestrianAreas||[]),...(campus.pedestrianLinks||[]),...perimeterWallRings(campus.perimeterWalls).map(ring=>({ring})),...(campus.sideGate?sidegateWalls(campus.sideGate).map(ring=>({ring})):[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.levelLink?.ring?[campus.levelLink]:[]),...(campus.welcomeBoard?[campus.welcomeBoard]:[])].map(a=>{const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{...a,west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs)};});
- function eligible(x,z,margin=0){
+ const bed=entranceBed(),areas=landscapeSeedAreas,currentAreas=landscapeAreas(campus);
+ function eligible(x,z,margin=0,list=areas){
   if(ringDistance(x,z,campus.boundary)!==0)return false;
   const road=network.nearest(x,z);if(road){const s=road.segment,side=Math.sign((x-s.a.x)*(-s.dz)+(z-s.a.z)*s.dx),walk=(campus.sidewalkRoadIds||[]).includes(s.route.osm)&&sidewalkSides(campus,s.route.osm).includes(side)?SIDEWALK_WIDTH:0;if(road.d<road.width/2+walk+margin)return false;}
   if(ringDistance(x,z,bed)<1+margin)return false;
-  return !areas.some(a=>x>=a.west-margin&&x<=a.east+margin&&z>=a.north-margin&&z<=a.south+margin&&ringDistance(x,z,a.ring)<margin+.01);
+  return !list.some(a=>x>=a.west-margin&&x<=a.east+margin&&z>=a.north-margin&&z<=a.south+margin&&ringDistance(x,z,a.ring)<margin+.01);
  }
  const trees=[],flowers=[],weeds=[];
  for(let z=-545;z<535;z+=9)for(let x=-410;x<425;x+=9){
@@ -44,9 +46,9 @@ export function createLandscapeLayout(campus,network,height){
  // Filtering after generation avoids shifting every later random tree/flower in the campus.
  const interiorRings=(campus.jiyuanInterior?.floors[0].regions||[]).map(r=>r[0]);
  if(interiorRings.length)for(const [items,margin]of [[trees,t=>3.6*t.size],[flowers,()=>.35],[weeds,()=>.35]])for(let i=items.length-1;i>=0;i--)if(interiorRings.some(r=>ringDistance(items[i].x,items[i].z,r)<margin(items[i])))items.splice(i,1);
- const movedRings=[...campus.places,...campus.buildings].filter(a=>a.beforeRelocationRing).map(a=>a.ring);
- if(movedRings.length){for(let i=trees.length-1;i>=0;i--)if(coverAt(trees[i].x,trees[i].z)!=='forest')trees.splice(i,1);for(let i=weeds.length-1;i>=0;i--)if(coverAt(weeds[i].x,weeds[i].z)!=='weeds')weeds.splice(i,1);}
- if(movedRings.length)for(const [items,margin]of [[trees,t=>3.6*t.size],[flowers,()=>.35],[weeds,()=>.35]])for(let i=items.length-1;i>=0;i--)if(movedRings.some(r=>ringDistance(items[i].x,items[i].z,r)<margin(items[i])))items.splice(i,1);
+ // Remove seeded plants that conflict with the current (relocated) buildings, walkways and cover.
+ for(let i=trees.length-1;i>=0;i--)if(coverAt(trees[i].x,trees[i].z)!=='forest'||!eligible(trees[i].x,trees[i].z,3,currentAreas))trees.splice(i,1);
+ for(let i=weeds.length-1;i>=0;i--)if(coverAt(weeds[i].x,weeds[i].z)!=='weeds'||!eligible(weeds[i].x,weeds[i].z,.5,currentAreas))weeds.splice(i,1);
  const treeCells=new Map();for(const tree of trees){const key=`${Math.floor(tree.x/15)},${Math.floor(tree.z/15)}`;if(!treeCells.has(key))treeCells.set(key,[]);treeCells.get(key).push(tree);}
  function blocked(x,z,radius=.5){
   if(ringDistance(x,z,bed)<radius)return true;

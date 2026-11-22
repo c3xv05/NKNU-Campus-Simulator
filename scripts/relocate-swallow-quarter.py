@@ -36,14 +36,17 @@ c=load('data/campus.json')
 motor=unary_union([LineString(r['line']).buffer(r['width']/2+.3) for r in c['roads'] if r['width']>=4])
 qa=[a for a in L['levelAreas'] if a['id']=='restaurant-quarter'][0]
 old=Polygon(qa.setdefault('beforeRelocationRing',qa['ring']))
-area=unary_union([old,K.buffer(4),F.buffer(4)]).difference(motor.difference(old))
+YG=load('buildings/yongxu/building.json')['geometry'];Yp=Polygon(YG['ring'])   # 詠絮樓 may have been relocated too (scripts/relocate-yongxu.py)
+area=unary_union([old,K.buffer(4),F.buffer(4),Yp.buffer(4)]).difference(motor.difference(old))
 area=max(getattr(area,'geoms',[area]),key=lambda g:g.area);area=Polygon(area.exterior).simplify(.1)
 qa['ring']=[[round(x,6),round(y,6)] for x,y in list(area.exterior.coords)[:-1]]
 qa['relocationNote']='2026-11-22歸燕食巢／飛燕依正射影像移動；原平台範圍全保留，補入兩棟新輪廓外4m（不含車道）。'
 links={x['id']:x for x in L['pedestrianLinks']}
 p01=links['P01'];p01.setdefault('beforeRelocationLine',p01['line']);p01['line']=Tm(p01['beforeRelocationLine'])
 for pid in ('P02','P03'):
-    p=links[pid];p.setdefault('beforeRelocationLine',p['line']);p['line']=[p01['line'][-1]]+p['beforeRelocationLine'][1:]
+    p=links[pid];p.setdefault('beforeRelocationLine',p['line'])
+    # the far end may have been re-routed by scripts/relocate-yongxu.py (relocatedEnd)
+    p['line']=[p01['line'][-1]]+p['beforeRelocationLine'][1:-1]+[p.get('relocatedEnd',p['beforeRelocationLine'][-1])]
 p04=links['P04'];p04.setdefault('beforeRelocationLine',p04['line']);p04['line']=[T(p04['beforeRelocationLine'][0])]+p04['beforeRelocationLine'][1:]
 # entrance (NW wall centre) is ~13 m from the nearest walkway after the move: add a 3 m entrance path
 if not any(x['id']=='P06' for x in L['pedestrianLinks']):
