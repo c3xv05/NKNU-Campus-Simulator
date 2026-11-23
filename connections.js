@@ -7,6 +7,7 @@ import {connectionRing} from './building-layout.js';
 import {subtract} from './road-ground.js';
 import {ringDistance} from './terrain.js';
 import {projectOnLine,platformHeightAt} from './site-physics.js';
+import {corridorSupportAt} from './facilities/campus-corridors/surface.js';
 export function stairHeightAt(x,z,currentY,campus,terrain,network){const platform=campus.zhiliPlatformSupport?.(x,z,currentY);if(platform!=null)return platform;for(const stairs of accessStairs(campus,terrain,network)){const height=supportOnStair(x,z,currentY,stairs);if(height!==null)return height;}return null;}
 export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
  const concrete=new THREE.MeshStandardMaterial({color:0xb9b7a9,roughness:.95}),brick=new THREE.MeshStandardMaterial({color:0xa66b58,roughness:.95});const blockers=[];
@@ -39,6 +40,11 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
    for(let i=0;i<ring.length;i++){if((i===0&&sliceIndex<slices.length-1)||(i===2&&sliceIndex>0))continue;const a=ring[i],b=ring[(i+1)%ring.length];quad(at(a,base),at(b,base),at(b,top(b)-.04),at(a,top(a)-.04),riserColor);quad(at(a,top(a)-.04),at(b,top(b)-.04),at(b,top(b)),at(a,top(a)),treadColor);}}}
   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geometry.computeVertexNormals();const mesh=new THREE.Mesh(geometry,stairMaterial);mesh.name=def.id==='biology'?'biology-east-staircase':def.id+(def.ramp?'-ramp':'-staircase');mesh.receiveShadow=true;mesh.userData={steps:def.steps,flights:def.flights,landings:(def.flights||1)-1};group.add(mesh);
   const [a,b]=def.line,dx=b[0]-a[0],dz=b[1]-a[1],run=Math.hypot(dx,dz),yaw=Math.atan2(dx,dz),normal=[-dz/run,dx/run];
+  // 便利商店前主階梯 side walls (user 2026-11-24: players stepped off the open sides and dropped 1-2 m): concrete cheek walls wherever the
+  // ground beside the stair is lower than the tread by > 0.9 m and no plaza deck continues beside it. solidBlocked() mirrors them.
+  if(def.id==='zhili-lower')for(const band of stairBands(def)){const t=(band.start+band.end)/2,h=stairSurface(def,t),w=stairWidth(def,t);
+   for(const side of [-1,1]){const px=a[0]+dx*t+normal[0]*side*(w/2+.25),pz=a[1]+dz*t+normal[1]*side*(w/2+.25),ground=network.walkHeight(px,pz,terrain.height(px,pz));
+    if(h-ground>.9&&corridorSupportAt(px,pz,h+.08,campus,terrain,network)===null&&corridorSupportAt(a[0]+dx*t+normal[0]*side*(w/2+.9),a[1]+dz*t+normal[1]*side*(w/2+.9),h+.08,campus,terrain,network)===null){const top=h+.85,bottom=ground-.1;box(.45,top-bottom,run*(band.end-band.start)+.02,px,(top+bottom)/2,pz,concrete,yaw,'zhili-lower-cheek-wall');}}}
   // Low stepped cheek walls border each flight; the central walking line stays open.
   for(const band of stairBands(def).filter(b=>b.landing)){const t=(band.start+band.end)/2,h=stairSurface(def,t),w=stairWidth(def,t);if(def.landingSidewalls!==false)for(const side of [-1,1])box(.45,.85,run*(band.end-band.start),a[0]+dx*t+normal[0]*side*(w/2+.25),h+.425,a[1]+dz*t+normal[1]*side*(w/2+.25),concrete,yaw,def.id+'-landing-sidewall');
    if(def.photoPlanters){const side=planters.length%2?1:-1,x=a[0]+dx*t+normal[0]*side*w*.23,z=a[1]+dz*t+normal[1]*side*w*.23,planterHeight=stairSurface(def,t,x,z);box(1.5,1,1.5,x,planterHeight+.5,z,concrete,0,'biology-stair-planter');box(1.2,.12,1.2,x,planterHeight+1.04,z,new THREE.MeshStandardMaterial({color:0x617b46,roughness:1}));planters.push({x,z,y:planterHeight,radius:1.05});}}
@@ -56,7 +62,10 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
   if(!campus.courtyard.exteriorAccess&&campus.courtyard.accessRampRing&&ringDistance(x,z,campus.courtyard.accessRampRing)===0&&platformHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(planters.some(p=>Math.hypot(x-p.x,z-p.z)<p.radius+r&&Math.abs(currentY-p.y)<2))return true;
   if(bioLink?.blocked(x,z,r,currentY))return true;
-  if(stairDefinitions.some(s=>ringDistance(x,z,stairRing(s))===0)&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
+  // 己梯 stands on the lower plaza deck with its solid stopping at the deck underside, so the basement beneath it stays open (user 2026-11-24); other stairs keep a full-height solid.
+  for(const s of stairDefinitions){if(s.id!=='zhili-lower')continue;const p=projectOnLine(x,z,...s.line),half=stairWidth(s,Math.max(0,Math.min(1,p.t)))/2;
+   if(p.t>=-.01&&p.t<=1.01&&p.distance>half+.1&&p.distance<half+.6&&currentY-network.walkHeight(x,z,terrain.height(x,z))>.9&&stairHeightAt(x,z,currentY,campus,terrain,network)===null&&corridorSupportAt(x,z,currentY,campus,terrain,network)===null)return true;}
+  if(stairDefinitions.some(s=>ringDistance(x,z,stairRing(s))===0&&!(/^zhili-ji/.test(s.id)&&currentY<s.bottom-.8))&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(!bio.corridor&&ringDistance(x,z,bioRing)===0&&currentY<bioLevel-.6&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(campus.teachingAccess&&ringDistance(x,z,campus.teachingAccess.lowerLanding)===0&&currentY<bridgeLevel-.5&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;
   if(!link.insideGauss&&ringDistance(x,z,linkRing)===0&&currentY<bridgeLevel-.5&&stairHeightAt(x,z,currentY,campus,terrain,network)===null)return true;

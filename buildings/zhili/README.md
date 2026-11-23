@@ -85,3 +85,10 @@
 - **車道／入口圓弧**（`facilities/zhili-curbcuts/layout.json`、`scripts/zhili_curbcuts.py`）：舊的「R4、自 y66.6 起外擴 1m」是猜的。依 1F 圖：車道口兩側路緣是直線（x1.61、x7.4）到 y70，再各接 R≈2.8 m 四分之一圓弧到路緣線（y≈72.8）；致理入口鋪面 x36.45–44.4，路緣直線至 y69.3，西側 R≈3.5、東側 R≈3.1。參數 `padX`／`flareStartY`／`flareRL`／`flareRR`（取代 `flareR`／`flareMax`）。重建：`build-zhili-curbcuts.py` → `build-sidewalk-plan.py`（約 40 秒）。
 - 驗證：`tests/zhili-interior.mjs` 與其他 `tests/*.mjs` 通過（`photo-buildings.mjs` 的 15cm 接縫斷言在 main 即失敗，非本次造成）；用本機 chromium 實際看過車道口：兩側圓弧、開口無橫梁。
 - 2026-11-23（續）：B02 下半部補進 B1 外框時蓋住了階梯旁三層花台（x16.5–26.7、y62.5–66.6）。`B1_SW` 現在扣掉 `campus.courtyard.planters`（source zhili）範圍，該處外框回到 y62.5。另：下層廣場延伸區實心基座（`zhiliExtension.baseRegions`）讓出 B1 外框，否則在地下室車道內呈現可穿過的紅牆。
+
+## 2026-11-24：己梯貼牆、補窗、油漆統一、牆縫焊接
+
+- `STAIR_WALL_FILL`（build-zhili-interior.py）：1F／2F 己梯北側牆向梯側加厚到貼齊，己梯不動。
+- `overrides.json` `kind:'window'`：在任意牆開窗（己梯北牆 1F×3、2F×2）。
+- 內部牆面只有朝室外的面是磚紅，其餘一律 `finish.wall` 米白（見 interior.js `wall()`）。
+- 建構時對牆做 3×3 閉運算補 <0.2 m 細縫，門與出入口保持開口。

@@ -33,5 +33,6 @@ export function addTeachingCourtyard(THREE,group,campus,terrain,tileMaterial){
  const planters=(c.planters||[]).map((p,i)=>{if(T&&p.above!==undefined)return{ring:p.ring,top:slopedPrism(p.ring,p.above,'stepped-planter-'+i)};solidPrism(p.ring,lower+p.top-.12,planterMat,'stepped-planter-'+i);const shape=new THREE.Shape();p.ring.forEach(([x,z],k)=>k?shape.lineTo(x,-z):shape.moveTo(x,-z));const g=new THREE.ShapeGeometry(shape);g.rotateX(-Math.PI/2);const soil=new THREE.Mesh(g,soilMat);soil.position.y=lower+p.top-.1;soil.name='stepped-planter-soil-'+i;group.add(soil);return {ring:p.ring,top:lower+p.top};});
  const inPlanter=(x,z,r,y)=>planters.some(p=>y<lower+1.2&&ringDistance(x,z,p.ring)<r);
  const nearRim=(x,z,r)=>rims.some(({a,b})=>{const dx=b[0]-a[0],dz=b[1]-a[1],l=dx*dx+dz*dz||1,u=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/l));return Math.hypot(x-a[0]-dx*u,z-a[1]-dz*u)<r+.2;});
- return{blockers,rims,blocked(x,z,r,y){return (y<lower+c.floorHeight-.2&&pillars.some(p=>Math.abs(x-p.x)<r+.25&&Math.abs(z-p.z)<r+.25))||nearRim(x,z,r)||inPlanter(x,z,r,y);}};
+ // Pillars and the deck-edge rims only exist from the lower deck upward (2026-11-24): the basement beneath stays open.
+ return{blockers,rims,blocked(x,z,r,y){return (y<lower+c.floorHeight-.2&&y>lower-.6&&pillars.some(p=>Math.abs(x-p.x)<r+.25&&Math.abs(z-p.z)<r+.25))||(y>lower-.6&&nearRim(x,z,r))||inPlanter(x,z,r,y);}};
 }

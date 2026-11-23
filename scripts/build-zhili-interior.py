@@ -95,6 +95,8 @@ DRIVE_CLEAR_B1 = [1.76, 59.3, 7.04, 60.5]   # garage mouth: no wall across the d
 RAMP_SLOPE = {'rect': [1.76, 60.5, 7.07, 66.6], 'tileFrom': 99, 'drop': -1.05}   # default only: interior.js re-measures it from the live road height; negative = the ramp climbs to the road
 DRIVE_OPEN_B1 = [1.75, 59.62, 7.07, 62.3]   # driveway ramp aisle: open to the sky (no ceiling), 2026-11-22
 VOID_CLEAR_2F = [16.3, 58.2, 21.2, 66.8]   # 2F corner void (挑空): no outer walls on the west and south sides, only the corner column (user 2026-11-22 photo)
+# 己梯 (stair x19.32-21.44, y48.65-53.08, fixed) against the wall north of it: 1F toilet wall at x21.95 and the 2F meeting-room wall at x21.45.
+STAIR_WALL_FILL = {'1': [[21.45, 48.7, 21.96, 48.7], [21.45, 49.86, 21.96, 52.46], [21.45, 53.66, 21.96, 54.96]], '2': [[21.45, 48.6, 21.5, 53.1]]}
 OPEN_2F = [19.0, 46.3, 21.45, 55.4]     # walls cleared (top landing opens onto the plaza)
 # Open (semi-outdoor) outline edges, no wall (user 2026-11-19): 2F west of 己梯 between the two columns opens onto
 # the upper plaza walkway.
@@ -446,7 +448,7 @@ for k in ALL_FLOORS:
     # User edits from the 致理牆門編輯器 page (buildings/zhili/overrides.json) win over the automatic reading.
     ov_sills, ov_fixtures, door_leaves = [], [], []; ov_wall = np.zeros((H, W), np.uint8)   # ov_wall: user wall strips survive the small-blob filter
     for ed in OVERRIDES.get(LABEL[k], []):
-        if ed['kind'] in ('noexit', 'nodoor'): continue
+        if ed['kind'] in ('noexit', 'nodoor', 'window'): continue
         if ed['kind'] == 'clear':   # rect: drop generated walls inside (exterior band / solid cores stay)
             walls &= 1 - (rect_mask(ed['rect']) & (1 - solid) & (1 - band)); continue
         if ed['kind'] == 'fixture':   # rect, h (top above floor), m (material): sinks, toilets, urinals ...
@@ -482,6 +484,13 @@ for k in ALL_FLOORS:
     walls_final = walls & (1 - doors)
     for e in exits:
         for r in e['rect']: walls_final &= 1 - rect_mask(r)
+    # 2026-11-24 (user): the 己梯 must touch the wall on its north side; the wall is thickened toward the stair, the stair stays put.
+    for r in STAIR_WALL_FILL.get(k, []): walls_final |= rect_mask(r)
+    # Weld hairline slits (< 0.2 m) between wall pieces so no sliver of daylight shows between them (user 2026-11-24); doors/exits stay open.
+    weld = cv2.morphologyEx(walls_final.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8)) & (1 - doors)
+    for e in exits:
+        for r in e['rect']: weld &= 1 - rect_mask(r)
+    walls_final = weld.astype(np.uint8)
     n, cl, st, _ = cv2.connectedComponentsWithStats(walls_final.astype(np.uint8), 8)
     for i in range(1, n):
         if st[i, 4] * CELL * CELL < .3 and not (band & (cl == i)).any() and not (solid & (cl == i)).any() and not (ov_wall & (cl == i)).any(): walls_final[cl == i] = 0
@@ -496,6 +505,16 @@ for k in ALL_FLOORS:
         if cut.sum() < 5: continue
         walls_final &= 1 - cut; rr = rects(cut); sills += [dict(rect=q, top=w['sill']) for q in rr]; heads += [dict(rect=q, bottom=w['head']) for q in rr]
         glass.append({'a': a, 'b': b, 'normal': w['normal'], 'sill': w['sill'], 'head': w['head']})
+    # Hand-placed windows (overrides.json kind 'window': a, b along the wall, outward normal, sill, head): cut through any wall, not just the outer band.
+    for ed in OVERRIDES.get(LABEL[k], []):
+        if ed['kind'] != 'window': continue
+        a, b, nrm = ed['a'], ed['b'], ed['normal']
+        r = [min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1])]
+        r = [r[0] - (.45 if abs(nrm[0]) > .5 else 0), r[1] - (.45 if abs(nrm[1]) > .5 else 0), r[2] + (.45 if abs(nrm[0]) > .5 else 0), r[3] + (.45 if abs(nrm[1]) > .5 else 0)]
+        cut = rect_mask(r) & walls_final
+        if cut.sum() < 5: continue
+        walls_final &= 1 - cut; rr = rects(cut); sills += [dict(rect=q, top=ed['sill']) for q in rr]; heads += [dict(rect=q, bottom=ed['head']) for q in rr]
+        glass.append({'a': a, 'b': b, 'normal': nrm, 'sill': ed['sill'], 'head': ed['head']})
     garage_poly, stall_lines, garage_lights = None, [], []
     if k == 'B':
         # Ramp cutting: its side walls are retaining walls standing ~1 m above the outside ground (low walls, not full height).
