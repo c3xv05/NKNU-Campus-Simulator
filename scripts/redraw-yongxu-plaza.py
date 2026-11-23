@@ -30,6 +30,17 @@ W = min(ring0 := rd('buildings/yongxu/building.json')['geometry']['ring'], key=l
 wrect, gap = 6.5, 3.0
 slide = wrect + ((W[0] - N0[0]) * vx + (W[1] - N0[1]) * vz)
 N = (N0[0] + vx * slide, N0[1] + vz * slide)
+# 2026-11-23 (later): slide the D south along S06's direction until its lowest point touches the lowest edge of S21's road, so S21
+# runs straight into the plaza. S21 therefore stops at the plaza (shorter extension, below).
+s06 = next(r for r in rd('data/campus.json')['roads'] if r['osm'] == 293423729)['line']
+k = min(range(len(s06)), key=lambda i: math.dist(s06[i], (-212.0, -80.0)))
+ta, tb = s06[max(0, k - 6)], s06[min(len(s06) - 1, k + 6)]
+tx, tz = tb[0] - ta[0], tb[1] - ta[1]; tl = math.hypot(tx, tz); tx, tz = tx / tl, tz / tl
+if tz < 0: tx, tz = -tx, -tz                                          # S06 direction, pointing south
+s21 = next(r for r in rd('data/campus.json')['roads'] if r['osm'] == ya['road'])
+s21_line = s21.get('beforeEntryExtension', s21['line'])
+s21_south = max(z for _, z in LineString(s21_line + [ya['beforePlazaRedraw']['approachExtension'][0]]).buffer(ya['width'] / 2).exterior.coords)
+N1 = N
 def shape(D):
     P = lambda s, t: (N[0] + ux * s + vx * t, N[1] + uz * s + vz * t)
     c = P(D / 2, 0); disc = Point(*c).buffer(D / 2, quad_segs=24)
@@ -40,6 +51,28 @@ def shape(D):
     rect = Polygon([P(0, -wrect), P(D, -wrect), P(D, 0), P(0, 0)])
     return unary_union([disc, rect]), c
 D = 26.0   # diameter; the user asked to lengthen it southwards toward the building (3 m) - see docs/next-chat.md: not reachable along the S06 axis without covering S21
+def at_shift(m):
+    global N
+    N = (N1[0] + tx * m, N1[1] + tz * m); return shape(D)[0].bounds[3]
+lo, hi = 0.0, 40.0
+for _ in range(40):
+    m = (lo + hi) / 2
+    if at_shift(m) < s21_south: lo = m
+    else: hi = m
+at_shift(lo)
+# 2026-11-23 (later): scale the whole D uniformly towards the north-east, about its lowest point (so it keeps touching S21's south
+# edge), until its top is two sidewalk widths (2 x 3.6 m) from the building.
+from shapely import affinity
+base = shape(D)[0]
+A = max(base.exterior.coords, key=lambda q: q[1])
+glo, ghi = 1.0, 4.0
+for _ in range(40):
+    kk = (glo + ghi) / 2
+    if B.distance(affinity.scale(base, kk, kk, origin=A)) > 2 * 3.6: glo = kk
+    else: ghi = kk
+K = glo
+N = (A[0] + K * (N[0] - A[0]), A[1] + K * (N[1] - A[1])); D *= K; wrect *= K
+print('scale', round(K, 3), 'diameter', round(D, 2))
 plaza, center = shape(D); r = D / 2
 # door apron: the part of the previous road that hugs the facade, kept so the door still meets paving
 door = Point(ya['door'])
@@ -49,8 +82,8 @@ ring = unary_union([plaza, apron, link]).difference(B.buffer(.05)).buffer(.2).bu
 ring = max(getattr(ring, 'geoms', [ring]), key=lambda g: g.area).simplify(.08)
 # The S21 extension keeps the first two vertices of the former route and stops south of the plaza (its north kerb meets the plaza's
 # south-west corner). Candidate tree points of the frozen landscape seed pass must not newly fall inside the road (tests/jiyuan-interior.mjs).
-ya['approachExtension'] = ya['beforePlazaRedraw']['approachExtension'][:2] + [[-166.0, -60.0]]
-ya['roadEnd'] = ya['approachExtension'][-1]
+ya['approachExtension'] = [[-187.642, -62.487]]   # fixed: tree-seed eligibility (tests/jiyuan-interior) reads the live road network; must lie inside the plaza
+ya['roadEnd'] = ya['approachExtension'][-1]; print('shift south', round(lo, 2), 's21 south', round(s21_south, 2))
 lawn = Polygon(old['lawnRing']).buffer(0).difference(ring.buffer(.5)).difference(B.buffer(1))
 R = lambda g: [[round(x, 6), round(y, 6)] for x, y in list(g.exterior.coords)[:-1]]
 sk['roadRing'] = R(ring)
