@@ -1,5 +1,9 @@
 # 新對話接續摘要
 
+## 2026-11-23（寰宇／致理中央廣場二樓依空拍重描）
+
+使用者要求只處理寰宇與致理交接處的中央廣場二樓，其他地方不動。依NLSC 2023正射影像（PHOTO2 z20）肉眼描出不規則輪廓（26頂點，±1.5m，含南緣扇形採光罩外弧），存於 `facilities/teaching-courtyard/upper-plaza-trace.json`；`build-teaching-courtyard.py` 以它取代原本規則的致理圖面上層拼接（zsite plaza／walkway2F／化學系廣場／deck2F），並仍扣掉建築。寰宇2F陽台帶與6m連接帶（huanyuArm／hpass）維持原狀。重建：build-teaching-courtyard → build-zhili-curbcuts → build-sidewalk-plan（需 shapely 2.1.2）。測試 campus-corridors／campus-plazas／two-level-plaza／court-access／gauss-interior／zhili-interior 通過；瀏覽器測試未跑。待辦：採光罩扇形範圍目前算可走樓板（是否改成玻璃頂待使用者決定）；寰宇陽台帶是否依空拍移除待決定；請使用者在遊戲內檢查接縫。
+
 ## 2026-11-23（車道入口完成，待使用者走查）
 
 S05 坡度修正後繼續。**B1 車道斜坡**：`RAMP_SLOPE`（x1.76–7.07、y60.5–66.6，62.3 以南為磁磚）。落差由 `interior.js` 以即時道路高度量測（`fl.ramp.drop`，負值＝爬升約 1.05m）；行走支撐、基座避開斜坡、斜坡入口不再生成玻璃／台階（`header:false` 的出入口強制 open）。**致理入口階梯**：S05 改坡後原本因以人行道高度算落差而消失，現改以曲緣鋪面（pad）高度計算（`padG`），8 階回來。**車道弧線**：`scripts/extract-zhili-lanes.py`→`buildings/zhili/lanes.json`→B1 白漆線。**平台凹口補滿**：`build-teaching-courtyard.py` 的 `driveOpen` 扣掉 deck 範圍（y≤62.45），下層廣場完整蓋住車道北段。**L 形圍牆**：`zhiliCurbCuts.lwall`——`fascia`（x1.7–7.45、y62.15–62.45，deck 邊緣跨過車道口、與西側 parapet 連續）＋`east`（x7.45–8.1、y62.15–66.6，補滿車道東側與主階梯之間的縫）；磚牆＋混凝土壓頂，頂一律 deck+1.3（使用者要求不隨階梯斜降）。照片：`buildings/zhili/source/driveway-entrance-photo.jpg`。待辦：使用者走查；若要樓梯本體向左加寬（而非牆補縫）需改 building-access layout 並重建；準備室由使用者自畫；B02/B03 門位置暫定。
