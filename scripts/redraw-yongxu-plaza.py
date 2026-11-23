@@ -23,8 +23,13 @@ ux, uz = wa[0] - we[0], wa[1] - we[1]; L = math.hypot(ux, uz); ux, uz = ux / L, 
 if uz < 0: ux, uz = -ux, -uz                                          # north -> south
 vx, vz = -uz, ux                                                      # perpendicular
 if vx < 0: vx, vz = -vx, -vz                                          # points east, towards the building
-N = (-179.0, -92.0)                                                   # north end of the diameter (unchanged anchor)
+N0 = (-179.0, -92.0)                                                  # earlier north end of the diameter
+# 2026-11-23: slide the D east (along the perpendicular) until its straight WEST side (wrect from the diameter) passes through the
+# building's westmost vertex, i.e. the straight side lines up with the building's left edge.
+W = min(ring0 := rd('buildings/yongxu/building.json')['geometry']['ring'], key=lambda q: q[0])
 wrect, gap = 6.5, 3.0
+slide = wrect + ((W[0] - N0[0]) * vx + (W[1] - N0[1]) * vz)
+N = (N0[0] + vx * slide, N0[1] + vz * slide)
 def shape(D):
     P = lambda s, t: (N[0] + ux * s + vx * t, N[1] + uz * s + vz * t)
     c = P(D / 2, 0); disc = Point(*c).buffer(D / 2, quad_segs=24)
