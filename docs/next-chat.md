@@ -1,5 +1,9 @@
 # 新對話接續摘要
 
+## 2026-11-23（續2）：天窗真開口、己梯不再伸進 B1
+
+分支 `claude/zhili-walls-fix-k4wvtk`（未合併）。①B1 天窗（圖面 x34.06–43.4、y41.3–45.16）：原本曲緣「天窗」是一整塊實心 0.18m 台座＋玻璃，上層廣場地板也蓋著；現改為框（`zhiliCurbCuts.plaza.skylight.inner` 開口，框寬約 0.2m），`build-teaching-courtyard.py` 在 `upper` 挖同樣開口（1F 該處本來就是挑空），開口內放碰撞體不讓人走進去。從 B1 往上射線第一個撞到的是天窗玻璃。②己梯：`connections.js` 的 `zhili-ji*` 實心底部由 bottom-1.0 改為 bottom-0.25（下層廣場底面），平台 `zhili-platform-ji-landing` 底部改 lower-0.25，不再垂進 B1。待使用者走查。
+
 ## 2026-11-23（續）：L 形牆延伸、花圃、斜坡地板
 
 使用者要求（已實作於分支 `claude/zhili-walls-fix-k4wvtk`，尚未合併）：①deck 邊緣圍牆 `lwall.fascia` 從高斯外牆（x≈-4.1）一路向東跨過車道口，接 `lwall.east`（沿車道東側往南）；原延伸區 rim 圍牆與 L 直角小段已從 `zhiliExtension.edges` 移除；牆體外擴 0.1m 蓋住 slab 邊緣面以消除共面頻閃。②車道口西側（高斯東北）的山坡突出改成兩塊與人行道平行的花圃平面（`courtyard.planters` source `zhili-bed`，above 0.1，x-8.2..1.2/y62.45..63.2 與 x-8.2..-3.4/y63.2..66.9），並在 `footprints` 加切地小塊。③B1 車道斜坡全段改為停車場地板材質（`RAMP_SLOPE.tileFrom=99`），磁磚只剩人行道 pad。待辦：車道口西側牆邊仍有小片綠色碎片（road-earth 路肩 skirt，`road-renderer.js` 以線段中點判斷是否被 footprints 切掉，尚未完全排除）；使用者走查。

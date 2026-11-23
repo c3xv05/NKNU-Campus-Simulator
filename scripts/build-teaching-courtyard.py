@@ -87,6 +87,8 @@ if (root/'buildings/zhili/interior.json').exists():
  _zf={f['label']:zw(f['outline']) for f in json.loads((root/'buildings/zhili/interior.json').read_text())['floors']}
  upper=unary_union([upper,zw([[0.9,33.0],[1.7,33.0],[1.7,44.6],[0.9,44.6]]).intersection(_zf['1F']).difference(_zf.get('2F',Polygon()))])
 for s in c['levelLink']['stairs']+court.get('stairs',[]):upper=upper.difference(Polygon(s['ring']))
+# User 2026-11-23: the B1 skylight (drawing x34.06-43.4, y41.3-45.16) must really open through the upper plaza floor (1F there is a void).
+upper=upper.difference(zw([[34.26,41.45],[43.2,41.45],[43.2,45.01],[34.26,45.01]]))
 # Revert the blanket fill; the corridor builder cuts the lower access along the existing path.
 ramp=LineString(court['ramp']).buffer(court['width']/2,cap_style=2);extension=Polygon(legacy[444867693]).buffer(0) if 444867693 in legacy else Polygon()
 # The former Zhili shell area beyond the drawing tower continues the lower plaza at Zhili 1F level.
