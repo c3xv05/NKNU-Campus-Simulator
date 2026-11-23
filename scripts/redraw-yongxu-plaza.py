@@ -72,7 +72,11 @@ for _ in range(40):
     else: ghi = kk
 K = glo
 N = (A[0] + K * (N[0] - A[0]), A[1] + K * (N[1] - A[1])); D *= K; wrect *= K
-print('scale', round(K, 3), 'diameter', round(D, 2))
+# 2026-11-23 (later): slide the D along the perpendicular (east-south-east) until the extension of its straight west side coincides
+# with the building's westmost wall (line through W parallel to the axis).
+t_align = (W[0] - (N[0] - vx * wrect)) * vx + (W[1] - (N[1] - vz * wrect)) * vz
+N = (N[0] + vx * t_align, N[1] + vz * t_align)
+print('scale', round(K, 3), 'diameter', round(D, 2), 'slide to west wall line', round(t_align, 2))
 plaza, center = shape(D); r = D / 2
 # door apron: the part of the previous road that hugs the facade, kept so the door still meets paving
 door = Point(ya['door'])
