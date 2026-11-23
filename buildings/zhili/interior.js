@@ -98,13 +98,19 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
  // Walls: interior partitions off-white; exterior walls brick outside with an off-white inner half; black skirting
  // along every indoor face when a finish is given.
  function wall(r,y,ring,y0=y,top=y+H-SLAB,skirt=true){const out=p=>ringDistance(p[0],p[1],ring)>0,cx=(r[0]+r[2])/2,cy=(r[1]+r[3])/2;
-  const sides={x0:out([r[0]-.15,cy]),x1:out([r[2]+.15,cy]),y0:out([cx,r[1]-.15]),y1:out([cx,r[3]+.15])},n=Object.values(sides).filter(Boolean).length;
+  // 2026-11-24 (user: red paint inside Zhili): only the two faces across a long thin wall decide where brick goes; its end caps touching the
+  // outline used to paint half the partition brick-red. Faces that look indoors always get the off-white wall paint.
+  const all={x0:out([r[0]-.15,cy]),x1:out([r[2]+.15,cy]),y0:out([cx,r[1]-.15]),y1:out([cx,r[3]+.15])},dx=r[2]-r[0],dz=r[3]-r[1],
+   sides=dx>=dz*1.5?{y0:all.y0,y1:all.y1}:dz>=dx*1.5?{x0:all.x0,x1:all.x1}:all,n=Object.values(sides).filter(Boolean).length;
   if(!fin){rectBox(r,y0,top,n?'outer':'inner');return;}
   let inner=r;
   if(n===1){const k=Object.keys(sides).find(q=>sides[q]),mx=(r[0]+r[2])/2,my=(r[1]+r[3])/2;
    const o=k==='x0'?[r[0],r[1],mx,r[3]]:k==='x1'?[mx,r[1],r[2],r[3]]:k==='y0'?[r[0],r[1],r[2],my]:[r[0],my,r[2],r[3]];
    inner=k==='x0'?[mx,r[1],r[2],r[3]]:k==='x1'?[r[0],r[1],mx,r[3]]:k==='y0'?[r[0],my,r[2],r[3]]:[r[0],r[1],r[2],my];rectBox(o,y0,top,'outer');}
-  else if(n>1){rectBox(r,y0,top,'outer');return;}
+  else if(n>1){rectBox(r,y0,top,'outer');
+   // a pier or corner post exposed outside on several sides: skin its indoor faces in wall paint
+   const t=.02,e=.004;for(const k of Object.keys(all)){if(all[k])continue;rectBox(k==='x0'?[r[0]-e,r[1],r[0]+t,r[3]]:k==='x1'?[r[2]-t,r[1],r[2]+e,r[3]]:k==='y0'?[r[0],r[1]-e,r[2],r[1]+t]:[r[0],r[3]-t,r[2],r[3]+e],y0,top,'inner');}
+   return;}
   rectBox(inner,y0,top,'inner');const e=.012;if(skirt)rectBox([inner[0]-e,inner[1]-e,inner[2]+e,inner[3]+e],y,y+fin.skirtingHeight,'skirting');}
  let shell=null;
  for(const fl of data.floors){const y=base+fl.level;
@@ -126,7 +132,7 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
   for(const w of fl.windows||[])pane(w,y,-.12);
   for(const l of fl.lintels)rectBox(l,y+2.25,y+H-SLAB,'inner');
   for(const l of fl.doorLeaves||[])rectBox(l,y,y+2.25,'wood');
-  for(const e of fl.exits){for(const r of e.rect){if(e.header!==false)rectBox(r,y+2.4,y+H-SLAB,'outer');if(!e.open){rectBox(r,y,y+.15,'outer');rectBox([r[0]+.08,r[1]+.08,r[2]-.08,r[3]-.08],y+.15,y+2.4,'glass');}}}
+  for(const e of fl.exits){for(const r of e.rect){if(e.header!==false)wall(r,y,fl.outline,y+2.4,y+H-SLAB,false);if(!e.open){rectBox(r,y,y+.15,'outer');rectBox([r[0]+.08,r[1]+.08,r[2]-.08,r[3]-.08],y+.15,y+2.4,'glass');}}}
   // Room furniture (scripts/furnish.py): instanced boxes with the room's materials.
   for(const it of fl.furniture||[])rectBox(it.r,y+it.y[0],y+it.y[1],it.m);
   for(const e of fl.exits)for(const t of e.steps||[])rectBox(t.rect,y+(t.bottom??0),y+t.height,'tread');
