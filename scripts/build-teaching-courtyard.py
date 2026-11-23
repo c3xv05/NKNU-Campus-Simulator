@@ -48,6 +48,10 @@ if (root/'buildings/gauss/interior.json').exists():
  _zhili1F=unary_union([zw(f['outline']) for f in _zi['floors'] if f['label'] in ('B1','1F')])
  # Also the sliver between the Gauss 1F roof and Zhili's 1F west wall (open down to Zhili B1 otherwise).
  gaussEast=unary_union([zw([[-1.2,48.3],[1.7,48.3],[1.7,62.35],[-1.2,62.35]]),zw([[0.2,33.45],[1.35,33.45],[1.35,48.4],[0.2,48.4]])]).difference(unary_union([zw(f['outline']) for f in _gi['floors'] if f['key'] in ('1','2')])).difference(_zhili1F)
+ # User 2026-11-23: a hairline seam (0.16-0.7m) between Zhili's 1F west wall and the Gauss 1F/2F rooms stayed open along the whole junction, so
+ # the hill terrain showed through the plaza floor. Fill every slit where the two outlines are within 0.5m of each other.
+ _g12=unary_union([zw(f['outline']) for f in _gi['floors'] if f['key'] in ('1','2')])
+ gaussEast=unary_union([gaussEast,_zhili1F.buffer(.5,join_style=2).intersection(_g12.buffer(.5,join_style=2)).difference(_zhili1F).difference(_g12)])
  gaussClosed=gaussClosed.difference(gaussEast)
 zplan=json.loads((root/'buildings/zhili/plan.json').read_text())['site']
 # Upper plaza (user 2026-11-18 "L型連接到上層廣場如你圖示那樣畫"): only the drawn pieces — Zhili 2F central plaza (+ podium roof),
@@ -119,7 +123,13 @@ driveOpen=zc.shapes(root)[0]['open']
 # User 2026-11-23: the 1F deck covers the ramp up to its south edge (y62.45); only the ramp south of it stays open (no notch in the platform).
 driveOpen=driveOpen.difference(zw([[1.75,59.62],[7.07,59.62],[7.07,62.45],[1.75,62.45]]))
 extension=extension.difference(driveOpen)
-lowerShape=shape.union(extension).union(gaussDeck).union(Polygon(c['teachingAccess']['lowerLanding'])).difference(driveOpen).difference(buildingsLower).difference(gaussClosed).difference(sidewalkGrade).difference(planterShape);lowerShape=lowerShape.buffer(0);lower=lowerShape.difference(unary_union([Polygon(st['ring']) for st in c['levelLink']['stairs'] if st.get('topLevel','zhili-ground')=='zhili-ground']));lower=lower.buffer(0)
+lowerShape=shape.union(extension).union(gaussDeck).union(Polygon(c['teachingAccess']['lowerLanding'])).difference(driveOpen).difference(buildingsLower).difference(gaussClosed).difference(sidewalkGrade).difference(planterShape);lowerShape=lowerShape.buffer(0)
+# User 2026-11-23: floors stopped ~1cm short of the Zhili 1F / Gauss 1F-2F room outlines (building buffer), leaving a hairline crack along the whole
+# junction where the hill terrain showed through. Close it with the strip up to the outlines themselves (not inside them).
+if gaussInt:
+ _crack=_zhili1F.union(_g12).buffer(.08,join_style=2).intersection(lowerShape.buffer(.08,join_style=2)).difference(_zhili1F).difference(_g12).intersection(box(-136,-236,-104,-220))
+ lowerShape=lowerShape.union(_crack).buffer(0)
+lower=lowerShape.difference(unary_union([Polygon(st['ring']) for st in c['levelLink']['stairs'] if st.get('topLevel','zhili-ground')=='zhili-ground']));lower=lower.buffer(0)
 # Exposed rims of the extension get a solid base (drop side) or retaining wall (uphill side) at runtime.
 extensionRegions=[];extensionEdges=[];extensionBase=[]
 if not extension.is_empty:

@@ -19,6 +19,7 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
  // With Gauss's drawing-based interior the former Zhili–Gauss bridge sits inside Gauss: no stand-in foundation.
  for(const [i,piece] of (link.insideGauss?[]:cutPieces(linkRing,teaching.map(s=>stairRing(s)))).entries())prism(piece,bridgeLevel-.25,foundation,brick,i?'zhili-gauss-solid-foundation-'+i:'zhili-gauss-solid-foundation');
  if(campus.teachingAccess){const landing=campus.teachingAccess.lowerLanding,base=Math.min(...landing.map(([x,z])=>terrain.height(x,z)-1));for(const [i,piece]of cutPieces(landing,[linkRing,...teaching.map(s=>stairRing(s))]).entries())blockers.push(prism(piece,bridgeLevel-.25,base,brick,'compact-teaching-landing-foundation-'+i));}
+ campus.plazaTileMaterial=tileMaterial;// shared with the plan interiors: Gauss's exposed roofs at plaza level are drawn with the plaza tiles (user 2026-11-23)
  const plaza=addTeachingCourtyard(THREE,group,campus,terrain,tileMaterial);blockers.push(...plaza.blockers);
  const corridors=addCampusCorridors(THREE,group,campus,terrain,network,tileMaterial);blockers.push(...corridors.blockers);
  const curbCuts=addZhiliCurbCuts(THREE,group,campus,terrain,network,tileMaterial);if(curbCuts){blockers.push(...curbCuts.blockers);campus.zhiliCurbCutSupport=curbCuts.supportAt;campus.zhiliPlatformSupport=curbCuts.platformSupportAt;}
