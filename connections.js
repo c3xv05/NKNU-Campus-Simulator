@@ -28,7 +28,8 @@ export function addConnections(THREE,group,campus,terrain,network,tileMaterial){
  if(bio.ramp&&!bio.corridor)ramp(bio.ramp,bio.accessWidth,terrain.height(...bio.ramp[0]),bioLevel,'biology-access-ramp');
  const stairDefinitions=accessStairs(campus,terrain,network),planters=[],stairMaterial=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide}),treadColor=new THREE.Color(0xc5c2b6),riserColor=new THREE.Color(0x888b80);
  // Batch the solid treads and flat intermediate landings into one mesh per staircase.
- for(const def of stairDefinitions){const positions=[],colors=[],base=Math.min(def.bottom-1,...stairRing(def).map(([x,z])=>terrain.height(x,z)-1));
+ for(const def of stairDefinitions){const positions=[],colors=[],base=/^zhili-ji/.test(def.id)?def.bottom-.25:Math.min(def.bottom-1,...stairRing(def).map(([x,z])=>terrain.height(x,z)-1));   // 己梯 stands on the lower plaza deck: its solid stops at the deck underside, never hanging into B1 (user 2026-11-23)
+  
   const triangle=(a,b,c,color)=>{for(const p of [a,b,c]){positions.push(...p);colors.push(...color.toArray());}},quad=(a,b,c,d,color)=>{triangle(a,b,c,color);triangle(a,c,d,color);};
   for(const band of stairBands(def)){const full=stairRing(def,band.start,band.end),lerp=(a,b,u)=>a.map((v,i)=>v+(b[i]-v)*u),slices=def.bottomStations?def.bottomStations.slice(1).map((p,i)=>{const lo=(def.bottomStations[i].across+def.width/2)/def.width,hi=(p.across+def.width/2)/def.width;return[lerp(full[3],full[0],hi),lerp(full[2],full[1],hi),lerp(full[2],full[1],lo),lerp(full[3],full[0],lo)];}):[full];for(const [sliceIndex,ring] of slices.entries()){const at=(p,y)=>[p[0],y,p[1]],top=p=>stairSurface(def,band.start,p[0],p[1]);
    // The pale riser lip is part of the solid mesh, never a coplanar overlay.
