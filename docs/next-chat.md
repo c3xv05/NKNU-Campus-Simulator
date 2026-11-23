@@ -1,5 +1,9 @@
 # 新對話接續摘要
 
+## 2026-11-23（續）：L 形牆延伸、花圃、斜坡地板
+
+使用者要求（已實作於分支 `claude/zhili-walls-fix-k4wvtk`，尚未合併）：①deck 邊緣圍牆 `lwall.fascia` 從高斯外牆（x≈-4.1）一路向東跨過車道口，接 `lwall.east`（沿車道東側往南）；原延伸區 rim 圍牆與 L 直角小段已從 `zhiliExtension.edges` 移除；牆體外擴 0.1m 蓋住 slab 邊緣面以消除共面頻閃。②車道口西側（高斯東北）的山坡突出改成兩塊與人行道平行的花圃平面（`courtyard.planters` source `zhili-bed`，above 0.1，x-8.2..1.2/y62.45..63.2 與 x-8.2..-3.4/y63.2..66.9），並在 `footprints` 加切地小塊。③B1 車道斜坡全段改為停車場地板材質（`RAMP_SLOPE.tileFrom=99`），磁磚只剩人行道 pad。待辦：車道口西側牆邊仍有小片綠色碎片（road-earth 路肩 skirt，`road-renderer.js` 以線段中點判斷是否被 footprints 切掉，尚未完全排除）；使用者走查。
+
 ## 2026-11-23（車道入口完成，待使用者走查）
 
 S05 坡度修正後繼續。**B1 車道斜坡**：`RAMP_SLOPE`（x1.76–7.07、y60.5–66.6，62.3 以南為磁磚）。落差由 `interior.js` 以即時道路高度量測（`fl.ramp.drop`，負值＝爬升約 1.05m）；行走支撐、基座避開斜坡、斜坡入口不再生成玻璃／台階（`header:false` 的出入口強制 open）。**致理入口階梯**：S05 改坡後原本因以人行道高度算落差而消失，現改以曲緣鋪面（pad）高度計算（`padG`），8 階回來。**車道弧線**：`scripts/extract-zhili-lanes.py`→`buildings/zhili/lanes.json`→B1 白漆線。**平台凹口補滿**：`build-teaching-courtyard.py` 的 `driveOpen` 扣掉 deck 範圍（y≤62.45），下層廣場完整蓋住車道北段。**L 形圍牆**：`zhiliCurbCuts.lwall`——`fascia`（x1.7–7.45、y62.15–62.45，deck 邊緣跨過車道口、與西側 parapet 連續）＋`east`（x7.45–8.1、y62.15–66.6，補滿車道東側與主階梯之間的縫）；磚牆＋混凝土壓頂，頂一律 deck+1.3（使用者要求不隨階梯斜降）。照片：`buildings/zhili/source/driveway-entrance-photo.jpg`。待辦：使用者走查；若要樓梯本體向左加寬（而非牆補縫）需改 building-access layout 並重建；準備室由使用者自畫；B02/B03 門位置暫定。
