@@ -16,16 +16,14 @@ B = Polygon(rd('buildings/yongxu/building.json')['geometry']['ring']).buffer(0)
 ya.setdefault('beforePlazaRedraw', {k: ya[k] for k in ('roadEnd', 'approachExtension')})
 sk.setdefault('beforePlazaRedraw', {k: sk[k] for k in ('roadRing', 'lawnRing')})
 old = sk['beforePlazaRedraw']
-# 2026-11-23 revision: the straight side (diameter) is parallel to S06.
-road = next(r for r in rd('data/campus.json')['roads'] if r['osm'] == 293423729)['line']
-q = (-185.0, -75.0)
-k = min(range(len(road)), key=lambda i: math.dist(road[i], (-212.0, -80.0)))
-a, b = road[max(0, k - 6)], road[min(len(road) - 1, k + 6)]          # S06 tangent beside the plaza (north -> south)
-ux, uz = (b[0] - a[0]), (b[1] - a[1]); L = math.hypot(ux, uz); ux, uz = ux / L, uz / L
-if uz < 0: ux, uz = -ux, -uz
+# 2026-11-23 revision: the straight side (diameter) is parallel to the building's easternmost wall.
+# Axis = the building's easternmost wall (ring (-143.129,-64.132) -> (-138.018,-79.864)); user 2026-11-23.
+wa, we = (-143.129, -64.132), (-138.018, -79.864)
+ux, uz = wa[0] - we[0], wa[1] - we[1]; L = math.hypot(ux, uz); ux, uz = ux / L, uz / L
+if uz < 0: ux, uz = -ux, -uz                                          # north -> south
 vx, vz = -uz, ux                                                      # perpendicular
 if vx < 0: vx, vz = -vx, -vz                                          # points east, towards the building
-N = (-179.0, -90.5)                                                   # north end of the diameter (unchanged anchor)
+N = (-179.0, -92.0)                                                   # north end of the diameter (unchanged anchor)
 wrect, gap = 6.5, 3.0
 def shape(D):
     P = lambda s, t: (N[0] + ux * s + vx * t, N[1] + uz * s + vz * t)
