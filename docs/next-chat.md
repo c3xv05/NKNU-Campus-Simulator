@@ -1,5 +1,13 @@
 # 新對話接續摘要
 
+## 2026-11-23（續：草坪改為與廣場一樓同高的獨立草地樓板＋擋土牆）
+
+使用者要求草皮與廣場一樓之間不得有任何地形／高度差，西側道路與此高低差的過渡先做擋土牆（之後另交代做法）。原本用地形 levelArea 壓平會被 4m 地形網格與建築台地混合出 ±1m～數cm 起伏，故改成：草坪範圍（layout.json levelAreas `zhili-huanyu-lawn` 的 ring，現貼齊建築與人行道）併入 `extension`，在 `build-teaching-courtyard.py` 成為下層廣場的一部分，渲染為獨立的草地樓板（`courtyard.floorTriangles.lowerLawn`／`lowerTile`，renderer.js `lawnMat`，高度＝下層廣場），行走用既有 `floorRegions.lower`（含草坪）支撐，地形在其下被既有 footprints 挖掉；周邊用 zhiliExtension 的實心底座＋擋土牆（地形較高處）／矮牆（較低處）。levelArea 已移除（它會影響 S06 坡度，campus-refinements／yongji-slope 失敗），草坪範圍改存 layout.json 頂層 `zhiliHuanyuLawn`；範圍並向北延伸到致理西牆與人行道之間的不規則草皮（至約 z-277.6），同樣做成平地草地樓板。測試 spatial-corrections 更新為新邊緣（舊的(-163.01,-227.66)已不在上層）。已用遊戲實際畫面確認草坪與磁磚無階差。待辦：擋土牆樣式／西側道路過渡由使用者之後交代；草坪顏色（0x8fcf73）可再調；瀏覽器套件測試未跑。
+
+## 2026-11-23（致理／寰宇交接處：二樓廣場邊緣、西側矩形刪除、平地草坪）
+
+使用者逐步指示（只處理致理與寰宇交接處）：①二樓廣場朝S06（西）的邊緣＝折線P1(-164.59,-241.73)→C(-159.46,-225.47)→P2(-167.05,-222.77)（C約直角），折線西側凸出的二樓部分刪除（`build-teaching-courtyard.py` 的 `_C/_P2/_Q` 差集）；陽台帶保留。②致理西牆線（過(-173.81,-244.22)，朝寰宇延伸，約到(-166.2,-222.8)）以西的下層磁磚矩形刪除（`extension` 差集 polygon [(-183,-270),(-158,-200),(-300,-200),(-300,-270)]）。③該楔形（西牆線以西、寰宇北牆以北、人行道內緣以內，約816㎡）整成與下層廣場同高（約38.80，rawHeight）的平地草坪：`facilities/campus-plazas/layout.json` levelAreas `zhili-huanyu-lawn`（anchor[-170,-236]、heightOffset -1.98、blend 6、groundCover lawn）。重建：build-teaching-courtyard → build-campus-plazas → build-zhili-curbcuts → build-sidewalk-plan（需 shapely 2.1.2）。注意 build-campus-plazas 會把 layout.json 壓成單行，提交前改回 indent=2。已用遊戲實際畫面（Playwright＋npm 安裝的 three@0.160.1 離線載入）確認。待辦：草坪與S06人行道交界高低差只目測；瀏覽器套件測試未跑；使用者走查。
+
 ## 2026-11-23（續2）：天窗真開口、己梯不再伸進 B1
 
 分支 `claude/zhili-walls-fix-k4wvtk`（未合併）。①B1 天窗（圖面 x34.06–43.4、y41.3–45.16）：原本曲緣「天窗」是一整塊實心 0.18m 台座＋玻璃，上層廣場地板也蓋著；現改為框（`zhiliCurbCuts.plaza.skylight.inner` 開口，框寬約 0.2m），`build-teaching-courtyard.py` 在 `upper` 挖同樣開口（1F 該處本來就是挑空），開口內放碰撞體不讓人走進去。從 B1 往上射線第一個撞到的是天窗玻璃。②己梯：`connections.js` 的 `zhili-ji*` 實心底部由 bottom-1.0 改為 bottom-0.25（下層廣場底面），平台 `zhili-platform-ji-landing` 底部改 lower-0.25，不再垂進 B1。待使用者走查。
