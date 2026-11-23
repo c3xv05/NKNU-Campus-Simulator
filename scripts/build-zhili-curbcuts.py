@@ -15,8 +15,8 @@ items,sky,pillars=zc.plaza_items(t);cc['plaza']={'pillars':pillars,'planterHeigh
 cc['platforms']=[{'id':q['id'],'rel':q['rel'],'ring':ring(__import__('shapely.geometry',fromlist=['Polygon']).Polygon(zc.world(t,[[q['x'][0],q['y'][0]],[q['x'][1],q['y'][0]],[q['x'][1],q['y'][1]],[q['x'][0],q['y'][1]]])))} for q in lay.get('platforms',[])]
 # L-shaped low wall (user 2026-11-23 + photo): the deck-edge parapet above the garage mouth (continuous with the west parapet) turns
 # south along the ramp's east side, filling the gap to the main steps. Constant top (deck + 1.3 m), no slope (user).
-cc['lwall']={'east':[[round(v,7) for v in q] for q in zc.world(t,[[7.45,62.15],[8.1,62.15],[8.1,66.6],[7.45,66.6]])],
- 'fascia':[[round(v,7) for v in q] for q in zc.world(t,[[1.7,62.15],[7.45,62.15],[7.45,62.45],[1.7,62.45]])],'top':1.3,'fasciaBottom':-0.3}
+cc['lwall']={'east':[[round(v,7) for v in q] for q in zc.world(t,[[7.4,62.55],[8.13,62.55],[8.13,66.6],[7.4,66.6]])],
+ 'fascia':[[round(v,7) for v in q] for q in zc.world(t,[[-4.1,62.15],[8.13,62.15],[8.13,62.55],[-4.1,62.55]])],'top':1.3,'fasciaBottom':-0.3}
 cc['driveway']['interiorRamp']=bool(lay['driveway'].get('interiorRamp'))
 # 2F corner void details (user photo 2026-11-22): brick panels on the void's back walls, concrete beams under the 3F slab, and
 # balustrade along the exposed edges of the upper plaza.
