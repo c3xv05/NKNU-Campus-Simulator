@@ -110,7 +110,7 @@ extension=extension.difference(sidewalkGrade)
 extension=extension.difference(Polygon([(-183.0,-270),(-158.0,-200),(-300,-200),(-300,-270)]))
 # The lawn wedge is drawn as its own flat grass floor at the lower plaza level (no terrain mesh, no height difference); its rim uses the
 # extension retaining wall / parapet machinery (user 2026-11-23: retaining wall toward the west road for now).
-_lawnRing=next(a for a in json.loads((root/'facilities/campus-plazas/layout.json').read_text())['levelAreas'] if a['id']=='zhili-huanyu-lawn')['ring']
+_lawnRing=json.loads((root/'facilities/campus-plazas/layout.json').read_text())['zhiliHuanyuLawn']['ring']
 lawn=Polygon(_lawnRing).buffer(0);extension=extension.union(lawn)
 # Zhili driveway ramp (user 2026-11-22): the lower plaza/extension is open over the ramp aisle (rims become the low perimeter wall).
 import sys;sys.path.insert(0,str(root/'scripts'))

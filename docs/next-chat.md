@@ -2,7 +2,7 @@
 
 ## 2026-11-23（續：草坪改為與廣場一樓同高的獨立草地樓板＋擋土牆）
 
-使用者要求草皮與廣場一樓之間不得有任何地形／高度差，西側道路與此高低差的過渡先做擋土牆（之後另交代做法）。原本用地形 levelArea 壓平會被 4m 地形網格與建築台地混合出 ±1m～數cm 起伏，故改成：草坪範圍（layout.json levelAreas `zhili-huanyu-lawn` 的 ring，現貼齊建築與人行道）併入 `extension`，在 `build-teaching-courtyard.py` 成為下層廣場的一部分，渲染為獨立的草地樓板（`courtyard.floorTriangles.lowerLawn`／`lowerTile`，renderer.js `lawnMat`，高度＝下層廣場），行走用既有 `floorRegions.lower`（含草坪）支撐，地形在其下被既有 footprints 挖掉；周邊用 zhiliExtension 的實心底座＋擋土牆（地形較高處）／矮牆（較低處）。levelArea 仍保留作樓板下的地形。測試 spatial-corrections 更新為新邊緣（舊的(-163.01,-227.66)已不在上層）。已用遊戲實際畫面確認草坪與磁磚無階差。待辦：擋土牆樣式／西側道路過渡由使用者之後交代；草坪顏色（0x8fcf73）可再調；瀏覽器套件測試未跑。
+使用者要求草皮與廣場一樓之間不得有任何地形／高度差，西側道路與此高低差的過渡先做擋土牆（之後另交代做法）。原本用地形 levelArea 壓平會被 4m 地形網格與建築台地混合出 ±1m～數cm 起伏，故改成：草坪範圍（layout.json levelAreas `zhili-huanyu-lawn` 的 ring，現貼齊建築與人行道）併入 `extension`，在 `build-teaching-courtyard.py` 成為下層廣場的一部分，渲染為獨立的草地樓板（`courtyard.floorTriangles.lowerLawn`／`lowerTile`，renderer.js `lawnMat`，高度＝下層廣場），行走用既有 `floorRegions.lower`（含草坪）支撐，地形在其下被既有 footprints 挖掉；周邊用 zhiliExtension 的實心底座＋擋土牆（地形較高處）／矮牆（較低處）。levelArea 已移除（它會影響 S06 坡度，campus-refinements／yongji-slope 失敗），草坪範圍改存 layout.json 頂層 `zhiliHuanyuLawn`；範圍並向北延伸到致理西牆與人行道之間的不規則草皮（至約 z-277.6），同樣做成平地草地樓板。測試 spatial-corrections 更新為新邊緣（舊的(-163.01,-227.66)已不在上層）。已用遊戲實際畫面確認草坪與磁磚無階差。待辦：擋土牆樣式／西側道路過渡由使用者之後交代；草坪顏色（0x8fcf73）可再調；瀏覽器套件測試未跑。
 
 ## 2026-11-23（致理／寰宇交接處：二樓廣場邊緣、西側矩形刪除、平地草坪）
 
