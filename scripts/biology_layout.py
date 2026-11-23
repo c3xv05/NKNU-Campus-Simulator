@@ -121,26 +121,49 @@ def derive_biology(c, source):
                   seg(D.PLAZA_DOORS[0][1], ny, D.PLAZA_DOORS[1][0], ny, 'glass'), seg(D.PLAZA_DOORS[1][0], ny, D.PLAZA_DOORS[1][1], ny, 'door-open'),
                   seg(D.PLAZA_DOORS[1][1], ny, D.HALL_B_END, ny, 'glass')]
     rx0, _, rx1, ry1 = D.HALL_RECESS
-    south_face = [seg(D.HALL_A_END, sy, D.SOUTH_DOORS[0][0], sy, 'glass'), seg(D.SOUTH_DOORS[0][0], sy, D.SOUTH_DOORS[0][1], sy, 'door-closed'),
+    south_face = [seg(D.HALL_A_END, sy, D.SOUTH_DOORS[0][0], sy, 'glass'), seg(D.SOUTH_DOORS[0][0], sy, D.SOUTH_DOORS[0][1], sy, 'door-open'),
                   seg(D.SOUTH_DOORS[0][1], sy, rx0, sy, 'wall'), seg(rx0, sy, rx0, ry1, 'wall'),
                   seg(rx0, ry1, D.SEWAGE_DOOR[0], ry1, 'wall'), seg(D.SEWAGE_DOOR[0], ry1, D.SEWAGE_DOOR[1], ry1, 'door-closed'),
                   seg(D.SEWAGE_DOOR[1], ry1, rx1, ry1, 'wall'), seg(rx1, ry1, rx1, sy, 'wall'),
-                  seg(rx1, sy, D.SOUTH_DOORS[1][0], sy, 'wall'), seg(D.SOUTH_DOORS[1][0], sy, D.SOUTH_DOORS[1][1], sy, 'door-closed'),
+                  seg(rx1, sy, D.SOUTH_DOORS[1][0], sy, 'wall'), seg(D.SOUTH_DOORS[1][0], sy, D.SOUTH_DOORS[1][1], sy, 'door-open'),
                   seg(D.SOUTH_DOORS[1][1], sy, D.HALL_B_END, sy, 'glass')]
     ends = [seg(D.HALL_A_END, D.END_DOORS['a'][0], D.HALL_A_END, D.END_DOORS['a'][1], 'door-closed'),
             seg(D.HALL_B_END, D.END_DOORS['b'][0], D.HALL_B_END, D.END_DOORS['b'][1], 'door-closed')]
     bio['corridor']['walls'] = north_face + south_face + ends
     bio['corridor']['columns'] = [F.a(x, y) for x in D.HALL_COLUMNS for y in (ny, sy)]
-    # Solid block under the T deck: sewage room plus the (not yet built) +505 side-stair bays, minus the hall recess.
-    under = box(D.SOUTH_DOORS[0][0], sy, D.SOUTH_DOORS[1][1], sy1).difference(box(*D.HALL_RECESS)).buffer(-.05 * D.A_SCALE, join_style=2)
+    # Closed sewage room between the inner walls of the two +505 side-stair lanes, minus the hall recess.
+    left_in, right_in = D.SIDE_LANES['left'][1], D.SIDE_LANES['right'][0]
+    under = box(left_in, sy, right_in, sy1).difference(box(*D.HALL_RECESS)).buffer(-.05 * D.A_SCALE, join_style=2)
     stem_half = cfg['accessWidth'] / 2 * D.A_SCALE
     dy0, dy1 = D.DECK[1], D.DECK[3]
-    bio['corridor']['deckRails'] = [[F.a(D.HALL_A_END, dy0), F.a(D.HALL_B_END, dy0)], [F.a(D.HALL_A_END, dy1), F.a(D.AXIS_X - stem_half, dy1)],
-                                    [F.a(D.AXIS_X + stem_half, dy1), F.a(D.HALL_B_END, dy1)]]
+    edge_l, edge_r = D.AXIS_X - stem_half, D.AXIS_X + stem_half
+    bio['corridor']['deckRails'] = [[F.a(D.HALL_A_END, dy0), F.a(D.HALL_B_END, dy0)], [F.a(D.HALL_A_END, dy1), F.a(edge_l, dy1)],
+                                    [F.a(edge_r, dy1), F.a(D.HALL_B_END, dy1)],
+                                    # deck south edge over the open stair wells
+                                    [F.a(edge_l, dy1), F.a(left_in, dy1)], [F.a(right_in, dy1), F.a(edge_r, dy1)]]
+    # +505 side stairs (user 2026-11-23): door landing at 1F, one straight 32-riser flight up to the T stem,
+    # whose floor is opened above them (stair wells), inner rails on the stem, solid outer walls to the stem edge.
+    f0, f1 = D.SIDE_FLIGHT; side = []
+    for lane, (x0, x1) in D.SIDE_LANES.items():
+        xc = (x0 + x1) / 2; width = (x1 - x0) / D.A_SCALE
+        landing = {'id': f'biology-side-{lane}-landing', 'type': 'landing', 'line': [F.a(xc, f0), F.a(xc, sy)], 'width': width, 'steps': 1, 'level': 'bio-lower'}
+        flight = {'id': f'biology-side-{lane}-stair', 'type': 'stair', 'line': [F.a(xc, f1), F.a(xc, f0)], 'width': width, 'steps': D.SIDE_RISERS,
+                  'level': 'stem', 'bottomLevel': 'bio-lower'}
+        for piece in (landing, flight):
+            piece['ring'] = ring(piece)
+        outer, inner = (x0, x1) if lane == 'left' else (x1, x0)
+        edge = edge_l if lane == 'left' else edge_r
+        side.append({'lane': lane, 'pieces': [landing, flight],
+                     # well = stem floor removed above the lane and the outer wall (0.5 m past the stem edge, no slivers)
+                     'well': D.ccw(F.rect((min(inner, edge - .5 * D.A_SCALE), dy1, max(inner, edge + .5 * D.A_SCALE), f1))),
+                     'outerWall': D.ccw(F.rect((min(outer, edge), dy1, max(outer, edge), f1))),
+                     'outerWallLine': [F.a((outer + edge) / 2, dy1), F.a((outer + edge) / 2, f1)], 'outerWallWidth': abs(edge - outer) / D.A_SCALE,
+                     'innerRail': [F.a(inner, dy1), F.a(inner, f1)]})
+    bio['sideStairs'] = side
     bio['sewageRoom'] = {'name': '污水機房', 'ring': F.rect(D.SEWAGE), 'door': [F.a(D.SEWAGE_DOOR[0], sy0), F.a(D.SEWAGE_DOOR[1], sy0)],
                          'undercroft': D.ccw([F.a(x, y) for x, y in list(under.exterior.coords)[:-1]]),
                          'undercroftTriangles': [D.ccw([F.a(x, y) for x, y in list(tri.exterior.coords)[:-1]]) for tri in constrained_delaunay_triangles(under).geoms if tri.area > 1e-6],
-                         'desc': '依生物科技館1F平面圖；門關閉、封閉量體。兩側往S05方向的+505小梯位於T平台下方的實心填方內，暫未建置。'}
+                         'desc': '依生物科技館1F平面圖；門關閉、封閉量體，位於兩側+505小梯之間的T平台下方。'}
     px0, py0, px1, py1 = D.PLAZA
     bio['eastLanding'] = {'line': [F.a(D.AXIS_X, py1), F.a(D.AXIS_X, py0)], 'width': (px1 - px0) / D.A_SCALE, 'depth': (py1 - py0) / D.A_SCALE,
                           'ring': F.rect(D.PLAZA), 'targetFloor': 1, 'kind': 'flower-plaza',

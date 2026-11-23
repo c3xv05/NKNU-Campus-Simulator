@@ -5,6 +5,7 @@
 // stair definitions in stair-layout.js; this module renders the rest and blocks it.
 import {biologyTerraceScale} from '../../stair-layout.js';
 import {ringDistance} from '../../planar.js';
+import {createCampusCorridors} from '../campus-corridors/surface.js';
 
 const segmentDistance=(x,z,[a,b])=>{const dx=b[0]-a[0],dz=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/(dx*dx+dz*dz||1)));return Math.hypot(x-a[0]-dx*t,z-a[1]-dz*t);};
 
@@ -34,6 +35,14 @@ export function addBiologyLink(THREE,group,campus,terrain,network,tileMaterial){
  for(const line of corridor.deckRails||[]){const [a,b]=line,len=Math.hypot(b[0]-a[0],b[1]-a[1]);bar(a,b,deck+1.02,deck+1.1,.08,frame,'biology-deck-rail');const d=[(b[0]-a[0])/len,(b[1]-a[1])/len];for(let i=0,n=Math.max(1,Math.round(len/1.5));i<=n;i++){const p=lerp(a,b,i/n);bar([p[0]-d[0]*.03,p[1]-d[1]*.03],[p[0]+d[0]*.03,p[1]+d[1]*.03],deck,deck+1.05,.05,frame,'biology-deck-baluster');}rails.push(line);}
  // Closed sewage room and the solid fill under the T deck (its doors are drawn on the hall walls above).
  const room=bio.sewageRoom;if(room){solids.push(room.undercroft);blockers.push(prism(room.undercroft,ceiling,Math.min(floor-1,...room.undercroft.map(([x,z])=>terrain.height(x,z)-1)),concrete,'biology-sewage-room'));}
+ // +505 side stairs (drawing): solid outer walls rising to a parapet above the stem floor, sloped rails on the stem's inner well edges.
+ const stem=createCampusCorridors(campus,terrain,network).approaches.find(a=>a.id==='biology-s05'),sideWalls=[],sideRails=[];
+ if(stem)for(const s of bio.sideStairs||[]){const [a,b]=s.outerWallLine,n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])));let top=-Infinity;
+  for(let i=0;i<n;i++){const p=lerp(a,b,i/n),q=lerp(a,b,(i+1)/n),y=Math.max(stem.profile(...p),stem.profile(...q))+1.05;top=Math.max(top,y);blockers.push(bar(p,q,Math.min(floor-1,terrain.height(...p)-1,terrain.height(...q)-1),y,s.outerWallWidth,concrete,'biology-side-stair-wall'));}
+  sideWalls.push({ring:s.outerWall,top});
+  const [c,d]=s.innerRail,len=Math.hypot(d[0]-c[0],d[1]-c[1]),m=Math.max(1,Math.round(len/1.5));
+  for(let i=0;i<m;i++){const p=lerp(c,d,i/m),q=lerp(c,d,(i+1)/m);bar(p,q,stem.profile(...p)+1.02,stem.profile(...p)+1.1,.08,frame,'biology-side-stair-rail');bar(lerp(p,q,-.02),lerp(p,q,.02),stem.profile(...p),stem.profile(...p)+1.05,.05,frame,'biology-side-stair-baluster');}
+  sideRails.push(s.innerRail);}
  // Flower plaza: the drawn circle and eight-point lens rosette as an inlaid paving decal; low planters on both sides.
  const plaza=bio.eastLanding;if(plaza?.pattern){const pat=plaza.pattern,size=pat.size,canvas=document.createElement('canvas');canvas.width=canvas.height=1024;const g=canvas.getContext('2d'),s=1024/size,c=512;
   g.clearRect(0,0,1024,1024);g.lineWidth=7;g.strokeStyle='rgba(120,96,80,.85)';g.fillStyle='rgba(176,112,92,.30)';
@@ -50,6 +59,8 @@ export function addBiologyLink(THREE,group,campus,terrain,network,tileMaterial){
   if(currentY>floor-.6&&currentY<ceiling&&walls.some(l=>segmentDistance(x,z,l)<r+.1))return true;
   if(Math.abs(currentY-deck-.6)<.9&&rails.some(l=>segmentDistance(x,z,l)<r+.06))return true;
   if(currentY<ceiling&&solids.some(ring=>ringDistance(x,z,ring)<r))return true;
+  if(sideWalls.some(w=>currentY<w.top&&ringDistance(x,z,w.ring)<r))return true;
+  if(stem&&sideRails.some(l=>segmentDistance(x,z,l)<r+.08&&currentY<stem.profile(x,z)+1))return true;
   return planterTops.some(p=>currentY<p.top-.3&&ringDistance(x,z,p.ring)<r*.5);
  }};
 }

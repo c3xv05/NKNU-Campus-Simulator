@@ -41,7 +41,14 @@ SEWAGE = (436.3, 548.9, 498.2, 596.2)                      # closed 污水機房
 SEWAGE_DOOR = (486.8, 496.8)                               # door leaf on its north wall (x range)
 HALL_COLUMNS = [413.3, 438.5, 495.4, 521.3]                # square columns on both hall faces
 PLAZA_DOORS = [(443.6, 461.6), (472.4, 491.1)]             # double doors hall -> plaza
-SOUTH_DOORS = [(417.6, 433.5), (499.0, 517.0)]             # closed doors on the hall's S05 side
+SOUTH_DOORS = [(417.6, 433.5), (499.0, 517.0)]             # doors on the hall's S05 side, opening onto the +505 side stairs
+# +505 side stairs under the T stem (A 1F and 2F pages, user 2026-11-23: build them, open the stem above).
+# Lanes between the drawn outer and inner walls (1F page x). The bottom landing runs from the hall's
+# south face to the first tread (566.44); the 2F page shows the same flight hatched in the stem
+# (544.36 -> top dot 635.08, ~32 risers at 0.306 m); its treads align with the 1F treads at +22.08 pt.
+SIDE_LANES = {'left': (417.36, 432.0), 'right': (502.32, 516.96)}
+SIDE_FLIGHT = (566.44, 635.08 + 22.08)
+SIDE_RISERS = 32
 END_DOORS = {'a': (509.5, 524.0), 'b': (506.2, 524.2)}     # doors at both building ends
 
 # Terraced ramp / stairs (+0 at S01 .. +500 at the plaza). x: walls 410.9/523.68,

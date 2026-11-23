@@ -1,5 +1,6 @@
 import {SIDEWALK_RISE,ROAD_SURFACE_LIFT} from './sidewalk-layout.js';
 import {projectOnLine} from './site-physics.js';
+import {createCampusCorridors} from './facilities/campus-corridors/surface.js';
 const bandCache=new Map(),bottomProfileCache=new WeakMap();
 function roadBottomProfile(stairs,network){
  let cached=bottomProfileCache.get(network);if(!cached){cached=new WeakMap();bottomProfileCache.set(network,cached);}if(cached.has(stairs))return cached.get(stairs);
@@ -26,9 +27,16 @@ export function biologyTerraceScale(campus,terrain,network){const bio=campus.bio
 function terraceStairs(campus,terrain,network){let cached=terraceCache.get(network);if(cached?.campus===campus&&cached.terrain===terrain)return cached.defs;const scale=biologyTerraceScale(campus,terrain,network),defs=campus.bioConnection.stairs.pieces.map(p=>{const def={...p,top:scale.height(p.hTop),bottom:scale.height(p.hBottom),ramp:p.type==='ramp',flights:1,landingFraction:0,landingSidewalls:false};
   // The +0 lane landings meet the skew, sloping S01 apron: they follow the real road height at their S01 end.
   if(p.type==='landing'&&p.hTop===0)Object.assign(def,{ramp:true,flat:[p.roadSlopeFrom??0,1],bottom:network.surfaceHeight(...p.line[1])+ROAD_SURFACE_LIFT});return def;});terraceCache.set(network,{campus,terrain,defs});return defs;}
+// Bio +505 side stairs under the T stem (drawing, user 2026-11-23): a 1F door landing, then one straight
+// flight whose top tread meets the stem floor at the top of its stair well.
+const sideCache=new WeakMap();
+function biologySideStairs(campus,terrain,network){const side=campus.bioConnection.sideStairs;if(!side?.length)return[];let cached=sideCache.get(network);if(cached?.campus===campus&&cached.terrain===terrain)return cached.defs;
+ const surface=createCampusCorridors(campus,terrain,network),stem=surface.approaches.find(a=>a.id==='biology-s05'),lower=surface.bioLower;
+ const defs=side.flatMap(s=>s.pieces.map(p=>({...p,top:p.level==='stem'?stem.profile(...p.line[0]):lower,bottom:lower,flights:1,landingFraction:0,landingSidewalls:false})));sideCache.set(network,{campus,terrain,defs});return defs;}
 export function accessStairs(campus,terrain,network){
  const base=id=>terrain.platformHeight(campus.places.find(a=>a.osm===id)),bio=campus.bioConnection,link=campus.levelLink,road=s=>network.walkHeight(...s.line[1],terrain.height(...s.line[1]));
  let biology=[];if(bio.stairs.kind==='terraces')biology=terraceStairs(campus,terrain,network);else{const def={...bio.stairs,id:'biology',top:base(bio.from)+(bio.stairs.topLevel==='biology-lower'?0:3.6),bottom:road(bio.stairs)};if(bio.stairs.bottomProfile==='road'){Object.assign(def,roadBottomProfile(bio.stairs,network));def.bottom=def.bottomAt();}biology=[def];}
+ biology=[...biology,...biologySideStairs(campus,terrain,network)];
  return [...biology,...[...(link.stairs||[]),...(campus.courtyard?.stairs||[])].map(s=>{const def={...s,top:base(link.from)+(s.topLevel==='teaching-courtyard'?3.6:0),bottom:s.bottomLevel==='road'?road(s):s.bottomLevel==='gauss-ground'?base(link.to):base(link.from)};if(s.topRel!==undefined)def.top=base(link.from)+s.topRel;if(s.bottomRel!==undefined)def.bottom=base(link.from)+s.bottomRel;if(s.bottomProfile==='sidewalk'){Object.assign(def,roadBottomProfile(s,network));def.bottom=def.bottomAt();}return def;})];
 }
 export function stairSurface(stairs,t,x,z){if(stairs.ramp){const [f0,f1]=stairs.flat||[0,1],u=Math.max(0,Math.min(1,(t-f0)/(f1-f0)));return stairs.top+(stairs.bottom-stairs.top)*u;}const bottom=stairs.bottomAt&&x!==undefined?stairs.bottomAt(x,z):stairs.bottom;if(t>=1-1e-9)return bottom;const band=stairBands(stairs).find(b=>t>=b.start-1e-9&&t<b.end-1e-9)||stairBands(stairs).at(-1);if(stairs.levelRestLanding){const mid=(stairs.top+stairs.bottom)/2;return band.drop<=.5?stairs.top+(mid-stairs.top)*band.drop*2:mid+(bottom-mid)*(band.drop-.5)*2;}return stairs.top+(bottom-stairs.top)*band.drop;}

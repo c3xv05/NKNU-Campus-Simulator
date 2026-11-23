@@ -70,6 +70,8 @@ def at(along,across):return [start[i]+stemEast[i]*along+normal[i]*across for i i
 for j in range(round((a['width']+2*a['entryFlare'])/.5)+1):
     across=-(a['width']/2+a['entryFlare'])+j*.5;segment=LineString([at(0,across),at(length,across)]);hit=segment.intersection(motor);parts=[p for p in (list(hit.geoms)if hasattr(hit,'geoms')else[hit])if p.geom_type=='LineString'];point=max((list(p.coords)[-1]for p in parts),key=lambda p:segment.project(Point(p)));a['entryStations'].append({'across':across,'along':segment.project(Point(point)),'point':list(point)})
 flare_end=max(s['along']for s in a['entryStations'])+a['entryRun'];flare=Polygon([at(0,-a['width']/2-a['entryFlare']),at(flare_end,-a['width']/2-a['entryFlare']),at(flare_end,a['width']/2+a['entryFlare']),at(0,a['width']/2+a['entryFlare'])]);shape=ribbon(a['line'],a['width']).union(flare).difference(buildings).difference(motor).difference(deck)
+# Stair wells over the +505 side stairs (drawing, user 2026-11-23): the stem floor is open above them.
+shape=shape.difference(unary_union([Polygon(w['well']) for w in bio.get('sideStairs',[])]))
 entries=[]
 for offset in [-a['width']/2,0,a['width']/2]:
     segment=LineString([at(0,offset),at(length,offset)]);hit=segment.intersection(deck)
