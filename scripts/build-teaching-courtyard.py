@@ -52,10 +52,6 @@ zplan=json.loads((root/'buildings/zhili/plan.json').read_text())['site']
 # the 2F walkway, the 化學系廣場 and the Huanyu 2F deck; the earlier game-only L arm is replaced.
 upper=unary_union([*[Polygon(r).buffer(0) for r in zsite['plaza']],zw(zplan['walkway2F']['ring']),zw(hplan['chemPlaza']['ring']),affinity.translate(zw(hplan['deck2F']['ring']),*hplan['deck2F'].get('gameOffset',[0,0]))]).buffer(.6,join_style=2).buffer(-.6,join_style=2)
 upper=upper.difference(buildings).difference(gauss1F.buffer(.3,join_style=2)).difference(gaussOld)
-# User 2026-11-23: the central plaza's 2F outline follows the NLSC 2023 orthophoto (irregular, with the fan-shaped skylight arc on its
-# south side) instead of the regular drawn pieces. Only the Huanyu/Zhili junction plaza is replaced; the Huanyu arm/link below stay.
-_tr=root/'facilities/teaching-courtyard/upper-plaza-trace.json'
-if _tr.exists():upper=Polygon(json.loads(_tr.read_text())['ring']).buffer(0).difference(buildings).difference(gauss1F.buffer(.3,join_style=2)).difference(gaussOld)
 # Huanyu's 2F through-passage (user 2026-11-13) must still land on the upper plaza: a passage-width link from its
 # plaza end to the nearest drawn upper piece (user confirmed 2026-11-18).
 # The drawn Huanyu 2F balcony strip along its east face (the long arm of the L) lies inside the game's Huanyu outline,
