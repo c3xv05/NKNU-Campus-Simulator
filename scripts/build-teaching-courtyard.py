@@ -63,6 +63,10 @@ if hpass:
  from shapely.ops import nearest_points
  end=Point(hpass['line'][1]);q=nearest_points(upper,end)[0]
  if end.distance(q)>.05:upper=unary_union([upper,LineString([hpass['line'][1],(q.x,q.y)]).buffer(hpass['width']/2,cap_style=2,join_style=2)]).difference(buildings)
+# User 2026-11-23: the 2F plaza's S06-side (west) edge is the near-right-angle polyline P1 (-164.59,-241.73) -> C (-159.46,-225.47) -> P2 (-167.05,-222.77)
+# on Huanyu's wall; any upper floor protruding beyond it toward S06 is removed.
+_C=(-159.46,-225.47);_P2=(-167.05,-222.77);_Q=(_P2[0]+(_P2[0]-_C[0])*3,_P2[1]+(_P2[1]-_C[1])*3)
+upper=upper.difference(Polygon([(-173.5,-270),_C,_P2,_Q,(-260,_Q[1]),(-260,-270)]))
 gaussCourt=unary_union([zw(gplan['court1F']['ring']),*[zw(q) for f in gplan.get('floors',[]) if f['key']=='1' for sp in f['spaces'] if sp['name']=='平台' for q in sp['polys']]]).buffer(.15,join_style=2).buffer(-.15,join_style=2)
 def tiers(cfg,plan):
  out=[]
