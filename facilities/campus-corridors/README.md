@@ -1,5 +1,18 @@
 # 生科最新輪廓與平台更正
 
+> **2026-11-23（最新）：生科改依使用者提供的平面圖重繪**，取代本檔下方所有「B北端細翼等寬通廊、5m小平台、32階矩形東梯、1F/2F相差3.6m」的描述（只留歷史）。2F＝原S05 T平台高度（基準），1F在其下4.5m；1F為落地窗通廊，東側為花瓣廣場＋之字坡道／兩側直梯／階梯式花台，T平台下為封閉污水機房。詳見 `facilities/biology-link/README.md`。重建：
+>
+> ```sh
+> python scripts/build-biology-layout.py      # 兩棟外框、樓高、名稱
+> python scripts/build-building-catalog.py
+> python scripts/build-building-access.py
+> python scripts/build-teaching-courtyard.py  # 會呼叫 build-campus-corridors.py
+> python scripts/build-campus-plazas.py && python scripts/build-zhili-curbcuts.py && python scripts/build-walk-obstacles.py
+> python scripts/build-pedestrian-patches.py && python scripts/build-sidewalk-plan.py && python scripts/build-motor-pavement-plan.py
+> python scripts/build-court-access.py && python scripts/build-road-regions.py && python scripts/build-sidewalk-sections.py
+> python scripts/build-r04-vegetation.py && python scripts/build-building-catalog.py
+> ```
+
 > 2026-11-17：中央廣場中央小樓梯已依使用者要求移除，只保留便利商店階梯；下列文中提到的中央樓梯為歷史描述。致理外殼改為平面圖塔樓，舊輪廓空出部分併入廣場下層，見 buildings/zhili/README.md。
 
 ## 2026-11-17：依地圖重描生科輪廓、正交T與下層小平台／32階

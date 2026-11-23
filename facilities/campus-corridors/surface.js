@@ -1,5 +1,6 @@
 import {courtyardSupportAt} from '../teaching-courtyard/surface.js';
 import {ringDistance} from '../../planar.js';
+import {biologyTerraceScale} from '../../stair-layout.js';
 const cache=new WeakMap();
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 function project(x,z,line){let best=null,along=0,total=0;for(let i=1;i<line.length;i++){const a=line[i-1],b=line[i],dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz),t=clamp(((x-a[0])*dx+(z-a[1])*dz)/(l*l),0,1),px=a[0]+dx*t,pz=a[1]+dz*t,d=Math.hypot(x-px,z-pz);if(!best||d<best.d)best={d,along:along+t*l,across:((x-px)*-dz+(z-pz)*dx)/l};along+=l;total+=l;}return{...best,total};}
@@ -10,7 +11,7 @@ export function createCampusCorridors(campus,terrain,network){
  const saved=cache.get(network);if(saved?.campus===campus&&saved.terrain===terrain)return saved.value;
  const lower=terrain.platformHeight(campus.places.find(a=>a.osm===campus.levelLink.from)),bioLower=terrain.platformHeight(campus.places.find(a=>a.osm===campus.bioConnection.from));
  const approaches=(campus.campusTransitions||[]).map(a=>{
-  const level=a.id==='courtyard-s32'?lower+((a.targetFloor||1)-1)*campus.courtyard.floorHeight:bioLower+((a.targetFloor||2)-1)*3.6;
+  const level=a.id==='courtyard-s32'?lower+((a.targetFloor||1)-1)*campus.courtyard.floorHeight:bioLower+((a.targetFloor||2)-1)*(campus.bioConnection.corridor?.floorHeight||3.6);
   function entry(across){const stations=a.entryStations;if(!stations)return null;let i=1;while(i<stations.length-1&&across>stations[i].across)i++;const p=stations[i-1],q=stations[i],t=clamp((across-p.across)/(q.across-p.across),0,1);return{along:p.along+(q.along-p.along)*t,point:p.point.map((v,k)=>v+(q.point[k]-v)*t)};}
   function centerX(z){for(let i=1;i<a.line.length;i++){const p=a.line[i-1],q=a.line[i];if(z>=q[1]){const t=clamp((z-p[1])/(q[1]-p[1]),0,1);return p[0]+(q[0]-p[0])*t;}}return a.line.at(-1)[0];}
   const profile=(x,z)=>{
@@ -23,15 +24,15 @@ export function createCampusCorridors(campus,terrain,network){
   };
   return{...a,...triangleSurface(a.triangles,profile),profile,level};
  });
- const corridor=campus.bioConnection.corridor,bioFloors= corridor?corridor.floors.map(floor=>({floor,level:bioLower+(floor-1)*corridor.floorHeight,...triangleSurface(corridor.triangles,()=>bioLower+(floor-1)*corridor.floorHeight)})):[];
+ const corridor=campus.bioConnection.corridor,bioFloors= corridor?corridor.floors.map(floor=>{const deck=floor>1&&corridor.deckTriangles;return{floor,level:bioLower+(floor-1)*corridor.floorHeight,regions:deck?corridor.deckRegions:corridor.regions,...triangleSurface(deck?corridor.deckTriangles:corridor.triangles,()=>bioLower+(floor-1)*corridor.floorHeight)};}):[];
  const value={approaches,bioFloors,lower,bioLower,heightAt(x,z,currentY){for(const s of [...approaches,...bioFloors]){const h=s.heightAt(x,z);if(h!==null&&Math.abs(currentY-h-.08)<.85)return h+.08;}return null;}};cache.set(network,{campus,terrain,value});return value;
 }
 export function corridorSupportAt(x,z,currentY,campus,terrain,network){return createCampusCorridors(campus,terrain,network).heightAt(x,z,currentY)??courtyardSupportAt(x,z,currentY,campus,terrain);}
 // Keep the neighboring soil below the same surface; do not raise soil under elevated galleries.
 export function gradeCampusCorridors(terrain,campus,network){
- const surface=createCampusCorridors(campus,terrain,network),court=campus.courtyard,groups=[{regions:court.edgeRepairs?.regions||[],profile:()=>surface.lower},{regions:campus.bioConnection.corridor.regions,profile:()=>surface.bioLower},...surface.approaches].filter(s=>s.regions?.length),buildings=[...campus.places,...campus.buildings].filter(b=>b.height),mesh=terrain.mesh,blend=3;let changed=0;
+ const surface=createCampusCorridors(campus,terrain,network),court=campus.courtyard,terraces=biologyTerraceScale(campus,terrain,network),groups=[{regions:court.edgeRepairs?.regions||[],profile:()=>surface.lower},{regions:campus.bioConnection.corridor.regions,profile:()=>surface.bioLower},...(terraces?[{regions:[[campus.bioConnection.stairs.ring]],profile:(x,z)=>{const s=campus.bioConnection.stairs,p=project(x,z,s.line);return terraces.height(Math.max(0,Math.min(1,1-p.along/p.total))*500)+.035;}}]:[]),...surface.approaches].filter(s=>s.regions?.length),buildings=[...campus.places,...campus.buildings].filter(b=>b.height),mesh=terrain.mesh,blend=3;let changed=0;
  for(const s of groups){const rings=s.regions.map(r=>r[0]),points=rings.flat(),west=Math.min(...points.map(p=>p[0]))-blend,east=Math.max(...points.map(p=>p[0]))+blend,north=Math.min(...points.map(p=>p[1]))-blend,south=Math.max(...points.map(p=>p[1]))+blend;
-  for(let row=Math.max(0,Math.floor((north-mesh.north)/mesh.step));row<mesh.rows&&mesh.north+row*mesh.step<=south;row++)for(let col=Math.max(0,Math.floor((west-mesh.west)/mesh.step));col<mesh.columns&&mesh.west+col*mesh.step<=east;col++){const x=mesh.west+col*mesh.step,z=mesh.north+row*mesh.step,d=Math.min(...rings.map(r=>ringDistance(x,z,r)));if((s.id&&[...court.floorRegions.lower,...campus.bioConnection.corridor.regions].some(([r])=>ringDistance(x,z,r)===0))||d>=blend||network.onMotorRoad(x,z)||buildings.some(b=>ringDistance(x,z,b.ring)===0)||[...campus.levelLink.stairs,...court.stairs,campus.bioConnection.stairs].some(b=>ringDistance(x,z,b.ring)===0))continue;const u=d/blend,w=1-u*u*(3-2*u),i=row*mesh.columns+col,target=s.profile(x,z)-.035;mesh.heights[i]+=(target-mesh.heights[i])*w;changed++;}
+  for(let row=Math.max(0,Math.floor((north-mesh.north)/mesh.step));row<mesh.rows&&mesh.north+row*mesh.step<=south;row++)for(let col=Math.max(0,Math.floor((west-mesh.west)/mesh.step));col<mesh.columns&&mesh.west+col*mesh.step<=east;col++){const x=mesh.west+col*mesh.step,z=mesh.north+row*mesh.step,d=Math.min(...rings.map(r=>ringDistance(x,z,r)));if((s.id&&[...court.floorRegions.lower,...campus.bioConnection.corridor.regions].some(([r])=>ringDistance(x,z,r)===0))||d>=blend||network.onMotorRoad(x,z)||buildings.some(b=>ringDistance(x,z,b.ring)===0)||[...campus.levelLink.stairs,...court.stairs,campus.bioConnection.stairs,...(campus.bioConnection.sideStairs||[]).map(s=>({ring:s.well}))].some(b=>ringDistance(x,z,b.ring)===0))continue;const u=d/blend,w=1-u*u*(3-2*u),i=row*mesh.columns+col,target=s.profile(x,z)-.035;mesh.heights[i]+=(target-mesh.heights[i])*w;changed++;}
  }
  return changed;
 }

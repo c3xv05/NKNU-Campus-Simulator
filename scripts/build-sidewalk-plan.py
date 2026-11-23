@@ -28,6 +28,9 @@ for b in c['places']+c['buildings']:
 if c.get('huanyuAccess'):
  for a in [c['huanyuAccess'],c['huanyuAccess']['ramp']]:shape=shape.difference(Polygon(a['ring']))
 for region in [r for a in c.get('campusTransitions',[]) for r in a['regions']]+c['bioConnection'].get('corridor',{}).get('regions',[]):shape=shape.difference(Polygon(region[0],region[1:]))
+# Bio +505 side-stair wells under the T stem (2026-11-23) are stairs and walls, never sidewalk paving.
+side_wells=[Polygon(r) for s in c['bioConnection'].get('sideStairs',[]) for r in [s['well']]+[p['ring'] for p in s['pieces']]]
+for w in side_wells:shape=shape.difference(w)
 if c['courtyard'].get('floorRegions'):
  for region in c['courtyard']['floorRegions']['lower']+c['courtyard']['floorRegions']['upper']:shape=shape.difference(Polygon(region[0],region[1:]))
 if c.get('courtParking',{}).get('entrance'):shape=shape.difference(Polygon(c['courtParking']['entrance']['ring']))
@@ -40,6 +43,7 @@ if c.get('teachingAccess'):
  for s in c['levelLink']['stairs']:shape=shape.difference(Polygon(s['ring']))
 # Preserve the exact access boundary after hole cleanup / outline simplification.
 for region in [r for a in c.get('campusTransitions',[])for r in a['regions']]+c['bioConnection'].get('corridor',{}).get('regions',[]):shape=shape.difference(Polygon(region[0],region[1:]))
+for w in side_wells:shape=shape.difference(w)
 if c.get('courtParking',{}).get('entrance'):shape=shape.difference(Polygon(c['courtParking']['entrance']['ring']))
 # Zhili driveway ramp and curb-cut pads (user 2026-11-22): the ramp is asphalt, the pads are tile at road level; both leave the
 # raised sidewalk. The sidewalk surface draws curbs along these cut edges.

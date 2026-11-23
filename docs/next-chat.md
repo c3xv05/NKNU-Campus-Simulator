@@ -1,5 +1,15 @@
 # 新對話接續摘要
 
+## 2026-11-23（生科連接處）：依平面圖重繪生科A／B與連接處
+
+分支 `claude/beautiful-mayer-1e5tbc`（未合併）。使用者提供生物科技館（A）、生物教學大樓（B）1F～3F平面圖（`buildings/bio-*/source/`），要求先處理兩棟連接處；確認事項：2F＝原S05 T平台高度為基準、以平面圖為準、只有1F／2F相通、東側坡道階梯混合且**高差等比例放大**（模型S01比圖面低約6.4m，選第一種解法）、花瓣廣場露天＋鋪面圖案、污水機房封閉關門、1F通廊兩側落地窗、A/B名稱與說明對調。
+- 外框依圖面重描（10頂點直角），以通廊／廣場／坡道區／污水機房共用中心線對齊既有T支線接點；1F 4.5m、2F以上4.0m（`floorLevels`，`buildings/renderer.js` 支援逐層高）、`platformOffset` −0.9m 讓2F維持原T平台高度。
+- 連接處：`scripts/biology_drawing.py`（圖面座標）→ `scripts/biology_layout.py`（推導）→ `stair-layout.js`（25個坡道階梯定義、`biologyTerraceScale`）＋ `facilities/biology-link/renderer.js`（落地窗、門、柱、欄杆、污水機房、花瓣圖案、階梯式花台、樹）。詳見 `facilities/biology-link/README.md`。
+- 測試：新增 `tests/biology-drawing.mjs`、`tests/biology-drawing-geometry.py`；更新 campus-corridors／campus-connections／photo-access／teaching-quarter／relocation-window（生科新範圍）等斷言。全部Node測試通過（photo-buildings為既有失敗），非瀏覽器Python測試與main失敗項目／訊息相同。瀏覽器：桌面＋390px手機無錯誤，之字斜坡、兩側直梯、2F平台、S05→T支線皆零阻擋。
+- 續（同日，使用者：「平台下方照你說的處理」「照圖確認」）：**+505 兩側小梯已建**。依A 1F／2F圖：通廊往S05側兩道門改為開啟，門外1F平台（約3.1m）→ 一段32級直梯（圖面約0.306m踏面，2F圖在T支線內畫成斜線投影）→ 頂階接T支線樓面；T支線樓面在梯子上方開天井（`sideStairs[].well`，由 `build-campus-corridors.py` 從支線扣除），外側實心牆延伸到支線邊（12m支線寬不變）、內側在支線上加欄杆；污水機房縮到兩梯內牆之間仍封閉、門關。級高依模型高差（約0.175～0.18m，平面照圖）。人行道鋪面、植栽與地面挖除都避開梯井（`build-sidewalk-plan.py`、`landscape.js`、`index.html`）。
+- 三樓以上照圖確認：A 3F圖標 +1370（1F→3F 層高無誤）；A、B 3F樓梯都有折斷線（至少4F）；B 3F外框與1F疊圖一致。圖面只到3F，總樓層數／4F以上層高仍維持5層、4.0m的假設。
+- 待辦／疑點：兩棟室內、立面照片細節；4F以上與屋頂需圖或照片；T支線中段（污水機房以南、兩梯之間）為封閉的支線下方空間（圖上兩側是牆無門）；地形修正後坡道與小梯高差會自動調整。
+
 ## 2026-11-23（續：草坪改為與廣場一樓同高的獨立草地樓板＋擋土牆）
 
 使用者要求草皮與廣場一樓之間不得有任何地形／高度差，西側道路與此高低差的過渡先做擋土牆（之後另交代做法）。原本用地形 levelArea 壓平會被 4m 地形網格與建築台地混合出 ±1m～數cm 起伏，故改成：草坪範圍（layout.json levelAreas `zhili-huanyu-lawn` 的 ring，現貼齊建築與人行道）併入 `extension`，在 `build-teaching-courtyard.py` 成為下層廣場的一部分，渲染為獨立的草地樓板（`courtyard.floorTriangles.lowerLawn`／`lowerTile`，renderer.js `lawnMat`，高度＝下層廣場），行走用既有 `floorRegions.lower`（含草坪）支撐，地形在其下被既有 footprints 挖掉；周邊用 zhiliExtension 的實心底座＋擋土牆（地形較高處）／矮牆（較低處）。levelArea 已移除（它會影響 S06 坡度，campus-refinements／yongji-slope 失敗），草坪範圍改存 layout.json 頂層 `zhiliHuanyuLawn`；範圍並向北延伸到致理西牆與人行道之間的不規則草皮（至約 z-277.6），同樣做成平地草地樓板。測試 spatial-corrections 更新為新邊緣（舊的(-163.01,-227.66)已不在上層）。已用遊戲實際畫面確認草坪與磁磚無階差。待辦：擋土牆樣式／西側道路過渡由使用者之後交代；草坪顏色（0x8fcf73）可再調；瀏覽器套件測試未跑。
