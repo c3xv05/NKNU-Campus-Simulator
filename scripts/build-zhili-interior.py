@@ -90,6 +90,9 @@ STAIR = {'甲梯': {'entrance': 'y1', 'door': ('y1', .5, 1.6)}, '乙梯': {'entr
 # 己梯 (user 2026-11-18 "己梯要蓋"): open straight stair from the 1F ±0 paving (y55.3) up to the 2F plaza (y48.7);
 # the 2F floor is open over it and its top opens onto the plaza.
 DRIVE_CLEAR_B1 = [1.76, 59.3, 7.04, 60.5]   # garage mouth: no wall across the driveway ramp (2026-11-22)
+# User 2026-11-23: the driveway floor is a real slope from the garage mouth (B1 floor) down to the sidewalk-tile pad at the road
+# (y66.6). Measured in the running game: B1 floor top 35.449, pad top 35.129 -> drop 0.32 m (scripts/ + interior.js ramp mesh).
+RAMP_SLOPE = {'rect': [1.76, 60.5, 7.07, 66.6], 'tileFrom': 62.3, 'drop': -1.05}   # default only: interior.js re-measures it from the live road height; negative = the ramp climbs to the road
 DRIVE_OPEN_B1 = [1.75, 59.62, 7.07, 62.3]   # driveway ramp aisle: open to the sky (no ceiling), 2026-11-22
 VOID_CLEAR_2F = [16.3, 58.2, 21.2, 66.8]   # 2F corner void (挑空): no outer walls on the west and south sides, only the corner column (user 2026-11-22 photo)
 OPEN_2F = [19.0, 46.3, 21.45, 55.4]     # walls cleared (top landing opens onto the plaza)
@@ -464,7 +467,8 @@ for k in ALL_FLOORS:
             keep_band = band if np.hypot(*(b_ - a_)) >= 2.5 else 0
             walls &= 1 - (cut & (1 - solid) & (1 - keep_band))
             if ed['kind'] == 'door' and ed.get('closed'):   # closed leaf standing in the opening (wooden, blocks)
-                lf = LineString([a_, b_]).buffer(.05, cap_style=2).bounds
+                nn_ = np.array([-u_[1], u_[0]])   # leaf fills the whole opening (the door mask clears 0.2 m beyond each end of the drawn line), thicker than any wall (user: could see through)
+                lf = Polygon([a_ - u_ * .22 - nn_ * .16, b_ + u_ * .22 - nn_ * .16, b_ + u_ * .22 + nn_ * .16, a_ - u_ * .22 + nn_ * .16]).bounds
                 door_leaves.append([round(lf[0], 3), round(lf[1], 3), round(lf[2], 3), round(lf[3], 3)])
             if ed['kind'] == 'door':
                 doors |= poly_mask(LineString([a_, b_]).buffer(.2, cap_style=2))
@@ -556,6 +560,7 @@ for k in ALL_FLOORS:
 
 for i, fl in enumerate(floors_out):
     slab = OUTLINE[fl['key']]
+    if fl['key'] == 'B': slab = slab.difference(box(*RAMP_SLOPE['rect'])); fl['ramp'] = RAMP_SLOPE
     if i > 0:
         for st in stairs_by_floor[ORDER[i - 1]]: slab = slab.difference(box(*st['hole']))
     vm = fl.pop('voidMask')
@@ -581,13 +586,18 @@ for i, fl in enumerate(floors_out):
         tp = slab.difference(gpoly).buffer(0); gp2 = slab.intersection(gpoly).buffer(0)
         tri = lambda P: [[world(q) for q in list(t.exterior.coords)[:-1]] for g in ([P] if P.geom_type == 'Polygon' else [x for x in getattr(P, 'geoms', []) if x.geom_type == 'Polygon']) if g.area > .2 for t in constrained_delaunay_triangles(g).geoms if t.area > 1e-6]
         fl['tileTriangles'] = tri(tp); fl['garageTriangles'] = tri(gp2)
+        # Dashed lane curves from the drawing (scripts/extract-zhili-lanes.py): white paint on the garage floor, user 2026-11-23.
+        lane_f = root / 'buildings/zhili/lanes.json'
+        if fl['key'] == 'B' and lane_f.exists():
+            lanes = unary_union([Polygon(q).buffer(0) for q in json.loads(lane_f.read_text()).get('B1', []) if len(q) > 2]).intersection(gp2).buffer(0)
+            fl['laneTriangles'] = [[world(q) for q in list(t.exterior.coords)[:-1]] for g in (list(lanes.geoms) if hasattr(lanes, 'geoms') else [lanes]) if g.geom_type == 'Polygon' and g.area > .005 for t in constrained_delaunay_triangles(g).geoms if t.area > 1e-7]
     ceil = ceil.buffer(0); cparts = [ceil] if ceil.geom_type == 'Polygon' else [g for g in ceil.geoms if g.geom_type == 'Polygon']
     fl['ceilingTriangles'] = [[world(q) for q in list(t.exterior.coords)[:-1]] for p in cparts if p.area > .5 for t in constrained_delaunay_triangles(p).geoms if t.area > 1e-6]
 top = OUTLINE[ORDER[-1]]
 out = {'version': 2, 'building': 444867693, 'floorHeight': FLOOR_H, 'slab': SLAB, 'transform': T,
        # Interior finish (user 2026-11-19): square floor tiles, off-white walls, black skirting, light-steel (T-bar)
        # suspended ceiling with recessed lights.
-       'finish': {'tile': .6, 'wall': '#efe9da', 'skirting': '#1c1c1e', 'skirtingHeight': .1, 'ceilingHeight': 3.0, 'ceilingPanel': .6}, 'outline': ring_coords(unary_union([OUTLINE[k] for k in ORDER])),
+       'finish': {'tile': .6, 'wall': '#efe9da', 'skirting': '#1c1c1e', 'skirtingHeight': .1, 'ceilingHeight': 3.0, 'ceilingPanel': .6}, 'foundationRing': ring_coords(OUTLINE['B'].difference(box(*RAMP_SLOPE['rect']))), 'outline': ring_coords(unary_union([OUTLINE[k] for k in ORDER])),
        'towerOutline': ring_coords(TOWER), 'podiumRoofLevel': LEVEL['2'],
        'source': {'plan': 'buildings/zhili/plan.json', 'basis': '使用者確認的平面圖判讀；各層外框依圖面（1F含裙樓與北側門廳），牆為房間分區交界與0.25m外牆，梯間四周封牆、門依圖面方位，外牆依房間開窗；門窗尺寸為模型近似。空房間。',
                   'scope': '使用者2026-11-18：先做2樓以下（B1～2F可走），3F以上為實心量體但外牆窗依圖面；B1只含1F建物下方，室外鋪面下方的停車場待做。'},

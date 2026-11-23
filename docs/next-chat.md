@@ -1,5 +1,9 @@
 # 新對話接續摘要
 
+## 2026-11-23（車道入口完成，待使用者走查）
+
+S05 坡度修正後繼續。**B1 車道斜坡**：`RAMP_SLOPE`（x1.76–7.07、y60.5–66.6，62.3 以南為磁磚）。落差由 `interior.js` 以即時道路高度量測（`fl.ramp.drop`，負值＝爬升約 1.05m）；行走支撐、基座避開斜坡、斜坡入口不再生成玻璃／台階（`header:false` 的出入口強制 open）。**致理入口階梯**：S05 改坡後原本因以人行道高度算落差而消失，現改以曲緣鋪面（pad）高度計算（`padG`），8 階回來。**車道弧線**：`scripts/extract-zhili-lanes.py`→`buildings/zhili/lanes.json`→B1 白漆線。**平台凹口補滿**：`build-teaching-courtyard.py` 的 `driveOpen` 扣掉 deck 範圍（y≤62.45），下層廣場完整蓋住車道北段。**L 形圍牆**：`zhiliCurbCuts.lwall`——`fascia`（x1.7–7.45、y62.15–62.45，deck 邊緣跨過車道口、與西側 parapet 連續）＋`east`（x7.45–8.1、y62.15–66.6，補滿車道東側與主階梯之間的縫）；磚牆＋混凝土壓頂，頂一律 deck+1.3（使用者要求不隨階梯斜降）。照片：`buildings/zhili/source/driveway-entrance-photo.jpg`。待辦：使用者走查；若要樓梯本體向左加寬（而非牆補縫）需改 building-access layout 並重建；準備室由使用者自畫；B02/B03 門位置暫定。
+
 ## 2026-11-22（晚2）：詠絮樓、燕窩、科技大樓依平面圖重描外框並依正射影像定位
 
 使用者提供宿舍逃生動線圖PDF（霽遠樓、詠絮樓、燕窩）與工教大樓（科技大樓）平面圖壓縮檔，要求「先決定位置與形狀，外觀細節之後由他人補」。霽遠樓圖面與既有plan.json相同，未動。

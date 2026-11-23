@@ -1,4 +1,6 @@
 import {ringDistance} from '../../planar.js';
+import {sidewalkPlan} from '../../data/sidewalk-plan.js';
+import {ROAD_SURFACE_LIFT} from '../../sidewalk-layout.js';
 // Zhili B1–2F interior and plan-driven facade compiled from the reviewed floor plans (scripts/build-zhili-interior.py).
 // Geometry is authored in the drawing frame (axis-aligned rectangles) and placed with one rigid transform.
 export const ZHILI_OSM=444867693;
@@ -29,6 +31,8 @@ export function createPlanSurface(campus,terrain,osm){
   for(const fl of floors){if(y<fl.y-.5||y>fl.y+H+.6)continue;for(const s of fl.stairs){if(!inRect(p,s.rect))continue;for(const t of s.treads)if(inRect(p,t.rect)){const h=fl.y+t.height+ZHILI_CLEARANCE,e=Math.abs(y-h);if(e<.44&&e<error){best=h;error=e;}}}}
   for(const fl of floors)for(const e of fl.exits)for(const t of e.steps||[])if(inRect(p,t.rect)){const h=fl.y+t.height+ZHILI_CLEARANCE,er=Math.abs(y-h);if(er<.44&&er<error){best=h;error=er;}}
   if(best!==null)return best;
+  // Driveway ramp (B1): the floor slopes from the garage mouth down to the sidewalk-tile pad at the road.
+  for(const fl of floors){const r=fl.ramp;if(!r||y<fl.y-.75-Math.max(0,r.drop)||y>fl.y+.9+Math.max(0,-r.drop)||!inRect(p,r.rect))continue;const t=Math.min(1,Math.max(0,(p[1]-r.rect[1])/(r.rect[3]-r.rect[1])));return fl.y+ZHILI_CLEARANCE-r.drop*t;}
   for(const fl of floors)if(Math.abs(y-fl.y-ZHILI_CLEARANCE)<.85&&insideRegions(p,fl.slab))return fl.y+ZHILI_CLEARANCE;
   return null;
  }
@@ -47,9 +51,12 @@ export function zhiliSupportAt(x,z,y,campus,terrain){for(const s of planSurfaces
 // Meshes: slabs, walls with real window openings, lintels, stair halls and treads, entrances, plan facade for 3F+.
 export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
  const osm=data.building??ZHILI_OSM,key=data.key||'zhili';(campus.planInteriors??={})[osm]=data;if(osm===ZHILI_OSM)campus.zhiliInterior=data;const building=campus.places.find(b=>b.osm===osm),base=terrain.platformHeight(building),H=data.floorHeight,SLAB=data.slab||.2,f=frame(data.transform);
+ // Driveway ramp (B1): the drop from the floor to the sidewalk-tile pad at the road is measured from the live road height (S05 grade changes move it).
+ const padPolys=(sidewalkPlan.curbCuts||[]).map(p=>p.ring),padTop=(x,z)=>(network?network.surfaceHeight(x,z):terrain.height(x,z))+ROAD_SURFACE_LIFT+.004,padAt=(x,z)=>padPolys.some(r=>ringDistance(x,z,r)===0);
+ for(const fl of data.floors)if(fl.ramp){const r=fl.ramp.rect,[wx,wz]=f.toWorld((r[0]+r[2])/2,r[3]+.3);fl.ramp.drop=base+fl.level+.004-padTop(wx,wz);}
  // Entrances: open where the ground outside meets the floor; a landing and indoor steps when it is up to 1.6m higher; otherwise glazed.
- for(const fl of data.floors)for(const e of fl.exits){const cy=campus.courtyard?.floorRegions,zb=terrain.platformHeight(campus.places.find(b=>b.osm===campus.levelLink?.from)),gb=terrain.platformHeight(campus.places.find(b=>b.osm===campus.levelLink?.to)),decks=cy?[['lower',zb],['upper',zb+(campus.courtyard.floorHeight||3.6)],['gaussCourt',gb]].filter(([k])=>cy[k]&&insideRegions(e.outside,cy[k])).map(([,h])=>h):[],deck=decks.length?decks.reduce((a,h)=>Math.abs(h-(base+fl.level))<Math.abs(a-(base+fl.level))?h:a):null,g=deck??(network?network.walkHeight(...e.outside,terrain.height(...e.outside)):terrain.height(...e.outside)),rise=g-(base+fl.level);e.rise=rise;e.open=Math.abs(rise)<.45;
-  if(e.manual&&rise>=.45&&rise<=1.6){const a=f.toDrawing(...e.line[0]),b=f.toDrawing(...e.line[1]),o=f.toDrawing(...e.outside),i=f.toDrawing(...e.inside),mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],len=Math.hypot(i[0]-o[0],i[1]-o[1]),u=[(i[0]-o[0])/len,(i[1]-o[1])/len],half=Math.hypot(b[0]-a[0],b[1]-a[1])/2,n=Math.ceil(rise/.18),h=rise/n,rect=(d0,d1)=>{const p0=[mid[0]+u[0]*d0,mid[1]+u[1]*d0],p1=[mid[0]+u[0]*d1,mid[1]+u[1]*d1],across=[Math.abs(u[1])*half,Math.abs(u[0])*half];return[Math.min(p0[0],p1[0])-across[0],Math.min(p0[1],p1[1])-across[1],Math.max(p0[0],p1[0])+across[0],Math.max(p0[1],p1[1])+across[1]];};
+ for(const fl of data.floors)for(const e of fl.exits){const cy=campus.courtyard?.floorRegions,zb=terrain.platformHeight(campus.places.find(b=>b.osm===campus.levelLink?.from)),gb=terrain.platformHeight(campus.places.find(b=>b.osm===campus.levelLink?.to)),decks=cy?[['lower',zb],['upper',zb+(campus.courtyard.floorHeight||3.6)],['gaussCourt',gb]].filter(([k])=>cy[k]&&insideRegions(e.outside,cy[k])).map(([,h])=>h):[],deck=decks.length?decks.reduce((a,h)=>Math.abs(h-(base+fl.level))<Math.abs(a-(base+fl.level))?h:a):null,padG=(()=>{const[ox,oz]=e.outside,[ix,iz]=e.inside,l=Math.hypot(ox-ix,oz-iz)||1;for(let s=.8;s<=4.5;s+=.4){const px=ox+(ox-ix)/l*s,pz=oz+(oz-iz)/l*s;if(padAt(px,pz))return padTop(px,pz);}return null;})(),g=deck??padG??(network?network.walkHeight(...e.outside,terrain.height(...e.outside)):terrain.height(...e.outside)),rise=g-(base+fl.level);e.rise=rise;e.open=Math.abs(rise)<.45||e.header===false;
+  if(e.manual&&e.header!==false&&rise>=.45&&rise<=1.6){const a=f.toDrawing(...e.line[0]),b=f.toDrawing(...e.line[1]),o=f.toDrawing(...e.outside),i=f.toDrawing(...e.inside),mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],len=Math.hypot(i[0]-o[0],i[1]-o[1]),u=[(i[0]-o[0])/len,(i[1]-o[1])/len],half=Math.hypot(b[0]-a[0],b[1]-a[1])/2,n=Math.ceil(rise/.18),h=rise/n,rect=(d0,d1)=>{const p0=[mid[0]+u[0]*d0,mid[1]+u[1]*d0],p1=[mid[0]+u[0]*d1,mid[1]+u[1]*d1],across=[Math.abs(u[1])*half,Math.abs(u[0])*half];return[Math.min(p0[0],p1[0])-across[0],Math.min(p0[1],p1[1])-across[1],Math.max(p0[0],p1[0])+across[0],Math.max(p0[1],p1[1])+across[1]];};
    e.steps=[{rect:rect(-.3,1.2),height:rise}];for(let k=0;k<n-1;k++)e.steps.push({rect:rect(1.2+k*.3,1.2+(k+1)*.3),height:rise-(k+1)*h});e.open=true;}
   // Ground lower than the floor (east main entrance on S05, drawing 階梯): outdoor steps down from the threshold.
   if(e.manual&&rise<=-.45&&rise>=-2.6){const a=f.toDrawing(...e.line[0]),b=f.toDrawing(...e.line[1]),o=f.toDrawing(...e.outside),i=f.toDrawing(...e.inside),mid=[(a[0]+b[0])/2,(a[1]+b[1])/2],len=Math.hypot(i[0]-o[0],i[1]-o[1]),u=[(i[0]-o[0])/len,(i[1]-o[1])/len],half=Math.hypot(b[0]-a[0],b[1]-a[1])/2+.3,n=Math.ceil(-rise/.17),h=-rise/n,rect=(d0,d1)=>{const p0=[mid[0]+u[0]*d0,mid[1]+u[1]*d0],p1=[mid[0]+u[0]*d1,mid[1]+u[1]*d1],across=[Math.abs(u[1])*half,Math.abs(u[0])*half];return[Math.min(p0[0],p1[0])-across[0],Math.min(p0[1],p1[1])-across[1],Math.max(p0[0],p1[0])+across[0],Math.max(p0[1],p1[1])+across[1]];};
@@ -102,10 +109,19 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
  let shell=null;
  for(const fl of data.floors){const y=base+fl.level;
   const s=slab(fl.slabTriangles,y,y-SLAB,'floor',key+'-floor-'+fl.label);shell??=s;
-  if(fin&&fl.garageTriangles){surface(fl.garageTriangles,y+.004,surf.garage,4,key+'-garage-'+fl.label);for(const r of fl.stallLines||[])rectBox(r,y+.004,y+.014,'paint');for(const p of fl.garageLights||[])rectBox([p[0]-.6,p[1]-.06,p[0]+.6,p[1]+.06],y+H-SLAB-.1,y+H-SLAB-.04,'lamp');}
+  if(fin&&fl.garageTriangles){surface(fl.garageTriangles,y+.004,surf.garage,4,key+'-garage-'+fl.label);for(const r of fl.stallLines||[])rectBox(r,y+.004,y+.014,'paint');if(fl.laneTriangles?.length)surface(fl.laneTriangles,y+.012,mats.paint,1,key+'-lanes-'+fl.label);
+  if(fl.ramp){const r=fl.ramp.rect,drop=fl.ramp.drop,N=Math.max(2,Math.ceil((r[3]-r[1])/.4)),low=Math.min(...(data.foundationRing||fl.outline).map(([x,yy])=>{const [wx,wz]=f.toWorld(x,yy);return terrain.height(wx,wz);}))-.6;
+   const top=yy=>y+.004-drop*(yy-r[1])/(r[3]-r[1]),V=(x,yy,h)=>{const [wx,wz]=f.toWorld(x,yy);return[wx,h,wz];};
+   const posT=[],posL=[],posS=[],tileY=fl.ramp.tileFrom??r[1];let cur=posT;const T=(a,b,c)=>{for(const q of [a,b,c])cur.push(...q);};const S=(a,b,c)=>{for(const q of [a,b,c])posS.push(...q);};
+   for(let i=0;i<N;i++){const y0=r[1]+(r[3]-r[1])*i/N,y1=r[1]+(r[3]-r[1])*(i+1)/N;cur=y0>=tileY-.01?posL:posT;const a=V(r[0],y0,top(y0)),b=V(r[2],y0,top(y0)),c=V(r[2],y1,top(y1)),d=V(r[0],y1,top(y1));T(a,c,b);T(a,d,c);
+    for(const [x,x2] of [[r[0],r[0]],[r[2],r[2]]]){const p0=V(x,y0,top(y0)),p1=V(x,y1,top(y1)),q0=V(x,y0,low),q1=V(x,y1,low);S(p0,p1,q1);S(p0,q1,q0);}}
+   {const e=V(r[0],r[3],top(r[3])),e2=V(r[2],r[3],top(r[3])),l1=V(r[0],r[3],low),l2=V(r[2],r[3],low);S(e,e2,l2);S(e,l2,l1);}
+   for(const [pos,mat,nm,rep] of [[posT,surf.garage||surf.floor,'ramp',4],[posL,surf.floor||surf.garage,'ramp-tiles',surf.floorRepeat||.6]]){if(!pos.length)continue;const uv=[];for(let k=0;k<pos.length;k+=3){const d=f.toDrawing(pos[k],pos[k+2]);uv.push(d[0]/rep,d[1]/rep);}
+    const gT=new THREE.BufferGeometry();gT.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));gT.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));gT.computeVertexNormals();const mT=new THREE.Mesh(gT,mat);mT.name=key+'-'+nm+'-'+fl.label;mT.receiveShadow=true;group.add(mT);blockers.push(mT);}
+   const gS=new THREE.BufferGeometry();gS.setAttribute('position',new THREE.Float32BufferAttribute(posS,3));gS.computeVertexNormals();const mS=new THREE.Mesh(gS,mats.outer);mS.name=key+'-ramp-base-'+fl.label;group.add(mS);}for(const p of fl.garageLights||[])rectBox([p[0]-.6,p[1]-.06,p[0]+.6,p[1]+.06],y+H-SLAB-.1,y+H-SLAB-.04,'lamp');}
   if(fin){surface(fl.tileTriangles||fl.slabTriangles,y+.004,surf.floor,surf.floorRepeat,key+'-tiles-'+fl.label);if(fl.ceilingTriangles)surface(fl.ceilingTriangles,y+fin.ceilingHeight,surf.ceiling,surf.ceilingRepeat,key+'-ceiling-'+fl.label);}
   for(const w of fl.walls)wall(w,y,fl.outline);
-  for(const w of fl.sills||[])wall(w.rect,y,fl.outline,y,y+w.top);
+  for(const w of fl.sills||[])wall(w.rect,y,fl.outline,y-.45,y+w.top);
   for(const w of fl.heads||[])wall(w.rect,y,fl.outline,y+w.bottom,y+H-SLAB,false);
   for(const w of fl.windows||[])pane(w,y,-.12);
   for(const l of fl.lintels)rectBox(l,y+2.25,y+H-SLAB,'inner');
@@ -122,7 +138,7 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
  }
  // Foundation: where the ground under the lowest walkable floor is lower than its slab, fill down to the ground
  // (the floor's ground cut would otherwise open a see-through gap along the facade).
- {const fl0=data.floors[0],ring=fl0.outline,top=base+fl0.level-SLAB,low=Math.min(...ring.map(([x,y])=>{const [wx,wz]=f.toWorld(x,y);return terrain.height(wx,wz);}))-.6;
+ {const fl0=data.floors[0],ring=data.foundationRing||fl0.outline,top=base+fl0.level-SLAB,low=Math.min(...ring.map(([x,y])=>{const [wx,wz]=f.toWorld(x,y);return terrain.height(wx,wz);}))-.6;
   if(low<top-.05){const sh=new THREE.Shape();ring.forEach(([x,y],i)=>{const [wx,wz]=f.toWorld(x,y);i?sh.lineTo(wx,-wz):sh.moveTo(wx,-wz);});sh.closePath();const g=new THREE.ExtrudeGeometry(sh,{depth:top-low,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,mats.outer);m.position.y=low;m.name=key+'-foundation';m.receiveShadow=true;group.add(m);blockers.push(m);}}
  for(const r of data.exposedRoofs||[]){const ry=base+r.level;slab(r.triangles,ry-.01,ry-SLAB,'ceiling',key+'-exposed-roof-'+r.level);}
  const roofY=base+data.roofLevel;slab(data.roofTriangles,roofY-.01,roofY-SLAB,'ceiling',key+'-roof');

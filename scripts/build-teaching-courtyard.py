@@ -97,6 +97,8 @@ extension=extension.difference(sidewalkGrade)
 import sys;sys.path.insert(0,str(root/'scripts'))
 import zhili_curbcuts as zc
 driveOpen=zc.shapes(root)[0]['open']
+# User 2026-11-23: the 1F deck covers the ramp up to its south edge (y62.45); only the ramp south of it stays open (no notch in the platform).
+driveOpen=driveOpen.difference(zw([[1.75,59.62],[7.07,59.62],[7.07,62.45],[1.75,62.45]]))
 extension=extension.difference(driveOpen)
 lowerShape=shape.union(extension).union(gaussDeck).union(Polygon(c['teachingAccess']['lowerLanding'])).difference(driveOpen).difference(buildingsLower).difference(gaussClosed).difference(sidewalkGrade).difference(planterShape);lowerShape=lowerShape.buffer(0);lower=lowerShape.difference(unary_union([Polygon(st['ring']) for st in c['levelLink']['stairs'] if st.get('topLevel','zhili-ground')=='zhili-ground']));lower=lower.buffer(0)
 # Exposed rims of the extension get a solid base (drop side) or retaining wall (uphill side) at runtime.
