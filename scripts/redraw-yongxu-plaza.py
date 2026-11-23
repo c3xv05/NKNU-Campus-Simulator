@@ -16,13 +16,32 @@ B = Polygon(rd('buildings/yongxu/building.json')['geometry']['ring']).buffer(0)
 ya.setdefault('beforePlazaRedraw', {k: ya[k] for k in ('roadEnd', 'approachExtension')})
 sk.setdefault('beforePlazaRedraw', {k: sk[k] for k in ('roadRing', 'lawnRing')})
 old = sk['beforePlazaRedraw']
-cx, cz, r, west, half = -179.0, -75.0, 13.0, -185.5, 12.5
-disc = Point(cx, cz).buffer(r, quad_segs=24).intersection(box(cx, cz - r - 1, cx + r + 1, cz + r + 1))
-plaza = unary_union([disc, box(west, cz - half, cx, cz + half)])
+# 2026-11-23 revision: the straight side (diameter) is parallel to S06.
+road = next(r for r in rd('data/campus.json')['roads'] if r['osm'] == 293423729)['line']
+q = (-185.0, -75.0)
+k = min(range(len(road)), key=lambda i: math.dist(road[i], (-212.0, -80.0)))
+a, b = road[max(0, k - 6)], road[min(len(road) - 1, k + 6)]          # S06 tangent beside the plaza (north -> south)
+ux, uz = (b[0] - a[0]), (b[1] - a[1]); L = math.hypot(ux, uz); ux, uz = ux / L, uz / L
+if uz < 0: ux, uz = -ux, -uz
+vx, vz = -uz, ux                                                      # perpendicular
+if vx < 0: vx, vz = -vx, -vz                                          # points east, towards the building
+N = (-179.0, -90.5)                                                   # north end of the diameter (unchanged anchor)
+wrect, gap = 6.5, 3.0
+def shape(D):
+    P = lambda s, t: (N[0] + ux * s + vx * t, N[1] + uz * s + vz * t)
+    c = P(D / 2, 0); disc = Point(*c).buffer(D / 2, quad_segs=24)
+    half = Polygon([P(-1, 0), P(D + 1, 0), P(D + 1, D + 1), P(-1, D + 1)]) if False else Polygon([P(-D, 0), P(2 * D, 0), P(2 * D, D), P(-D, D)])
+    east = Polygon([P(0, 0), P(D, 0), P(D, D), P(0, D)])
+    east = Polygon([P(-1, 0), P(D + 1, 0), P(D + 1, D), P(-1, D)])
+    disc = disc.intersection(Polygon([P(-1, 0), P(D + 1, 0), P(D + 1, D / 2 + 2), P(-1, D / 2 + 2)]))
+    rect = Polygon([P(0, -wrect), P(D, -wrect), P(D, 0), P(0, 0)])
+    return unary_union([disc, rect]), c
+D = 26.0   # diameter; the user asked to lengthen it southwards toward the building (3 m) - see docs/next-chat.md: not reachable along the S06 axis without covering S21
+plaza, center = shape(D); r = D / 2
 # door apron: the part of the previous road that hugs the facade, kept so the door still meets paving
 door = Point(ya['door'])
 apron = Polygon(old['roadRing']).buffer(0).intersection(door.buffer(9)).intersection(B.buffer(6))
-link = LineString([[cx + r - 2, cz - 1.5], [ya['door'][0] - 4, ya['door'][1] + 2.5]]).buffer(2.0, cap_style=2)
+link = LineString([[center[0] + vx * (r - 2), center[1] + vz * (r - 2)], [ya['door'][0] - 4, ya['door'][1] + 2.5]]).buffer(2.0, cap_style=2)
 ring = unary_union([plaza, apron, link]).difference(B.buffer(.05)).buffer(.2).buffer(-.2)
 ring = max(getattr(ring, 'geoms', [ring]), key=lambda g: g.area).simplify(.08)
 # The S21 extension keeps the first two vertices of the former route and stops south of the plaza (its north kerb meets the plaza's
@@ -36,7 +55,7 @@ if lawn.area > 15:
     lawn = max(getattr(lawn, 'geoms', [lawn]), key=lambda g: g.area).simplify(.1); sk['lawnRing'] = R(lawn)
 else:
     sk['lawnRing'] = R(Point(-161.5, -72).buffer(.01))  # no lawn left; keep a degenerate ring out of the way
-sk['plaza'] = dict(center=[cx, cz], radius=r, westEdge=west, halfWidth=half, facing='east')
+sk['plaza'] = dict(center=[round(center[0], 3), round(center[1], 3)], radius=round(r, 3), diameter=round(D, 3), axisSouth=[round(ux, 4), round(uz, 4)], northEnd=list(N), straightWidth=wrect, facing='east')
 sk['reference'] = sk['reference'].split('；2026-11-23詠絮前廣場')[0] + '；2026-11-23詠絮前廣場依使用者指示與2023正射影像重畫為朝東半圓廣場（西側接S21，圓弧面向建築）。'
 (root / lp).write_text(json.dumps(ya, ensure_ascii=False, indent=2) + '\n'); (root / sp).write_text(json.dumps(sk, ensure_ascii=False, indent=2) + '\n')
-print('plaza', round(plaza.area), 'roadRing', round(ring.area), 'lawn', round(lawn.area), 'gap to building', round(B.distance(ring), 2), 'roadEnd', ya['roadEnd'])
+print('plaza D', round(D, 2), 'axis', round(ux, 3), round(uz, 3), 'area', round(plaza.area), 'roadRing', round(ring.area), 'lawn', round(lawn.area), 'gap to building', round(B.distance(ring), 2), 'roadEnd', ya['roadEnd'])
