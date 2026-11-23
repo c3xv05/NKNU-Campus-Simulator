@@ -97,6 +97,9 @@ gauss1FRooms=zw(gaussInt['floors'][0]['outline']) if gaussInt else Polygon()
 extension=extension.union(gaussEast).union(Polygon()).union(gaussDeck.difference(gauss1FRooms)).union(unary_union([zw(r) for r in zplan['paving1F']['rings']]).difference(gauss1F.difference(gaussDeck)))
 sidewalkGrade=unary_union([Polygon(st['ring']) for st in c['levelLink']['stairs'] if st.get('topLevel','zhili-ground')=='zhili-ground']+[Polygon(c['teachingAccess'][k]) for k in ('frontApron','gapFootprint') if c['teachingAccess'].get(k)]).buffer(.02,join_style=2)
 extension=extension.difference(sidewalkGrade)
+# User 2026-11-23: the lower tile rectangle west of the Zhili west-wall line (through (-173.81,-244.22), straight toward Huanyu) is deleted;
+# facilities/campus-plazas 'zhili-huanyu-lawn' makes that wedge a flat lawn at plaza height.
+extension=extension.difference(Polygon([(-183.0,-270),(-158.0,-200),(-300,-200),(-300,-270)]))
 # Zhili driveway ramp (user 2026-11-22): the lower plaza/extension is open over the ramp aisle (rims become the low perimeter wall).
 import sys;sys.path.insert(0,str(root/'scripts'))
 import zhili_curbcuts as zc

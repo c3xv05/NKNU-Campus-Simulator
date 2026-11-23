@@ -1,5 +1,9 @@
 # 新對話接續摘要
 
+## 2026-11-23（致理／寰宇交接處：二樓廣場邊緣、西側矩形刪除、平地草坪）
+
+使用者逐步指示（只處理致理與寰宇交接處）：①二樓廣場朝S06（西）的邊緣＝折線P1(-164.59,-241.73)→C(-159.46,-225.47)→P2(-167.05,-222.77)（C約直角），折線西側凸出的二樓部分刪除（`build-teaching-courtyard.py` 的 `_C/_P2/_Q` 差集）；陽台帶保留。②致理西牆線（過(-173.81,-244.22)，朝寰宇延伸，約到(-166.2,-222.8)）以西的下層磁磚矩形刪除（`extension` 差集 polygon [(-183,-270),(-158,-200),(-300,-200),(-300,-270)]）。③該楔形（西牆線以西、寰宇北牆以北、人行道內緣以內，約816㎡）整成與下層廣場同高（約38.80，rawHeight）的平地草坪：`facilities/campus-plazas/layout.json` levelAreas `zhili-huanyu-lawn`（anchor[-170,-236]、heightOffset -1.98、blend 6、groundCover lawn）。重建：build-teaching-courtyard → build-campus-plazas → build-zhili-curbcuts → build-sidewalk-plan（需 shapely 2.1.2）。注意 build-campus-plazas 會把 layout.json 壓成單行，提交前改回 indent=2。已用遊戲實際畫面（Playwright＋npm 安裝的 three@0.160.1 離線載入）確認。待辦：草坪與S06人行道交界高低差只目測；瀏覽器套件測試未跑；使用者走查。
+
 ## 2026-11-23（車道入口完成，待使用者走查）
 
 S05 坡度修正後繼續。**B1 車道斜坡**：`RAMP_SLOPE`（x1.76–7.07、y60.5–66.6，62.3 以南為磁磚）。落差由 `interior.js` 以即時道路高度量測（`fl.ramp.drop`，負值＝爬升約 1.05m）；行走支撐、基座避開斜坡、斜坡入口不再生成玻璃／台階（`header:false` 的出入口強制 open）。**致理入口階梯**：S05 改坡後原本因以人行道高度算落差而消失，現改以曲緣鋪面（pad）高度計算（`padG`），8 階回來。**車道弧線**：`scripts/extract-zhili-lanes.py`→`buildings/zhili/lanes.json`→B1 白漆線。**平台凹口補滿**：`build-teaching-courtyard.py` 的 `driveOpen` 扣掉 deck 範圍（y≤62.45），下層廣場完整蓋住車道北段。**L 形圍牆**：`zhiliCurbCuts.lwall`——`fascia`（x1.7–7.45、y62.15–62.45，deck 邊緣跨過車道口、與西側 parapet 連續）＋`east`（x7.45–8.1、y62.15–66.6，補滿車道東側與主階梯之間的縫）；磚牆＋混凝土壓頂，頂一律 deck+1.3（使用者要求不隨階梯斜降）。照片：`buildings/zhili/source/driveway-entrance-photo.jpg`。待辦：使用者走查；若要樓梯本體向左加寬（而非牆補縫）需改 building-access layout 並重建；準備室由使用者自畫；B02/B03 門位置暫定。
