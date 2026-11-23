@@ -35,7 +35,7 @@ export function addBuildings(THREE,scene,campus,terrain,profiles,network){
   const detail=new THREE.Group();detail.name='building-details-'+p.id;group.add(detail);const batches=new Map();
   function box(w,h,d,x,y,z,mat,angle=0){if(!batches.has(mat))batches.set(mat,[]);batches.get(mat).push({w,h,d,x,y,z,angle});}
   let area=0;for(let i=0;i<a.ring.length;i++){const u=a.ring[i],v=a.ring[(i+1)%a.ring.length];area+=u[0]*v[1]-v[0]*u[1];}
-  const floors=a.floors||Math.max(1,Math.round(a.height/3.6)),fh=a.height/floors,edges=[];
+  const floors=a.floors||Math.max(1,Math.round(a.height/3.6)),fh=a.height/floors,edges=[],levels=a.floorLevels?.length===floors+1?a.floorLevels:Array.from({length:floors+1},(_,f)=>f*fh),storey=f=>levels[f+1]-levels[f];   // floorLevels: per-storey heights from drawings (e.g. Bio 1F 4.5 m)
   for(let i=0;i<(p.customFacade?0:a.ring.length);i++){
    const v=a.ring[i],q=a.ring[(i+1)%a.ring.length],dx=q[0]-v[0],dz=q[1]-v[1],len=Math.hypot(dx,dz),nx=dz/len*Math.sign(area),nz=-dx/len*Math.sign(area),angle=Math.atan2(-dz,dx);if(len<1)continue;
    const edge={v,q,dx,dz,len,nx,nz,angle};edges.push(edge);
@@ -45,11 +45,11 @@ export function addBuildings(THREE,scene,campus,terrain,profiles,network){
      if(distance<a.passage.width/2+w/2+.2&&y+h/2>level&&y-h/2<level+a.passage.clearHeight){if(h>a.passage.clearHeight+1){const low=Math.max(0,level-(y-h/2)),high=Math.max(0,y+h/2-level-a.passage.clearHeight);if(low)box(w,low,d,...at(u,y-h/2+low/2,out),mat,angle);if(high)box(w,high,d,...at(u,level+a.passage.clearHeight+high/2,out),mat,angle);}return;}}
     box(w,h,d,...at(u,y,out),mat,angle);
    };
-   for(let f=1;f<=floors;f++)put(len,.28,.24,.5,f*fh-.14,.07,frame);
+   for(let f=1;f<=floors;f++)put(len,.28,.24,.5,levels[f]-.14,.07,frame);
    const bays=Math.max(1,Math.floor(len/4.6)),bay=len/bays;
    for(let j=0;j<=bays;j++)if(p.style!=='foresight')put(.28,a.height,.32,j/bays,a.height/2,.12,frame);
    for(let j=0;j<bays;j++)for(let f=0;f<floors;f++){
-    const u=(j+.5)/bays,y=f*fh+fh*.53,wide=Math.min(bay-.75,['technology','library','dormitory'].includes(p.style)?3.4:p.style==='foresight'?3.2:2.4),h=fh*.49;
+    const u=(j+.5)/bays,y=levels[f]+storey(f)*.53,wide=Math.min(bay-.75,['technology','library','dormitory'].includes(p.style)?3.4:p.style==='foresight'?3.2:2.4),h=storey(f)*.49;
     put(wide+.18,h+.18,.14,u,y,.12,frame);put(wide,h,.16,u,y,.22,glass);put(.06,h,.06,u,y,.33,frame);put(wide,.06,.06,u,y,.33,frame);
     if(p.style==='foresight'){put(wide+.5,.12,1.05,u,y+h/2+.22,.52,awning);if(j%2===0)put(.6,.4,.4,u+.15/bays,f*fh+.7,.4,frame);}
    }
@@ -61,7 +61,7 @@ export function addBuildings(THREE,scene,campus,terrain,profiles,network){
   }
   // Pick the front facade from each building's own reference metadata.
   const front=selectFront(a,p,network);
-  if(front&&p.showEntrance!==false&&!p.customFacade){const e=front,x=(e.v[0]+e.q[0])/2,z=(e.v[1]+e.q[1])/2,w=a.passage?a.passage.width:Math.min(e.len*.72,12),entryBase=p.entranceAtSidewalk&&network?network.surfaceHeight(x,z)+ROAD_SURFACE_LIFT+SIDEWALK_RISE:base+((p.entranceFloor||1)-1)*fh,place=(along,y,out)=>[x+e.dx/e.len*along+e.nx*out,entryBase+y,z+e.dz/e.len*along+e.nz*out];
+  if(front&&p.showEntrance!==false&&!p.customFacade){const e=front,x=(e.v[0]+e.q[0])/2,z=(e.v[1]+e.q[1])/2,w=a.passage?a.passage.width:Math.min(e.len*.72,12),entryBase=p.entranceAtSidewalk&&network?network.surfaceHeight(x,z)+ROAD_SURFACE_LIFT+SIDEWALK_RISE:base+levels[Math.min(floors,(p.entranceFloor||1)-1)],place=(along,y,out)=>[x+e.dx/e.len*along+e.nx*out,entryBase+y,z+e.dz/e.len*along+e.nz*out];
    if(!a.passage)box(w,2.7,.2,...place(0,1.35,.25),dark,e.angle);for(const t of [-w/2,w/2])box(.6,3.6,2.4,...place(t,1.8,1.1),frame,e.angle);box(w+1,.45,3.2,...place(0,3.35,1.4),frame,e.angle);
    if(p.style==='canteen'){for(const side of [-1,1])box(.35,5,1,...place(side*1.7,a.height+1.8,.4),frame,e.angle);for(let i=0;i<4;i++)box(3.4,.25,1,...place(0,a.height-.5+i*1.35,.4),frame,e.angle);}
    if(p.style==='brick-frame'){for(const t of [-w/2,w/2])box(.4,fh*2.6,.8,...place(t,fh*2,.6),frame,e.angle);box(w+.7,.7,1.2,...place(0,fh*3.2,.7),frame,e.angle);}

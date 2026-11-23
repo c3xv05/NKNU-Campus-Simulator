@@ -45,7 +45,7 @@
       1,
       2
     ],
-    "floorHeight": 3.6,
+    "floorHeight": 4.5,
     "slab": 0.25,
     "clearance": 3.35,
     "accessRoad": 218881800,
@@ -53,7 +53,7 @@
     "flatEnd": 0.75,
     "entryFlare": 2,
     "entryRun": 3.6,
-    "lowerRetainingWalls": true,
+    "lowerRetainingWalls": false,
     "roof": false,
     "stairs": {
       "road": 218881795,
@@ -70,7 +70,8 @@
       ],
       "reference": "2026-11-17使用者要求；兩棟同量南移，T支線垂直S05；距離依現有模型推導，非實測。"
     },
-    "footprintReference": "facilities/biology-layout/layout.json"
+    "footprintReference": "facilities/biology-layout/layout.json",
+    "drawing": "2026-11-23使用者提供生物科技館／生物教學大樓平面圖：1F落地窗通廊、二樓開放平台（=原T平台高度）、+510花瓣廣場、+0～+500坡道階梯、封閉污水機房，見scripts/biology_drawing.py與biology_layout.py。northEndVertices／stairs.width／topLandingDepth為已取代的舊推導參數，只留歷史。"
   },
   "beforeAlignmentCorrection": {
     "courtyardAccess": {

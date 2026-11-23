@@ -1,5 +1,13 @@
 # 新對話接續摘要
 
+## 2026-11-23（生科連接處）：依平面圖重繪生科A／B與連接處
+
+分支 `claude/beautiful-mayer-1e5tbc`（未合併）。使用者提供生物科技館（A）、生物教學大樓（B）1F～3F平面圖（`buildings/bio-*/source/`），要求先處理兩棟連接處；確認事項：2F＝原S05 T平台高度為基準、以平面圖為準、只有1F／2F相通、東側坡道階梯混合且**高差等比例放大**（模型S01比圖面低約6.4m，選第一種解法）、花瓣廣場露天＋鋪面圖案、污水機房封閉關門、1F通廊兩側落地窗、A/B名稱與說明對調。
+- 外框依圖面重描（10頂點直角），以通廊／廣場／坡道區／污水機房共用中心線對齊既有T支線接點；1F 4.5m、2F以上4.0m（`floorLevels`，`buildings/renderer.js` 支援逐層高）、`platformOffset` −0.9m 讓2F維持原T平台高度。
+- 連接處：`scripts/biology_drawing.py`（圖面座標）→ `scripts/biology_layout.py`（推導）→ `stair-layout.js`（25個坡道階梯定義、`biologyTerraceScale`）＋ `facilities/biology-link/renderer.js`（落地窗、門、柱、欄杆、污水機房、花瓣圖案、階梯式花台、樹）。詳見 `facilities/biology-link/README.md`。
+- 測試：新增 `tests/biology-drawing.mjs`、`tests/biology-drawing-geometry.py`；更新 campus-corridors／campus-connections／photo-access／teaching-quarter／relocation-window（生科新範圍）等斷言。全部Node測試通過（photo-buildings為既有失敗），非瀏覽器Python測試與main失敗項目／訊息相同。瀏覽器：桌面＋390px手機無錯誤，之字斜坡、兩側直梯、2F平台、S05→T支線皆零阻擋。
+- 待辦／疑點：T平台下兩側 +505 小梯未建（模型為實心填方）；兩棟室內、立面照片細節；三樓以上樓層數／高度未依圖面驗證；地形修正後坡道高差比例會自動回到接近1。
+
 ## 2026-11-23（續2）：天窗真開口、己梯不再伸進 B1
 
 分支 `claude/zhili-walls-fix-k4wvtk`（未合併）。①B1 天窗（圖面 x34.06–43.4、y41.3–45.16）：原本曲緣「天窗」是一整塊實心 0.18m 台座＋玻璃，上層廣場地板也蓋著；現改為框（`zhiliCurbCuts.plaza.skylight.inner` 開口，框寬約 0.2m），`build-teaching-courtyard.py` 在 `upper` 挖同樣開口（1F 該處本來就是挑空），開口內放碰撞體不讓人走進去。從 B1 往上射線第一個撞到的是天窗玻璃。②己梯：`connections.js` 的 `zhili-ji*` 實心底部由 bottom-1.0 改為 bottom-0.25（下層廣場底面），平台 `zhili-platform-ji-landing` 底部改 lower-0.25，不再垂進 B1。待使用者走查。

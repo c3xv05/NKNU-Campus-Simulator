@@ -1,5 +1,8 @@
 # 生科地圖輪廓來源
 
+> **2026-11-23：已由平面圖取代。** 兩棟外框改由 `scripts/biology_drawing.py` 的圖面座標放置（`scripts/build-biology-layout.py`），只沿用本檔 layout.json 的 `joint`（S05 T支線接點）與 `axis`（S05方向）作為對位基準。下方 imageRing／localRing 草圖只留歷史，不能恢復為現況。詳見 `facilities/biology-link/README.md`。
+
+
 `layout.json` 的 imageRing 是2026-11-17使用者提供之Google Maps截圖像素輪廓；localRing 是依該形狀整理、以S05正交軸表示的模型座標，公尺尺寸近似。imageRing不作貼圖或精確測量。
 
 joint保留PR75已對齊致理／高斯的中央接點，localJoint是正交座標中的同一點。axis沿S05，另一軸為其東向法線。北棟A向南凸出細翼、南棟B向北凸出細翼，中間7.5m等寬通廊平行S05。

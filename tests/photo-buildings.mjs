@@ -3,7 +3,7 @@ import {createTerrain,ringDistance} from '../terrain.js';import {createRoadNetwo
 const read=p=>JSON.parse(fs.readFileSync(new URL('../'+p,import.meta.url))),c=read('data/campus.json'),profiles=read('buildings/catalog.json'),grid=read('data/elevation.json');
 const all=[...c.places,...c.buildings].filter(a=>a.height);assert.equal(Object.keys(profiles).length,all.length);
 for(const a of all){const p=profiles[a.osm];assert(p);const own=read('buildings/'+p.id+'/building.json');assert.deepEqual(own.geometry,a);assert.deepEqual(own.appearance,p);}
-for(const [name,style] of [['生科 A 館','biology'],['生科 B 館','biology'],['致理大樓','brick-frame'],['高斯大樓','brick-frame'],['歸燕食巢','canteen'],['霽遠樓','foresight']])assert.equal(profiles[c.places.find(a=>a.name===name).osm].style,style);
+for(const [name,style] of [['生科 A 館（生物科技館）','biology'],['生科 B 館（生物教學大樓）','biology'],['致理大樓','brick-frame'],['高斯大樓','brick-frame'],['歸燕食巢','canteen'],['霽遠樓','foresight']])assert.equal(profiles[c.places.find(a=>a.name===name).osm].style,style);
 const t=createTerrain(grid,[...c.places,...c.buildings,...c.courts,...c.water],{levelLink:c.levelLink,courtyard:c.courtyard,bioConnection:c.bioConnection});
 assert.equal(t.platformHeight(c.places.find(p=>p.osm===c.bioConnection.from)),t.platformHeight(c.places.find(p=>p.osm===c.bioConnection.to)));
 const net=createRoadNetwork(c.roads,t.rawHeight,read('data/road-tags.json'),{apron:c.entranceApron,pavedAreas:c.pavedAreas,junctionFillets:c.junctionFillets,sharedGradeGrid:true});

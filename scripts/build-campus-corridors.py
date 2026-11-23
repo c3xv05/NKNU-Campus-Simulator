@@ -60,7 +60,7 @@ a.update(regions=regions(shape),triangles=tessellate(shape),footprints=triangles
 blend=shape.buffer(a['groundBlend'],join_style=2).difference(shape).difference(motor).difference(buildings).difference(from_regions(court['floorRegions']['lower'])).difference(from_regions(court['floorRegions']['upper']))
 a['groundBlendPlan']={'width':a['groundBlend'],'regions':regions(blend),'triangles':tessellate(blend,1,True),'footprints':triangles(blend)}
 transitions=[a]
-raw,apron=derive_biology(c,source);bio=c['bioConnection'];cfg=source['biology'];corridor=raw.difference(buildings);bio['corridor'].update(regions=regions(corridor),triangles=triangles(corridor));joint=bio['corridor']['joint'];east=bio['corridor']['east'];axis=bio['corridor']['axis'];road=next(r for r in c['roads']if r['osm']==cfg['accessRoad'])
+raw,apron=derive_biology(c,source);bio=c['bioConnection'];cfg=source['biology'];corridor=raw.difference(buildings);deck=Polygon(bio['corridor']['deckRing']).difference(buildings);bio['corridor'].update(regions=regions(corridor),triangles=triangles(corridor),deckRegions=regions(deck),deckTriangles=triangles(deck));joint=bio['corridor']['joint'];east=bio['corridor']['east'];axis=bio['corridor']['axis'];road=next(r for r in c['roads']if r['osm']==cfg['accessRoad'])
 # The stem follows S05's normal; its joint remains centred between the wings.
 stemEast=source['biology'].get('southAlignment',{}).get('roadAxis')
 stemEast=[stemEast[1],-stemEast[0]] if stemEast else east
@@ -69,17 +69,17 @@ a={'id':'biology-s05','road':cfg['accessRoad'],'line':[start,joint],'width':cfg[
 def at(along,across):return [start[i]+stemEast[i]*along+normal[i]*across for i in range(2)]
 for j in range(round((a['width']+2*a['entryFlare'])/.5)+1):
     across=-(a['width']/2+a['entryFlare'])+j*.5;segment=LineString([at(0,across),at(length,across)]);hit=segment.intersection(motor);parts=[p for p in (list(hit.geoms)if hasattr(hit,'geoms')else[hit])if p.geom_type=='LineString'];point=max((list(p.coords)[-1]for p in parts),key=lambda p:segment.project(Point(p)));a['entryStations'].append({'across':across,'along':segment.project(Point(point)),'point':list(point)})
-flare_end=max(s['along']for s in a['entryStations'])+a['entryRun'];flare=Polygon([at(0,-a['width']/2-a['entryFlare']),at(flare_end,-a['width']/2-a['entryFlare']),at(flare_end,a['width']/2+a['entryFlare']),at(0,a['width']/2+a['entryFlare'])]);shape=ribbon(a['line'],a['width']).union(flare).difference(buildings).difference(motor).difference(corridor)
+flare_end=max(s['along']for s in a['entryStations'])+a['entryRun'];flare=Polygon([at(0,-a['width']/2-a['entryFlare']),at(flare_end,-a['width']/2-a['entryFlare']),at(flare_end,a['width']/2+a['entryFlare']),at(0,a['width']/2+a['entryFlare'])]);shape=ribbon(a['line'],a['width']).union(flare).difference(buildings).difference(motor).difference(deck)
 entries=[]
 for offset in [-a['width']/2,0,a['width']/2]:
-    segment=LineString([at(0,offset),at(length,offset)]);hit=segment.intersection(corridor)
+    segment=LineString([at(0,offset),at(length,offset)]);hit=segment.intersection(deck)
     for part in (list(hit.geoms)if hasattr(hit,'geoms')else[hit]):
         if part.geom_type=='LineString' and part.length>1e-5:entries.append(segment.project(Point(part.coords[0])))
 a['flatEnd']=length-min(entries)+cfg['flatEnd'];a.update(regions=regions(shape),triangles=tessellate(shape,.2),footprints=triangles(shape));transitions.append(a);bio['ramp']=a['line'];bio['accessWidth']=a['width']
 # A flat rectangle precedes the first descending tread on the lower level.
 if bio.get('eastLanding'):
     landing=bio['eastLanding'];shape=Polygon(landing['ring']).difference(buildings).difference(motor).difference(corridor)
-    a={**landing,'id':'biology-east-landing','kind':'biology-landing','regions':regions(shape),'triangles':tessellate(shape),'footprints':triangles(shape)};transitions.append(a)
+    a={**{k:v for k,v in landing.items() if k!='kind'},'plazaKind':landing.get('kind'),'id':'biology-east-landing','kind':'biology-landing','regions':regions(shape),'triangles':tessellate(shape),'footprints':triangles(shape)};transitions.append(a)
 # Flat ground apron outside the strictly rectangular staircase, meeting the skew S01 edge.
 shape=apron.difference(motor).difference(buildings).difference(Polygon(bio['stairs']['ring']));bottom=bio['stairs']['line'][1];reach=max(math.dist(bottom,p)for p in apron.exterior.coords)
 a={'id':'biology-s01-apron','kind':'road-apron','road':cfg['stairs']['road'],'line':[bottom,[bottom[i]+east[i]*reach for i in range(2)]],'width':bio['stairs']['width'],'regions':regions(shape),'triangles':tessellate(shape),'footprints':triangles(shape)};transitions.append(a)
@@ -96,4 +96,4 @@ if cfg['lowerRetainingWalls']:
      if not .1<u<.9 or buildings.distance(mid)<.05:continue
      center=centerline.interpolate(centerline.project(mid));vx=center.x-mid.x;vz=center.y-mid.y;l=math.hypot(vx,vz);offset=[vx/l*.03,vz/l*.03]if l else[0,0]
      bio['corridor']['retainingEdges'].append([[round(v[i]+offset[i],7)for i in range(2)]for v in [part.coords[0],part.coords[-1]]])
-c['campusTransitions']=transitions;(root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n');print('Built lower S32 access; Bio B-width open T, 12m centred stem and rectangular lower stairs',round(bio['width'],3),bio['stairs']['width'])
+c['campusTransitions']=transitions;(root/'data/campus.json').write_text(json.dumps(c,ensure_ascii=False,separators=(',',':'))+'\n');print('Built lower S32 access; drawing-based Bio hall/deck, 12m centred stem, flower plaza and terraced ramp/stairs',round(bio['width'],3),round(bio['stairs']['width'],3))
