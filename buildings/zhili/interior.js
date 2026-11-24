@@ -22,7 +22,7 @@ export function createPlanSurface(campus,terrain,osm){
  if(!data||!building)return null;
  const f=frame(data.transform),base=terrain.platformHeight(building),H=data.floorHeight;
  // Walls, window glass/sills and glazed entrances all block; open entrances and doors do not.
- const floors=data.floors.map(fl=>{const blocking=[...fl.walls,...(fl.furnitureBlocks||[]),...(fl.sills||[]).map(s=>s.rect),...(fl.doorLeaves||[]),...fl.exits.filter(e=>!e.open).flatMap(e=>e.rect)];return{...fl,y:base+fl.level,near:grid(blocking),blocking};});
+ const floors=[...data.floors,...(data.upperFloors||[])].map(fl=>{const blocking=[...fl.walls,...(fl.furnitureBlocks||[]),...(fl.sills||[]).map(s=>s.rect),...(fl.doorLeaves||[]),...fl.exits.filter(e=>!e.open).flatMap(e=>e.rect)];return{...fl,y:base+fl.level,near:grid(blocking),blocking};});
  const stepRects=floors.flatMap(fl=>fl.exits.flatMap(e=>(e.steps||[]).map(t=>t.rect)));
  function supportAt(x,z,y){
   const p=f.toDrawing(x,z);if(ringDistance(p[0],p[1],data.outline)!==0&&!stepRects.some(r=>inRect(p,r)))return null;
@@ -116,8 +116,8 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
    return;}
   rectBox(inner,y0,top,'inner');const e=.012;if(skirt)rectBox([inner[0]-e,inner[1]-e,inner[2]+e,inner[3]+e],y,y+fin.skirtingHeight,'skirting');}
  let shell=null;
- for(const fl of data.floors){const y=base+fl.level;
-  const s=slab(fl.slabTriangles,y,y-SLAB,'floor',key+'-floor-'+fl.label);shell??=s;
+ for(const fl of [...data.floors,...(data.upperFloors||[])]){const y=base+fl.level;
+  const s=fl.slabTriangles.length?slab(fl.slabTriangles,y,y-SLAB,'floor',key+'-floor-'+fl.label+(fl.hall?'-hall':'')):null;shell??=s;
   if(fin&&fl.garageTriangles){surface(fl.garageTriangles,y+.004,surf.garage,4,key+'-garage-'+fl.label);for(const r of fl.stallLines||[])rectBox(r,y+.004,y+.014,'paint');if(fl.laneTriangles?.length)surface(fl.laneTriangles,y+.012,mats.paint,1,key+'-lanes-'+fl.label);
   if(fl.ramp){const r=fl.ramp.rect,drop=fl.ramp.drop,N=Math.max(2,Math.ceil((r[3]-r[1])/.4)),low=Math.min(...(data.foundationRing||fl.outline).map(([x,yy])=>{const [wx,wz]=f.toWorld(x,yy);return terrain.height(wx,wz);}))-.6;
    const top=yy=>y+.004-drop*(yy-r[1])/(r[3]-r[1]),V=(x,yy,h)=>{const [wx,wz]=f.toWorld(x,yy);return[wx,h,wz];};
@@ -155,7 +155,8 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setAttribute('sidewalkEdgeDistance',new THREE.Float32BufferAttribute(Array(pos.length/3).fill(1),1));g.computeVertexNormals();const m=new THREE.Mesh(g,tm);m.name=key+'-exposed-roof-tiles-'+r.level;m.receiveShadow=true;group.add(m);}}
  const roofY=base+data.roofLevel;slab(data.roofTriangles,roofY-.01,roofY-SLAB,'ceiling',key+'-roof');
  // 3F and above: one solid brick volume with the plan's windows on every facade, floor bands and a parapet.
- if(data.solidAbove){const ring=data.towerOutline,sh=new THREE.Shape();ring.forEach(([x,y],i)=>{const [wx,wz]=f.toWorld(x,y);i?sh.lineTo(wx,-wz):sh.moveTo(wx,-wz);});sh.closePath();const g=new THREE.ExtrudeGeometry(sh,{depth:data.solidAbove.to-data.solidAbove.from,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,mats.outer);m.position.y=base+data.solidAbove.from;m.name=key+'-solid-upper-floors';m.castShadow=true;m.receiveShadow=true;group.add(m);blockers.push(m);
+ if(data.solidAbove){const ring=data.towerOutline,solid=data.solidRing||ring,sh=new THREE.Shape();solid.forEach(([x,y],i)=>{const [wx,wz]=f.toWorld(x,y);i?sh.lineTo(wx,-wz):sh.moveTo(wx,-wz);});sh.closePath();const g=new THREE.ExtrudeGeometry(sh,{depth:data.solidAbove.to-data.solidAbove.from,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,mats.outer);m.position.y=base+data.solidAbove.from;m.name=key+'-solid-upper-floors';m.castShadow=true;m.receiveShadow=true;group.add(m);blockers.push(m);
+  if(data.hallRoofTriangles?.length){const rt=base+data.solidAbove.to;slab(data.hallRoofTriangles,rt,rt-SLAB,'outer',key+'-hall-roof');}   // the hollowed 乙梯 hall keeps its roof
   for(const [label,wins] of Object.entries(data.facade||{})){const level=(+label.replace('F','')-1)*H,y=base+level;for(const w of wins)pane(w,y,.04);}
   for(let i=0;i<ring.length;i++){const a=ring[i],b=ring[(i+1)%ring.length];if(slanted(a,b)){for(let lv=data.solidAbove.from;lv<data.solidAbove.to-.1;lv+=H)oBox(a,b,.24,base+lv-.12,base+lv+.06,'trim',[0,0],0,.2);oBox(a,b,.24,base+data.solidAbove.to,base+data.solidAbove.to+.9,'outer',[0,0],0,.2);oBox(a,b,.24,base+data.solidAbove.to+.9,base+data.solidAbove.to+1,'trim',[0,0],0,.2);continue;}const horiz=Math.abs(b[1]-a[1])<Math.abs(b[0]-a[0]),len=Math.hypot(b[0]-a[0],b[1]-a[1]),cx=(a[0]+b[0])/2,cy=(a[1]+b[1])/2,r=horiz?[cx-len/2-.1,cy-.12,cx+len/2+.1,cy+.12]:[cx-.12,cy-len/2-.1,cx+.12,cy+len/2+.1];
    for(let lv=data.solidAbove.from;lv<data.solidAbove.to-.1;lv+=H)rectBox(r,base+lv-.12,base+lv+.06,'trim');rectBox(r,base+data.solidAbove.to,base+data.solidAbove.to+.9,'outer');rectBox(r,base+data.solidAbove.to+.9,base+data.solidAbove.to+1,'trim');}}

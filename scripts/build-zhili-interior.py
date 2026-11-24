@@ -353,7 +353,7 @@ for k in ALL_FLOORS:
     spaces = floor_spaces(k, inner)
     if k not in ORDER:  # solid floors: facade windows only
         facade[LABEL[k]] = [w for w in window_plan(k, O, [s for s in spaces if s['type'] != 'void'], []) if not BAY.buffer(.05).contains(Point((w['a'][0] + w['b'][0]) / 2, (w['a'][1] + w['b'][1]) / 2))] + \
-                           [{'a': a_, 'b': b_, 'normal': n_, 'sill': .1, 'head': FLOOR_H - .3} for a_, b_, n_ in BAY_GLASS]
+                           []   # the bay glass of 3F–8F is cut into the hollowed 乙梯 hall (upperFloors)
         continue
     free = np.zeros((H, W), np.uint8); solid = np.zeros((H, W), np.uint8); void = np.zeros((H, W), np.uint8)
     for s in spaces:
@@ -695,12 +695,44 @@ for i, fl in enumerate(floors_out):
             fl['laneTriangles'] = [[world(q) for q in list(t.exterior.coords)[:-1]] for g in (list(lanes.geoms) if hasattr(lanes, 'geoms') else [lanes]) if g.geom_type == 'Polygon' and g.area > .005 for t in constrained_delaunay_triangles(g).geoms if t.area > 1e-7]
     ceil = ceil.buffer(0); cparts = [ceil] if ceil.geom_type == 'Polygon' else [g for g in ceil.geoms if g.geom_type == 'Polygon']
     fl['ceilingTriangles'] = [[world(q) for q in list(t.exterior.coords)[:-1]] for p in cparts if p.area > .5 for t in constrained_delaunay_triangles(p).geoms if t.area > 1e-6]
-top = OUTLINE[ORDER[-1]]
+# ---- 乙梯 stacked up to 8F (user 2026-11-24: 3F and above are hollowed out and the stair is built) ----
+# The upper floors stay a solid brick volume (facade windows only) except this stair hall: the same two-flight stair as 1F
+# (same rect and treads, landing running on into the glazed bay) on every floor, band walls round the hall, the bay glass
+# as real window openings. Only 乙梯 climbs; its hall is closed off from the rest of each solid floor.
+HALL_O = Polygon([(60.8, 55.01), (65.72, 55.01), (65.72, 55.7), (66.97, 56.8), (65.72, 57.9), (65.72, 59.11), (60.8, 59.11)]).intersection(TOWER).buffer(0)
+st_ji = next(st for st in stairs_by_floor['1'] if st['id'] == '乙梯')
+def stair_holes(st): return [box(*st['hole'])] + [box(*r_).buffer(.01, join_style=2) for r_ in st.get('extraHoles', [])]
+def tris(P): return [[world(q) for q in list(t.exterior.coords)[:-1]] for g in ([P] if P.geom_type == 'Polygon' else [x for x in P.geoms if x.geom_type == 'Polygon']) if g.area > .05 for t in constrained_delaunay_triangles(g).geoms if t.area > 1e-6]
+def regions(P): return [[ring_coords(g), *[[[round(x, 3), round(y, 3)] for x, y in h.coords][:-1] for h in g.interiors]] for g in ([P] if P.geom_type == 'Polygon' else [x for x in P.geoms if x.geom_type == 'Polygon']) if g.area > .05]
+upper_floors = []
+hall_mask = poly_mask(HALL_O); hall_band = hall_mask & (1 - cv2.erode(hall_mask, np.ones((2 * int(WALL_BAND / CELL) + 1,) * 2, np.uint8)))
+for k in ('2', '3', '4', '5', '6', '7', '8'):
+    ent = {'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'hall': True, 'outline': ring_coords(HALL_O), 'walls': [], 'lintels': [], 'sills': [], 'heads': [], 'windows': [], 'doors': [], 'doorLeaves': [], 'exits': [],
+           'furniture': [], 'furnitureBlocks': [], 'openAreas': [], 'spaces': [], 'slab': [], 'slabTriangles': [], 'stairs': [], 'stallLines': [], 'garageLights': []}
+    if k != '8': ent['stairs'] = [{**st_ji, 'treads': [dict(t) for t in st_ji['treads']]}]
+    if k != '2':
+        wm = hall_band.copy(); sills_, heads_, glass_ = [], [], []
+        for a_, b_, n_ in BAY_GLASS:
+            r = [min(a_[0], b_[0]), min(a_[1], b_[1]), max(a_[0], b_[0]), max(a_[1], b_[1])]
+            r = [r[0] - (.45 if abs(n_[0]) > .5 else 0), r[1] - (.45 if abs(n_[1]) > .5 else 0), r[2] + (.45 if abs(n_[0]) > .5 else 0), r[3] + (.45 if abs(n_[1]) > .5 else 0)]
+            cut = rect_mask(r) & wm
+            if cut.sum() < 5: continue
+            wm &= 1 - cut; rr = rects(cut); sills_ += [dict(rect=q, top=.1) for q in rr]; heads_ += [dict(rect=q, bottom=FLOOR_H - .3) for q in rr]
+            glass_.append({'a': a_, 'b': b_, 'normal': n_, 'sill': .1, 'head': FLOOR_H - .3})
+        sl = HALL_O
+        for h_ in stair_holes(st_ji): sl = sl.difference(h_)   # flight arriving from the floor below
+        sl = sl.buffer(0)
+        ent.update({'walls': fine_rects(up(wm)), 'sills': sills_, 'heads': heads_, 'windows': glass_, 'slab': regions(sl), 'slabTriangles': tris(sl)})
+    upper_floors.append(ent)
+roof_hole = unary_union(stair_holes(st_ji))
+solid_ring = TOWER.difference(HALL_O); assert solid_ring.geom_type == 'Polygon' and not list(solid_ring.interiors), solid_ring.geom_type
+hall_roof = HALL_O
+top = OUTLINE[ORDER[-1]].difference(roof_hole).buffer(0)
 out = {'version': 2, 'building': 444867693, 'floorHeight': FLOOR_H, 'slab': SLAB, 'transform': T,
        # Interior finish (user 2026-11-19): square floor tiles, off-white walls, black skirting, light-steel (T-bar)
        # suspended ceiling with recessed lights.
        'finish': {'tile': .6, 'wall': '#efe9da', 'skirting': '#1c1c1e', 'skirtingHeight': .1, 'ceilingHeight': 3.0, 'ceilingPanel': .6}, 'foundationRing': ring_coords(OUTLINE['B'].difference(box(*RAMP_SLOPE['rect']))), 'outline': ring_coords(unary_union([OUTLINE[k] for k in ORDER])),
-       'towerOutline': ring_coords(TOWER), 'podiumRoofLevel': LEVEL['2'],
+       'towerOutline': ring_coords(TOWER), 'solidRing': ring_coords(solid_ring), 'upperFloors': upper_floors, 'hallRoofTriangles': tris(hall_roof), 'hallRoofLevel': LEVEL[ALL_FLOORS[-1]] + FLOOR_H, 'podiumRoofLevel': LEVEL['2'],
        'source': {'plan': 'buildings/zhili/plan.json', 'basis': '使用者確認的平面圖判讀；各層外框依圖面（1F含裙樓與北側門廳），牆為房間分區交界與0.25m外牆，梯間四周封牆、門依圖面方位，外牆依房間開窗；門窗尺寸為模型近似。空房間。',
                   'scope': '使用者2026-11-18：先做2樓以下（B1～2F可走），3F以上為實心量體但外牆窗依圖面；B1只含1F建物下方，室外鋪面下方的停車場待做。'},
        'floors': floors_out, 'facade': facade, 'roofTriangles': [[world(q) for q in list(t.exterior.coords)[:-1]] for t in constrained_delaunay_triangles(top).geoms if t.area > 1e-6],
