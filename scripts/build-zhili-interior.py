@@ -27,7 +27,7 @@ TOWER = Polygon(geom['drawingFootprint']['drawingRing']).buffer(0)
 # User 2026-11-24: the triangular bay east of 乙梯 is glazing from 1F to 8F (every sheet draws it), and the SE toilet
 # block reaches the drawn east wall x64.79 and south wall y64.35 (the ring stopped at x63.8 / y63.9).
 NO_WINDOWS = {'1': [box(21.2, 48.0, 21.7, 55.4), box(16.2, 47.9, 21.5, 48.4)]}   # user 2026-11-24: 己梯 side / top walls have no windows
-BUILT_TOILETS = {'1': box(58.6, 58.2, 64.8, 64.4)}   # 1F SE toilets drawn from the sheet (overrides.json zt1-*), not sealed
+BUILT_TOILETS = {'1': unary_union([box(58.6, 58.2, 64.8, 64.4), box(21.4, 46.2, 26.4, 55.3), box(35.5, 4.5, 42.1, 10.9)])}   # 1F SE toilets drawn from the sheet (overrides.json zt1-*), not sealed
 BAY = Polygon([(64.3, 54.85), (65.72, 54.85), (65.72, 55.7), (66.97, 56.8), (65.72, 57.9), (65.72, 58.8), (64.3, 58.8)])
 BAY_GLASS = [([65.86, 55.79], [66.88, 56.8], [.7, -.714]), ([66.88, 56.8], [65.86, 57.81], [.7, .714])]
 TOILET_SE = box(63.7, 58.7, 64.79, 64.35)
@@ -651,6 +651,7 @@ for k in ALL_FLOORS:
             if ts: lo.append(min(ts)); hi.append(max(ts))
         t0, t1 = (float(np.median(lo)), float(np.median(hi))) if lo else (-.1, .1)
         if t1 - t0 < .08: t0, t1 = -.1, .1
+        dr['frame'] = [round(t1 - t0, 3), round((t0 + t1) / 2, 3)] if t1 - t0 <= .45 else [.25, 0.0]   # thicker readings (door beside a solid core) fall back to a 0.25 m frame   # user 2026-11-24: every door gets a frame (jambs + head) as thick as the wall at its jambs; centre offset along the normal
         fine_poly(Polygon([a2 - u2 * .08 + n2 * t0, b2 + u2 * .08 + n2 * t0, b2 + u2 * .08 + n2 * t1, a2 - u2 * .08 + n2 * t1]), lint)
     lint &= 1 - wf
     floors_out.append({'garagePoly': garage_poly, 'stallLines': [[round(v, 3) for v in r] for r in stall_lines], 'garageLights': garage_lights, 'openAreas': [OPEN_2F] if k == '2' else ([DRIVE_OPEN_B1] if k == 'B' else []), 'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'outline': ring_coords(Pk), 'walls': fine_rects(wf), 'lintels': fine_rects(lint),

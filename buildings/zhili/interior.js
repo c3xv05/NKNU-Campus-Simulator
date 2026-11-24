@@ -143,6 +143,10 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
    for(const t of st.treads){const top=y+t.height;rectBox(t.rect,top-(t.flight<0?.2:.18),top,'tread');}
    rectBox(st.divider,y,y+1.1,'inner');rectBox(st.divider,y+1.1,y+H-SLAB-.05,'steel');
    const r=st.rect,[px,pz]=f.toWorld((r[0]+r[2])/2,(r[1]+r[3])/2);plate(st.id+' '+fl.label+'↑',px,y+2.6,pz,f.angle,1);}
+  // Door frames (user 2026-11-24): two jambs and a head round every door opening, as thick as the wall (+2 cm each face); the passage keeps its width.
+  for(const d of fl.doors){if(!d.frame)continue;const A=f.toDrawing(...d.line[0]),B=f.toDrawing(...d.line[1]),L=Math.hypot(B[0]-A[0],B[1]-A[1]);if(L<.3)continue;
+   const u=[(B[0]-A[0])/L,(B[1]-A[1])/L],n=[-u[1],u[0]],t=Math.max(.12,d.frame[0])+.04,o=d.frame[1],A0=[A[0]-u[0]*.08,A[1]-u[1]*.08],B1=[B[0]+u[0]*.08,B[1]+u[1]*.08];
+   oBox(A0,A,t,y,y+2.25,'frame',n,o);oBox(B,B1,t,y,y+2.25,'frame',n,o);oBox(A0,B1,t,y+2.17,y+2.25,'frame',n,o);}
   for(const d of fl.doors){const[a,b]=d.line,mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2,ang=Math.atan2(-(b[1]-a[1]),b[0]-a[0]);if(['classroom','office','library','hall','service','mech','unknown'].includes(d.kind)&&/^[\dB]/.test(d.name))plate(d.name,mx,y+2.55,mz,ang,.8);}
  }
  // Foundation: where the ground under the lowest walkable floor is lower than its slab, fill down to the ground

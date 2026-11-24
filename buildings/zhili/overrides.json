@@ -691,6 +691,45 @@
    ]
   },
   {
+   "id": "zt1t-001",
+   "floor": "1F",
+   "kind": "clear",
+   "rect": [
+    21.55,
+    48.3,
+    23.75,
+    55.15
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "note": "1F 己梯旁女廁：依圖面重畫"
+  },
+  {
+   "id": "zt1t-002",
+   "floor": "1F",
+   "kind": "clear",
+   "rect": [
+    23.95,
+    46.4,
+    26.15,
+    55.15
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "note": "1F 己梯旁男廁：依圖面重畫"
+  },
+  {
+   "id": "zt1t-048",
+   "floor": "1F",
+   "kind": "clear",
+   "rect": [
+    35.65,
+    4.65,
+    41.05,
+    10.75
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "note": "1F 北端廁所：依圖面重畫"
+  },
+  {
    "id": "belo131e7lty92jhnr3r",
    "floor": "1F",
    "kind": "open",
@@ -844,123 +883,6 @@
    "b": [
     42,
     8.55
-   ]
-  },
-  {
-   "id": "d4i03cd10ixci98jtgcs",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    36.1,
-    4.95
-   ],
-   "b": [
-    40.8,
-    4.95
-   ]
-  },
-  {
-   "id": "n9hj4fa33mu5di68m4vc",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    36.05,
-    4.95
-   ],
-   "b": [
-    40.9,
-    4.95
-   ]
-  },
-  {
-   "id": "om68go9h3wsgg13zfb7c",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    36.6,
-    5.3
-   ],
-   "b": [
-    40.45,
-    5.3
-   ]
-  },
-  {
-   "id": "oecg0zu0mc2bmrx9r4jh",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    36.05,
-    4.65
-   ],
-   "b": [
-    41.2,
-    4.65
-   ]
-  },
-  {
-   "id": "5o6fyifdok32itc62ggq",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    41.5,
-    4.8
-   ],
-   "b": [
-    41.5,
-    5.45
-   ]
-  },
-  {
-   "id": "58a9a2g4h5w3xfqjw65f",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    41.75,
-    4.75
-   ],
-   "b": [
-    41.75,
-    5.6
-   ]
-  },
-  {
-   "id": "qusn7dfdh6y8h9aiysnf",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    35.85,
-    6.4
-   ],
-   "b": [
-    35.85,
-    10.1
-   ]
-  },
-  {
-   "id": "ym8cftu6cxs2gf6iscqq",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    35.95,
-    10.5
-   ],
-   "b": [
-    41.85,
-    10.5
-   ]
-  },
-  {
-   "id": "ks4e777174nn1555ci0h",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    36.4,
-    10.15
-   ],
-   "b": [
-    39.65,
-    10.15
    ]
   },
   {
@@ -1351,84 +1273,6 @@
    "b": [
     43.95,
     48.25
-   ]
-  },
-  {
-   "id": "0ozfkmx1n3tf367d72u4",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    26.1,
-    46.55
-   ],
-   "b": [
-    26.1,
-    54.75
-   ]
-  },
-  {
-   "id": "obq56qdcxk2p2b3oi1lf",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    22.4,
-    54.95
-   ],
-   "b": [
-    26.2,
-    54.95
-   ]
-  },
-  {
-   "id": "ht8251rp6xdb3cmlc9nu",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    25.75,
-    51.2
-   ],
-   "b": [
-    25.75,
-    54.85
-   ]
-  },
-  {
-   "id": "ihuji5rp2x921pe6uqka",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    25.55,
-    51.7
-   ],
-   "b": [
-    25.55,
-    54.8
-   ]
-  },
-  {
-   "id": "uuzgj6cx530udalka59c",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    22,
-    46.5
-   ],
-   "b": [
-    22,
-    54.7
-   ]
-  },
-  {
-   "id": "8y8fawytq0goth1ebx3t",
-   "floor": "1F",
-   "kind": "open",
-   "a": [
-    22.15,
-    46.55
-   ],
-   "b": [
-    22.15,
-    54.8
    ]
   },
   {
@@ -5221,6 +5065,1482 @@
    "w": 0.565,
    "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
    "note": "男女廁入口之間的矩形實心牆"
+  },
+  {
+   "id": "zt1t-003",
+   "floor": "1F",
+   "kind": "nodoor",
+   "rect": [
+    21.45,
+    48.3,
+    22.4,
+    50.3
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-004",
+   "floor": "1F",
+   "kind": "nodoor",
+   "rect": [
+    21.55,
+    50.3,
+    23.0,
+    55.2
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-005",
+   "floor": "1F",
+   "kind": "nodoor",
+   "rect": [
+    22.8,
+    47.9,
+    23.95,
+    48.5
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-006",
+   "floor": "1F",
+   "kind": "nodoor",
+   "rect": [
+    23.6,
+    46.2,
+    24.95,
+    47.4
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-007",
+   "floor": "1F",
+   "kind": "nodoor",
+   "rect": [
+    24.35,
+    46.4,
+    26.2,
+    51.4
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-008",
+   "floor": "1F",
+   "kind": "nodoor",
+   "rect": [
+    24.9,
+    51.4,
+    26.2,
+    55.2
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-009",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    21.55,
+    50.2
+   ],
+   "b": [
+    22.7,
+    50.2
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-010",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    21.55,
+    51.45
+   ],
+   "b": [
+    22.7,
+    51.45
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-011",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    21.55,
+    52.7
+   ],
+   "b": [
+    22.7,
+    52.7
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-012",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    21.55,
+    53.95
+   ],
+   "b": [
+    22.7,
+    53.95
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-013",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    22.7,
+    50.2
+   ],
+   "b": [
+    22.7,
+    50.45
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-014",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    22.7,
+    51.14
+   ],
+   "b": [
+    22.7,
+    51.45
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-015",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    22.7,
+    51.45
+   ],
+   "b": [
+    22.7,
+    51.7
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-016",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    22.7,
+    52.4
+   ],
+   "b": [
+    22.7,
+    52.7
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-017",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    22.7,
+    52.7
+   ],
+   "b": [
+    22.7,
+    52.97
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-018",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    22.7,
+    53.66
+   ],
+   "b": [
+    22.7,
+    53.95
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-019",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    22.7,
+    53.95
+   ],
+   "b": [
+    22.7,
+    54.23
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-020",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    22.7,
+    54.9
+   ],
+   "b": [
+    22.7,
+    55.2
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-021",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    21.52,
+    48.25,
+    22.08,
+    49.15
+   ],
+   "h": 0.85,
+   "m": "white",
+   "room": "女廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-022",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    21.52,
+    49.2,
+    22.08,
+    50.1
+   ],
+   "h": 0.85,
+   "m": "white",
+   "room": "女廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-023",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    21.8,
+    50.54,
+    22.17,
+    51.06
+   ],
+   "h": 0.4,
+   "m": "white",
+   "room": "女廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-024",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    21.8,
+    51.84,
+    22.17,
+    52.36
+   ],
+   "h": 0.4,
+   "m": "white",
+   "room": "女廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-025",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    21.8,
+    53.1,
+    22.17,
+    53.62
+   ],
+   "h": 0.4,
+   "m": "white",
+   "room": "女廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-026",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    21.8,
+    54.34,
+    22.17,
+    54.86
+   ],
+   "h": 0.4,
+   "m": "white",
+   "room": "女廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-027",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    25.1,
+    51.45
+   ],
+   "b": [
+    26.2,
+    51.45
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-028",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    25.1,
+    52.7
+   ],
+   "b": [
+    26.2,
+    52.7
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-029",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    25.1,
+    53.95
+   ],
+   "b": [
+    26.2,
+    53.95
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-030",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    25.1,
+    51.45
+   ],
+   "b": [
+    25.1,
+    51.71
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-031",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    25.1,
+    52.4
+   ],
+   "b": [
+    25.1,
+    52.7
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-032",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    25.1,
+    52.7
+   ],
+   "b": [
+    25.1,
+    52.97
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-033",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    25.1,
+    53.66
+   ],
+   "b": [
+    25.1,
+    53.95
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-034",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    25.1,
+    53.95
+   ],
+   "b": [
+    25.1,
+    54.23
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-035",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    25.1,
+    54.92
+   ],
+   "b": [
+    25.1,
+    55.2
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-036",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    25.58,
+    51.84,
+    25.95,
+    52.36
+   ],
+   "h": 0.4,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-037",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    25.58,
+    53.1,
+    25.95,
+    53.62
+   ],
+   "h": 0.4,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-038",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    25.58,
+    54.34,
+    25.95,
+    54.86
+   ],
+   "h": 0.4,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-039",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    25.88,
+    48.48,
+    26.2,
+    48.82
+   ],
+   "h": 0.9,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-040",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    25.88,
+    49.33,
+    26.2,
+    49.67
+   ],
+   "h": 0.9,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-041",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    25.88,
+    50.13,
+    26.2,
+    50.47
+   ],
+   "h": 0.9,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-042",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    25.88,
+    50.88,
+    26.2,
+    51.22
+   ],
+   "h": 0.9,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-043",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    25.78,
+    49.08
+   ],
+   "b": [
+    26.2,
+    49.08
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.2
+  },
+  {
+   "id": "zt1t-044",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    25.78,
+    49.9
+   ],
+   "b": [
+    26.2,
+    49.9
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.2
+  },
+  {
+   "id": "zt1t-045",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    25.78,
+    50.68
+   ],
+   "b": [
+    26.2,
+    50.68
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.2
+  },
+  {
+   "id": "zt1t-046",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    25.65,
+    46.4,
+    26.15,
+    47.25
+   ],
+   "h": 0.85,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-047",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    25.65,
+    47.3,
+    26.15,
+    48.15
+   ],
+   "h": 0.85,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-049",
+   "floor": "1F",
+   "kind": "nodoor",
+   "rect": [
+    35.6,
+    5.3,
+    41.0,
+    6.4
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-050",
+   "floor": "1F",
+   "kind": "nodoor",
+   "rect": [
+    35.6,
+    6.7,
+    41.0,
+    8.8
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-051",
+   "floor": "1F",
+   "kind": "nodoor",
+   "rect": [
+    35.6,
+    9.3,
+    39.6,
+    10.5
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-052",
+   "floor": "1F",
+   "kind": "nodoor",
+   "rect": [
+    40.9,
+    6.5,
+    42.1,
+    7.2
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-053",
+   "floor": "1F",
+   "kind": "nodoor",
+   "rect": [
+    40.9,
+    8.2,
+    42.1,
+    8.9
+   ],
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-054",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    35.6,
+    7.65
+   ],
+   "b": [
+    41.1,
+    7.65
+   ],
+   "w": 0.05,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "note": "男女廁隔牆"
+  },
+  {
+   "id": "zt1t-055",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    35.6,
+    7.25
+   ],
+   "b": [
+    36.75,
+    7.25
+   ],
+   "w": 0.45,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "note": "清潔間（實心）"
+  },
+  {
+   "id": "zt1t-056",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    40.7,
+    5.18
+   ],
+   "b": [
+    41.95,
+    5.18
+   ],
+   "w": 0.57,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "note": "管道間（實心）"
+  },
+  {
+   "id": "zt1t-057",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    36.85,
+    4.6
+   ],
+   "b": [
+    36.85,
+    5.8
+   ],
+   "w": 0.03,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-058",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    38.15,
+    4.6
+   ],
+   "b": [
+    38.15,
+    5.8
+   ],
+   "w": 0.03,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-059",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    39.4,
+    4.6
+   ],
+   "b": [
+    39.4,
+    5.8
+   ],
+   "w": 0.03,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-060",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    40.65,
+    4.6
+   ],
+   "b": [
+    40.65,
+    5.8
+   ],
+   "w": 0.03,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-061",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    35.6,
+    5.8
+   ],
+   "b": [
+    35.84,
+    5.8
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-062",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    36.54,
+    5.8
+   ],
+   "b": [
+    36.85,
+    5.8
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-063",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    36.85,
+    5.8
+   ],
+   "b": [
+    37.15,
+    5.8
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-064",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    37.86,
+    5.8
+   ],
+   "b": [
+    38.15,
+    5.8
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-065",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    38.15,
+    5.8
+   ],
+   "b": [
+    38.4,
+    5.8
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-066",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    39.11,
+    5.8
+   ],
+   "b": [
+    39.4,
+    5.8
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-067",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    39.4,
+    5.8
+   ],
+   "b": [
+    39.66,
+    5.8
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-068",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    40.35,
+    5.8
+   ],
+   "b": [
+    40.65,
+    5.8
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-069",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    35.85,
+    4.7,
+    36.35,
+    5.45
+   ],
+   "h": 0.45,
+   "m": "white",
+   "room": "女廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-070",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    37.2,
+    4.88,
+    37.75,
+    5.22
+   ],
+   "h": 0.4,
+   "m": "white",
+   "room": "女廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-071",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    38.49,
+    4.88,
+    39.02,
+    5.22
+   ],
+   "h": 0.4,
+   "m": "white",
+   "room": "女廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-072",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    39.75,
+    4.88,
+    40.27,
+    5.22
+   ],
+   "h": 0.4,
+   "m": "white",
+   "room": "女廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-073",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    38.8,
+    7.08,
+    39.55,
+    7.58
+   ],
+   "h": 0.85,
+   "m": "white",
+   "room": "女廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-074",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    39.75,
+    7.08,
+    40.5,
+    7.58
+   ],
+   "h": 0.85,
+   "m": "white",
+   "room": "女廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-075",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    35.75,
+    7.7
+   ],
+   "b": [
+    35.75,
+    8.25
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.2
+  },
+  {
+   "id": "zt1t-076",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    36.47,
+    7.7
+   ],
+   "b": [
+    36.47,
+    8.25
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.2
+  },
+  {
+   "id": "zt1t-077",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    37.3,
+    7.7
+   ],
+   "b": [
+    37.3,
+    8.25
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.2
+  },
+  {
+   "id": "zt1t-078",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    38.08,
+    7.7
+   ],
+   "b": [
+    38.08,
+    8.25
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.2
+  },
+  {
+   "id": "zt1t-079",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    38.87,
+    7.7
+   ],
+   "b": [
+    38.87,
+    8.25
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.2
+  },
+  {
+   "id": "zt1t-080",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    39.7,
+    7.7
+   ],
+   "b": [
+    39.7,
+    8.25
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.2
+  },
+  {
+   "id": "zt1t-081",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    35.85,
+    7.7,
+    36.21,
+    8.15
+   ],
+   "h": 0.9,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-082",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    36.73,
+    7.7,
+    37.09,
+    8.15
+   ],
+   "h": 0.9,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-083",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    37.5,
+    7.7,
+    37.86,
+    8.15
+   ],
+   "h": 0.9,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-084",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    38.28,
+    7.7,
+    38.64,
+    8.15
+   ],
+   "h": 0.9,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-085",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    39.08,
+    7.7,
+    39.44,
+    8.15
+   ],
+   "h": 0.9,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-086",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    40.27,
+    7.74,
+    40.6,
+    8.2
+   ],
+   "h": 0.5,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-087",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    36.85,
+    9.6
+   ],
+   "b": [
+    36.85,
+    10.8
+   ],
+   "w": 0.03,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-088",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    38.15,
+    9.6
+   ],
+   "b": [
+    38.15,
+    10.8
+   ],
+   "w": 0.03,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-089",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    39.4,
+    9.6
+   ],
+   "b": [
+    39.4,
+    10.8
+   ],
+   "w": 0.03,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-090",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    35.6,
+    9.6
+   ],
+   "b": [
+    35.83,
+    9.6
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-091",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    36.54,
+    9.6
+   ],
+   "b": [
+    36.85,
+    9.6
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-092",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    36.85,
+    9.6
+   ],
+   "b": [
+    37.15,
+    9.6
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-093",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    37.86,
+    9.6
+   ],
+   "b": [
+    38.15,
+    9.6
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-094",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    38.15,
+    9.6
+   ],
+   "b": [
+    38.41,
+    9.6
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-095",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    39.12,
+    9.6
+   ],
+   "b": [
+    39.4,
+    9.6
+   ],
+   "w": 0.025,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "top": 1.9
+  },
+  {
+   "id": "zt1t-096",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    35.85,
+    10.0,
+    36.35,
+    10.75
+   ],
+   "h": 0.45,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-097",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    37.2,
+    10.18,
+    37.76,
+    10.52
+   ],
+   "h": 0.4,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-098",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    38.49,
+    10.18,
+    39.02,
+    10.52
+   ],
+   "h": 0.4,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-099",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    39.6,
+    10.25,
+    40.45,
+    10.78
+   ],
+   "h": 0.85,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zt1t-100",
+   "floor": "1F",
+   "kind": "fixture",
+   "rect": [
+    40.55,
+    10.25,
+    41.2,
+    10.78
+   ],
+   "h": 0.85,
+   "m": "white",
+   "room": "男廁",
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
   }
  ]
 }
