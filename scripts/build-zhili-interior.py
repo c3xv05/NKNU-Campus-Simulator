@@ -150,6 +150,31 @@ def rects(mask):
     return out
 def near(m, r=.35): return cv2.distanceTransform((1 - m).astype(np.uint8), cv2.DIST_L2, 3) * CELL <= r
 disk = lambda r: cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1))
+# Fine wall output (user 2026-11-24: wall thicknesses did not match the drawing). The 0.1 m raster above decides
+# topology (doors, rooms, sealing, furniture); the emitted wall boxes are redrawn on a 0.025 m grid so every wall
+# drawn on the sheet keeps the sheet's own thickness instead of growing to whole 0.1 m cells (+0.02 m buffer).
+FS = 4; FINE = CELL / FS; fox, foy = ox - CELL / 2, oy - CELL / 2
+def up(m): return np.repeat(np.repeat(m.astype(np.uint8), FS, 0), FS, 1)
+def fine_poly(P, m=None):
+    m = np.zeros((H * FS, W * FS), np.uint8) if m is None else m
+    tf = lambda c: np.array([[int(round(((x - fox) / FINE - .5) * 16)), int(round(((y - foy) / FINE - .5) * 16))] for x, y in c], np.int32)
+    for g in ([P] if P.geom_type == 'Polygon' else list(getattr(P, 'geoms', []))):
+        if g.is_empty or g.geom_type != 'Polygon': continue
+        cv2.fillPoly(m, [tf(g.exterior.coords)], 1, shift=4)
+        for h in g.interiors: cv2.fillPoly(m, [tf(h.coords)], 0, shift=4)
+    return m
+def fine_rects(mask):
+    out, active = [], {}
+    Hf, Wf = mask.shape
+    for y in range(Hf + 1):
+        runs = set()
+        if y < Hf:
+            row = mask[y]; d = np.diff(np.concatenate([[0], row.astype(np.int8), [0]]))
+            runs = set(zip(np.nonzero(d == 1)[0].tolist(), (np.nonzero(d == -1)[0] - 1).tolist()))
+        nxt = {r: active.pop(r, y) for r in runs}
+        for (s_, e_), y0 in active.items(): out.append([round(fox + s_ * FINE, 3), round(foy + y0 * FINE, 3), round(fox + (e_ + 1) * FINE, 3), round(foy + y * FINE, 3)])
+        active = nxt
+    return out
 def ring_coords(P): return [[round(x, 3), round(y, 3)] for x, y in list(P.exterior.coords)[:-1]]
 
 def stair_layout(rect, entrance):
@@ -330,9 +355,12 @@ for k in ALL_FLOORS:
     for ring, holes in zip(WF['walls'], WF['wallHoles']):
         if len(ring) > 2: ink |= poly_mask(Polygon(ring, [h for h in holes if len(h) > 2]).buffer(.02, join_style=2))
     ink &= O
+    ink_fine = np.zeros((H * FS, W * FS), np.uint8)
+    for ring, holes in zip(WF['walls'], WF['wallHoles']):
+        if len(ring) > 2: fine_poly(Polygon(ring, [h for h in holes if len(h) > 2]).buffer(0), ink_fine)
     walls = (ink | band | solid) & O
     doors = np.zeros((H, W), np.uint8); door_list = []
-    if WF.get('labels'):
+    if WF.get('labels') and k != 'B':   # B1 (current sheet) labels are mostly curves; keep plan.json rooms
         spaces = relabel_rooms(k, spaces, ink | band | solid, WF, O)
     space_polys = [(sp, unary_union([Polygon(q).buffer(0) for q in sp['polys'] if len(q) > 2])) for sp in spaces if sp['type'] in FREE]
     def space_at(q):   # smallest plan space containing q (the corridor polygon wraps around the rooms)
@@ -446,7 +474,7 @@ for k in ALL_FLOORS:
         near_t = cv2.dilate(room_t, disk(8))
         exits = [e for e in exits if not any(near_t[to_px(drawing(q))[1], to_px(drawing(q))[0]] for q in [e['inside']]) or e.get('manual')]
     # User edits from the 致理牆門編輯器 page (buildings/zhili/overrides.json) win over the automatic reading.
-    ov_sills, ov_fixtures, door_leaves = [], [], []; ov_wall = np.zeros((H, W), np.uint8)   # ov_wall: user wall strips survive the small-blob filter
+    ov_sills, ov_fixtures, door_leaves = [], [], []; ov_fine = np.zeros((H * FS, W * FS), np.uint8); ov_wall = np.zeros((H, W), np.uint8)   # ov_wall: user wall strips survive the small-blob filter
     for ed in OVERRIDES.get(LABEL[k], []):
         if ed['kind'] in ('noexit', 'nodoor', 'window'): continue
         if ed['kind'] == 'clear':   # rect: drop generated walls inside (exterior band / solid cores stay)
@@ -461,7 +489,7 @@ for k in ALL_FLOORS:
             ov_sills.append({'rect': [round(min(xs_), 3), round(min(ys_), 3), round(max(xs_), 3), round(max(ys_), 3)], 'top': float(ed['top'])})
             walls &= 1 - poly_mask(L_); continue
         if ed['kind'] == 'wall':
-            strip = poly_mask(LineString([a_, b_]).buffer(float(ed.get('w', .08)), cap_style=2)) & O; walls |= strip; doors &= 1 - strip; ov_wall |= strip
+            strip = poly_mask(LineString([a_, b_]).buffer(float(ed.get('w', .08)), cap_style=2)) & O; walls |= strip; doors &= 1 - strip; ov_wall |= strip; fine_poly(LineString([a_, b_]).buffer(float(ed.get('w', .08)), cap_style=2), ov_fine)
         else:
             u_ = (b_ - a_) / max(np.hypot(*(b_ - a_)), 1e-6)
             cut = poly_mask(LineString([a_ - u_ * .05, b_ + u_ * .05]).buffer(.3, cap_style=2))
@@ -573,7 +601,32 @@ for k in ALL_FLOORS:
                                   {'r': [round(r[0] + .02, 3), round(yy, 3), round(r[0] + .08, 3), round(yy + .5, 3)], 'y': [h + .45, h + .95], 'm': 'fabric', 'room': '理學院階梯教室'}]
                     fblocks.append(seat)
                 yy += .55
-    floors_out.append({'garagePoly': garage_poly, 'stallLines': [[round(v, 3) for v in r] for r in stall_lines], 'garageLights': garage_lights, 'openAreas': [OPEN_2F] if k == '2' else ([DRIVE_OPEN_B1] if k == 'B' else []), 'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'outline': ring_coords(Pk), 'walls': rects(walls_final.astype(np.uint8)), 'lintels': rects(doors.astype(np.uint8)),
+    # Fine walls: cells that came from the drawn line work or a user wall strip are replaced by those exact shapes;
+    # everything else (exterior band, cores, stair-hall walls, welds) keeps its cell outline.
+    protect = (band | solid).astype(np.uint8)
+    for r in STAIR_WALL_FILL.get(k, []): protect |= rect_mask(r)
+    exact = (ink | ov_wall).astype(np.uint8)
+    wf = up(walls_final) & (up(protect) | ink_fine | ov_fine | up(1 - exact))
+    # Re-weld hairlines (< 0.2 m) between pieces on the fine grid; doors, openings and exits stay open.
+    shut = up(doors)
+    for e in exits:
+        for r in e['rect']: shut |= up(rect_mask(r))
+    wf = (cv2.morphologyEx(wf, cv2.MORPH_CLOSE, np.ones((7, 7), np.uint8)) & up(walls_final | (exact & (1 - doors)))) | wf
+    wf &= 1 - shut | up(walls_final)
+    # Lintels: one box per door, as thick as the wall at its jambs (was the 0.4 m door clearance strip).
+    lint = np.zeros_like(wf)
+    for dr in door_list:
+        a2, b2 = [np.array(drawing(q)) for q in dr['line']]; L2 = np.hypot(*(b2 - a2))
+        if L2 < .3: continue
+        u2 = (b2 - a2) / L2; n2 = np.array([-u2[1], u2[0]]); lo, hi = [], []
+        for pnt in (a2 - u2 * .12, b2 + u2 * .12, a2 - u2 * .2, b2 + u2 * .2):
+            ts = [t for t in np.arange(-.4, .401, FINE / 2) if (lambda q: 0 <= q[1] < wf.shape[0] and 0 <= q[0] < wf.shape[1] and wf[q[1], q[0]])([int((pnt[0] + n2[0] * t - fox) / FINE), int((pnt[1] + n2[1] * t - foy) / FINE)])]
+            if ts: lo.append(min(ts)); hi.append(max(ts))
+        t0, t1 = (float(np.median(lo)), float(np.median(hi))) if lo else (-.1, .1)
+        if t1 - t0 < .08: t0, t1 = -.1, .1
+        fine_poly(Polygon([a2 - u2 * .08 + n2 * t0, b2 + u2 * .08 + n2 * t0, b2 + u2 * .08 + n2 * t1, a2 - u2 * .08 + n2 * t1]), lint)
+    lint &= 1 - wf
+    floors_out.append({'garagePoly': garage_poly, 'stallLines': [[round(v, 3) for v in r] for r in stall_lines], 'garageLights': garage_lights, 'openAreas': [OPEN_2F] if k == '2' else ([DRIVE_OPEN_B1] if k == 'B' else []), 'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'outline': ring_coords(Pk), 'walls': fine_rects(wf), 'lintels': fine_rects(lint),
                        'sills': sills, 'heads': heads, 'windows': glass, 'furniture': furniture, 'furnitureBlocks': fblocks, 'doors': door_list, 'doorLeaves': door_leaves, 'exits': exits, 'stairs': stairs, 'voidMask': void,
                        'spaces': [{'name': s['name'], 'num': s.get('num'), 'type': s['type'], 'anchor': world(s['anchor']) if s.get('anchor') else None} for s in spaces]})
 

@@ -41,7 +41,15 @@ C = .025                          # raster cell for components / images
 SOURCE = {'1F': {'file': 'floor-1F-current.pdf', 'affine': (0.1313, 0.0, -15.6777, 0.0, 0.1313, -0.5572),
                # Its dimension numbers are drawn as curves and fit small false arcs (R 0.46–0.55); real doors here are
                # R >= 0.6 m swinging >= 60 deg, and leaves under 0.75 m must hinge right on a wall (甲梯's double door).
-               'minDoorR': .6, 'minDoorSpan': 60, 'onWallBelowR': .75}}
+               'minDoorR': .6, 'minDoorSpan': 60, 'onWallBelowR': .75},
+          # User 2026-11-24: the current basement plan (致理大樓地下室平面圖, 2021, 單位公分; B01 保管組倉庫, B04 館藏室)
+          # replaces the 2011 B1 sheet. North-up like the plan frame; fitted to the old B1 line work by chamfer matching
+          # (outer walls and columns within a few cm).
+          'B1': {'file': 'floor-B1-current.pdf', 'affine': (0.1375705, 0.0, -20.6301, 0.0, 0.1375705, -2.8773),
+                 'minDoorR': .6, 'minDoorSpan': 60, 'onWallBelowR': .75,
+                 # Long strokes that pair up like walls but are not: the 2722.5 dimension across the drive, the stall
+                 # divider lines through parking 10–21 and 9, and the beam line inside B07 (columns are short strokes and stay).
+                 'notWalls': [[26.2, 10.9, 53.7, 12.1], [32.8, 17.0, 33.8, 41.0], [41.3, 15.8, 42.3, 22.3], [58.05, 20.2, 58.5, 30.6]]}}
 
 
 def page_of(fl):
@@ -220,6 +228,10 @@ def extract(fl):
     region = unary_union(fp).buffer(1.5)
     import shapely
     keep = shapely.intersects(region, shapely.linestrings(s.reshape(-1, 2, 2))); s, layer = s[keep], layer[keep]
+    for r in SOURCE.get(fl, {}).get('notWalls', []):
+        inside = (np.minimum(s[:, 0], s[:, 2]) >= r[0]) & (np.maximum(s[:, 0], s[:, 2]) <= r[2]) & (np.minimum(s[:, 1], s[:, 3]) >= r[1]) & (np.maximum(s[:, 1], s[:, 3]) <= r[3])
+        long_ = np.hypot(s[:, 2] - s[:, 0], s[:, 3] - s[:, 1]) > .9
+        s, layer = s[~(inside & long_)], layer[~(inside & long_)]
     arcs = find_arcs(s[layer])
     if fl in SOURCE:
         arcs = [a for a in arcs if a['r'] >= SOURCE[fl]['minDoorR'] and a['a1'] - a['a0'] >= math.radians(SOURCE[fl]['minDoorSpan'])]
