@@ -24,6 +24,14 @@ plan = json.loads((root / 'buildings/zhili/plan.json').read_text())
 geom = json.loads((root / 'buildings/zhili/building.json').read_text())['geometry']
 T = geom['drawingFootprint']['transform']
 TOWER = Polygon(geom['drawingFootprint']['drawingRing']).buffer(0)
+# User 2026-11-24: the triangular bay east of 乙梯 is glazing from 1F to 8F (every sheet draws it), and the SE toilet
+# block reaches the drawn east wall x64.79 and south wall y64.35 (the ring stopped at x63.8 / y63.9).
+NO_WINDOWS = {'1': [box(21.2, 48.0, 21.7, 55.4), box(16.2, 47.9, 21.5, 48.4)]}   # user 2026-11-24: 己梯 side / top walls have no windows
+BUILT_TOILETS = {'1': box(58.6, 58.2, 64.8, 64.4)}   # 1F SE toilets drawn from the sheet (overrides.json zt1-*), not sealed
+BAY = Polygon([(64.3, 54.85), (65.72, 54.85), (65.72, 55.7), (66.97, 56.8), (65.72, 57.9), (65.72, 58.8), (64.3, 58.8)])
+BAY_GLASS = [([65.86, 55.79], [66.88, 56.8], [.7, -.714]), ([66.88, 56.8], [65.86, 57.81], [.7, .714])]
+TOILET_SE = box(63.7, 58.7, 64.79, 64.35)
+TOWER = unary_union([TOWER.difference(box(64.4, 54.8, 66.0, 58.85)), BAY, TOILET_SE, box(58.6, 63.8, 64.79, 64.35)]).buffer(.01, join_style=2).buffer(-.01, join_style=2)
 CELL, FLOOR_H, SLAB = .1, geom.get('floorHeight', 3.6), .2
 ALL_FLOORS = ['B', '1', '2', '3', '4', '5', '6', '7', '8']
 ORDER = ['B', '1', '2']  # user 2026-11-18: walkable interior for 2F and below; 3F+ solid
@@ -31,9 +39,11 @@ LEVEL = {k: (i - 1) * FLOOR_H for i, k in enumerate(ALL_FLOORS)}
 LABEL = {'B': 'B1', **{k: k + 'F' for k in ALL_FLOORS[1:]}}
 # 1F outline read from the 1F drawing: podium (lecture hall, west lobby, 戊梯) + tower + north lobby to x=64.4.
 # The covered area under 2F at the south end (x<26.7, y>55.2) and the 己梯 corner stay outdoors.
+# User 2026-11-24: the 1F wall beside 己梯 is the drawn toilet wall x21.35–21.5 (no windows), and the wall above it is
+# the drawn y48.1 line (the strip x16.25–21.35, y46.3–48.15 is indoors).
 OUTLINE_1F = Polygon([(1.2, 15.5), (33.1, 15.5), (33.1, 10.8), (35.4, 10.8), (35.4, 4.3), (48.4, 4.3), (48.4, 10.8), (53.2, 10.8),
                       (53.2, 20.3), (61.3, 20.3), (61.3, 25.8), (64.4, 25.8), (64.4, 54.9), (65.8, 54.9), (65.8, 58.8), (63.8, 58.8),
-                      (63.8, 63.9), (58.6, 63.9), (58.6, 66.6), (26.7, 66.6), (26.7, 55.2), (22.0, 55.2), (22.0, 46.3), (6.3, 46.3),
+                      (63.8, 63.9), (58.6, 63.9), (58.6, 66.6), (26.7, 66.6), (26.7, 55.2), (21.35, 55.2), (21.35, 48.15), (16.25, 48.15), (16.25, 46.3), (6.3, 46.3),
                       (6.3, 43.9), (1.2, 43.9)]).buffer(0)
 # B1 garage: only the part under the 1F building for now (parts under outdoor paving are pending).
 B1_PLAN = unary_union([Polygon(p).buffer(0) for f in plan['floors'] if f['key'] == 'B' for p in f['footprint']])
@@ -57,7 +67,8 @@ B1_SW = box(7.07, 55.0, 26.8, 66.6).difference(PLANTERS_Z)
 # Current 1F sheet (user 2026-11-19: "以我後來上傳的平面圖為準"): 全家超商B區 extends south of the old west-lobby
 # front to y≈50.2 (7.8 m wide, x 8.5–16.25); west of it is the open 學生休憩廣場.
 OUTLINE_1F = unary_union([OUTLINE_1F, box(8.5, 46.2, 16.25, 50.25)]).buffer(.05, join_style=2).buffer(-.05, join_style=2)
-OUTLINE_1F = OUTLINE_1F.difference(STAIR_KEEP).buffer(0)
+OUTLINE_1F = unary_union([OUTLINE_1F.difference(box(64.4, 54.8, 66.0, 58.85)), BAY, TOILET_SE, box(58.6, 63.8, 64.79, 64.35)]).buffer(.01, join_style=2).buffer(-.01, join_style=2)
+OUTLINE_1F = OUTLINE_1F.difference(STAIR_KEEP.difference(box(21.35, 46.0, 22.5, 56.0))).buffer(0)   # the 1F toilet wall stays on its drawn line x21.35 beside 己梯
 B1_OUTLINE = B1_PLAN.intersection(unary_union([OUTLINE_1F, *covered, B1_SW]).buffer(.3).buffer(-.3)).intersection(box(-50, -50, 200, 66.6)).buffer(0)
 if B1_OUTLINE.geom_type != 'Polygon': B1_OUTLINE = max(B1_OUTLINE.geoms, key=lambda g: g.area)
 B1_OUTLINE = B1_OUTLINE.difference(STAIR_KEEP)
@@ -96,7 +107,7 @@ RAMP_SLOPE = {'rect': [1.76, 60.5, 7.07, 66.6], 'tileFrom': 99, 'drop': -1.05}  
 DRIVE_OPEN_B1 = [1.75, 59.62, 7.07, 62.3]   # driveway ramp aisle: open to the sky (no ceiling), 2026-11-22
 VOID_CLEAR_2F = [16.3, 58.2, 21.2, 66.8]   # 2F corner void (挑空): no outer walls on the west and south sides, only the corner column (user 2026-11-22 photo)
 # 己梯 (stair x19.32-21.44, y48.65-53.08, fixed) against the wall north of it: 1F toilet wall at x21.95 and the 2F meeting-room wall at x21.45.
-STAIR_WALL_FILL = {'1': [[21.45, 48.7, 21.96, 48.7], [21.45, 49.86, 21.96, 52.46], [21.45, 53.66, 21.96, 54.96]], '2': [[21.45, 48.6, 21.5, 53.1]]}
+STAIR_WALL_FILL = {'2': [[21.45, 48.6, 21.5, 53.1]]}   # 1F: the drawn wall x21.35–21.5 already meets the stair (user 2026-11-24)
 OPEN_2F = [19.0, 46.3, 21.45, 55.4]     # walls cleared (top landing opens onto the plaza)
 # Open (semi-outdoor) outline edges, no wall (user 2026-11-19): 2F west of 己梯 between the two columns opens onto
 # the upper plaza walkway.
@@ -274,6 +285,8 @@ WALLS = json.loads((root / 'buildings/zhili/walls.json').read_text())['floors']
 # Manual wall / door / opening edits by the user (致理牆門編輯器), grouped by floor label.
 OVERRIDES = {}
 for _ed in json.loads((root / 'buildings/zhili/overrides.json').read_text()).get('edits', []): OVERRIDES.setdefault(_ed['floor'], []).append(_ed)
+for _fl in ('1F', '2F'):   # glazed bay beside 乙梯 (user 2026-11-24), same panes as the solid floors above
+    for _i, (_a, _b, _n) in enumerate(BAY_GLASS): OVERRIDES.setdefault(_fl, []).append({'id': f'bay-{_fl}-{_i}', 'floor': _fl, 'kind': 'window', 'a': _a, 'b': _b, 'normal': _n, 'sill': .1, 'head': FLOOR_H - .3})
 TYPICAL = {}
 for s in plans['4']['spaces']:
     if s['type'] == 'stair' and s['name'] in STAIR:
@@ -338,7 +351,8 @@ for k in ALL_FLOORS:
     Pk = OUTLINE[k]; O = poly_mask(Pk); inner = cv2.erode(O, np.ones((2 * int(WALL_BAND / CELL) + 1,) * 2, np.uint8)); band = O & (1 - inner)
     spaces = floor_spaces(k, inner)
     if k not in ORDER:  # solid floors: facade windows only
-        facade[LABEL[k]] = window_plan(k, O, [s for s in spaces if s['type'] != 'void'], [])
+        facade[LABEL[k]] = [w for w in window_plan(k, O, [s for s in spaces if s['type'] != 'void'], []) if not BAY.buffer(.05).contains(Point((w['a'][0] + w['b'][0]) / 2, (w['a'][1] + w['b'][1]) / 2))] + \
+                           [{'a': a_, 'b': b_, 'normal': n_, 'sill': .1, 'head': FLOOR_H - .3} for a_, b_, n_ in BAY_GLASS]
         continue
     free = np.zeros((H, W), np.uint8); solid = np.zeros((H, W), np.uint8); void = np.zeros((H, W), np.uint8)
     for s in spaces:
@@ -376,7 +390,7 @@ for k in ALL_FLOORS:
             return next((sp for sp in hits if sp and sp['type'] not in OPEN_TO), None) or next((sp for sp in hits if sp), None)
         sides = [side(1), side(-1)]
         # User 2026-11-19: toilets are not built for now — their doors are walled up and the rooms sealed below.
-        if k != 'B' and (any(sp and sp['type'] == 'toilet' for sp in sides) or (not any(sides) and any(g.buffer(1.0).contains(Point(*mid)) for g in toilet_polys))):
+        if k != 'B' and not (k in BUILT_TOILETS and BUILT_TOILETS[k].contains(Point(*mid))) and (any(sp and sp['type'] == 'toilet' for sp in sides) or (not any(sides) and any(g.buffer(1.0).contains(Point(*mid)) for g in toilet_polys))):
             toilet_doors.append((h, c)); continue
         room = next((sp for sp in sides if sp and sp['type'] not in OPEN_TO), None) or next((sp for sp in sides if sp), None)
         if room is None or not Pk.buffer(.3).contains(Point(*mid)): continue
@@ -459,7 +473,7 @@ for k in ALL_FLOORS:
     for h, c in toilet_doors:
         shut = poly_mask(LineString([h, c]).buffer(.1, cap_style=2)); walls |= shut & O; doors &= 1 - shut
     tmask = np.zeros((H, W), np.uint8)
-    for g in toilet_polys: tmask |= poly_mask(g) if k != 'B' else 0   # B1 toilets are hand-drawn (overrides.json)
+    for g in toilet_polys: tmask |= poly_mask(g) if k != 'B' and not (k in BUILT_TOILETS and BUILT_TOILETS[k].intersects(g)) else 0   # B1 toilets and BUILT_TOILETS are hand-drawn (overrides.json)
     zone = cv2.dilate(tmask, disk(6))
     n_t, lab_t, st_t, _ = cv2.connectedComponentsWithStats((O & (1 - walls) & (1 - band)).astype(np.uint8), 4)
     for i in range(1, n_t):
@@ -525,6 +539,7 @@ for k in ALL_FLOORS:
     # Window openings cut through the outer band: sill below, head above, glass in between.
     exit_polys = [[[r[0], r[1]], [r[2], r[1]], [r[2], r[3]], [r[0], r[3]]] for e in exits for r in e['rect']]
     wins = window_plan(k, O, [s for s in spaces if s['type'] != 'void'], exit_polys) if k != 'B' else []
+    wins = [w for w in wins if not any(g.contains(Point((w['a'][0] + w['b'][0]) / 2, (w['a'][1] + w['b'][1]) / 2)) for g in NO_WINDOWS.get(k, []))]
     sills, heads, glass = list(ov_sills), [], []
     for w in wins:
         a, b = w['a'], w['b']; r = [min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1])]
