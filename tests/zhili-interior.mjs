@@ -14,8 +14,10 @@ for(const [i,f] of d.floors.entries()){
  const cores=f.stairs.filter(s=>!s.tiers);assert.deepEqual(cores.map(s=>s.id).sort(),['丁梯','丙梯','乙梯','甲梯'].sort(),f.label+' four cores');
  // B1 also carries the 理學院階梯教室 rake (double-height B1+1F auditorium).
  if(f.label==='B1'){const r=f.stairs.find(s=>s.tiers);assert(r&&r.id==='理學院階梯教室'&&r.treads.length===12);assert(Math.abs(Math.max(...r.treads.map(t=>t.height))-d.floorHeight)<1e-3,'rake reaches 1F');}
- for(const s of cores){const h=s.treads.map(t=>t.height);assert.equal(s.treads.length,23);assert(Math.abs(Math.max(...h)-d.floorHeight)<1e-3,'flight reaches next floor');
-  for(const t of s.treads){assert(t.rect[0]>=s.rect[0]-1e-6&&t.rect[2]<=s.rect[2]+1e-6&&t.rect[1]>=s.rect[1]-1e-6&&t.rect[3]<=s.rect[3]+1e-6);treads++;
+ for(const s of cores){const h=s.treads.map(t=>t.height);assert.equal(s.treads.filter(t=>!t.bay).length,23);  // 1F 乙梯: extra half-landing strips run into the glazed bay (bay:true, 2026-11-24)
+  if(s.id==='乙梯'&&f.label==='1F')assert(s.treads.some(t=>t.bay&&t.rect[2]>66.4),'乙梯 landing reaches the bay glass');
+ assert(Math.abs(Math.max(...h)-d.floorHeight)<1e-3,'flight reaches next floor');
+  for(const t of s.treads.filter(t=>!t.bay)){assert(t.rect[0]>=s.rect[0]-1e-6&&t.rect[2]<=s.rect[2]+1e-6&&t.rect[1]>=s.rect[1]-1e-6&&t.rect[3]<=s.rect[3]+1e-6);treads++;
    for(const w of f.walls){const c=[(t.rect[0]+t.rect[2])/2,(t.rect[1]+t.rect[3])/2];assert(!inRect(c,w),'wall inside stair tread '+f.label+' '+s.id);}}
   // Typical floors share one stacked stairwell per core.
   if(i>=2){const prev=d.floors[i-1].stairs.find(q=>q.id===s.id);assert.deepEqual(prev.rect,s.rect);assert.equal(prev.entrance,s.entrance);}
@@ -32,4 +34,18 @@ assert(treads>150&&doors>20,JSON.stringify({treads,doors}));
   for(const door of f.doors){const [a,b]=door.line.map(p=>dr(...p)),m=[(a[0]+b[0])/2,(a[1]+b[1])/2];for(const r of f.furnitureBlocks||[])assert(Math.hypot(Math.max(r[0]-m[0],0,m[0]-r[2]),Math.max(r[1]-m[1],0,m[1]-r[3]))>1.0,'doorway kept clear '+f.label+' '+door.name);}}}
 // 2026-11-19: hairlines across one space (the 1F north–south corridor at y≈40.5, world X≈-145.7) must not become walls.
 {const f1=d.floors.find(f=>f.label==='1F');for(let y=34;y<=46;y+=.1)assert(!f1.walls.some(r=>54.2>=r[0]&&54.2<=r[2]&&y>=r[1]&&y<=r[3])&&!f1.walls.some(r=>54.8>=r[0]&&54.8<=r[2]&&y>=r[1]&&y<=r[3]),'1F corridor open at y '+y.toFixed(1));}
+// 2026-11-24: the 乙梯 is hollowed out of the solid upper floors and stacked up to 8F (data.upperFloors), roofed and glazed at the bay.
+{const up=d.upperFloors,inSlab=(f,p)=>f.slab.some(([o,...hs])=>ringDistance(p[0],p[1],o)===0&&!hs.some(h=>ringDistance(p[0],p[1],h)===0));
+ assert.deepEqual(up.map(f=>f.label),['2F','3F','4F','5F','6F','7F','8F']);
+ const ji=d.floors[1].stairs.find(s=>s.id==='乙梯'),centre=[(ji.hole[0]+ji.hole[2])/2,(ji.hole[1]+ji.hole[3])/2];
+ for(const f of up){assert(Math.abs(f.level-(+f.label[0]-1)*3.6)<1e-9,'level '+f.label);
+  if(f.label!=='8F'){const s=f.stairs.find(q=>q.id==='乙梯');assert(s&&JSON.stringify(s.rect)===JSON.stringify(ji.rect),'stacked rect '+f.label);assert.equal(s.treads.filter(t=>!t.bay).length,23);assert(Math.abs(Math.max(...s.treads.map(t=>t.height))-3.6)<1e-3,'flight reaches next floor '+f.label);}
+  else assert.equal(f.stairs.length,0);
+  if(f.label!=='2F'){assert(f.walls.length>=5&&f.windows.length===2,'hall walls and bay glass '+f.label);assert(inSlab(f,[ji.rect[0]+.4,(ji.rect[1]+ji.rect[3])/2]),'west landing solid '+f.label);assert(!inSlab(f,centre),'flight opening '+f.label);
+   for(const w of f.walls)assert(ringDistance((w[0]+w[2])/2,(w[1]+w[3])/2,f.outline)<.3,'hall wall inside outline '+f.label);}}
+ assert(d.solidRing&&ringDistance(centre[0],centre[1],d.solidRing)>0&&ringDistance(centre[0],centre[1],d.towerOutline)===0,'solid tower has the hall cut out');
+ assert(d.hallRoofTriangles.length>0&&d.hallRoofLevel===28.8);
+ // the 2F→3F roof slab must open over the flight
+ const tri=(x,y)=>d.roofTriangles.some(t=>{const T=d.transform,q=t.map(([wx,wz])=>[T.a*(wx-T.tx)+T.b*(wz-T.tz),-T.b*(wx-T.tx)+T.a*(wz-T.tz)]),sg=(p,a,b)=>(p[0]-b[0])*(a[1]-b[1])-(a[0]-b[0])*(p[1]-b[1]),p=[x,y],d1=sg(p,q[0],q[1]),d2=sg(p,q[1],q[2]),d3=sg(p,q[2],q[0]);return !((d1<0||d2<0||d3<0)&&(d1>0||d2>0||d3>0));});
+ assert(!tri(centre[0],centre[1]),'roof slab opening over the 2F→3F flight');assert(tri(ji.rect[0]+.4,(ji.rect[1]+ji.rect[3])/2),'roof slab over the west landing');}
 console.log('PASS: Zhili B1–2F empty-room interior (3F+ solid), stacked four-core stairwells reaching every floor, stair openings, doors for numbered rooms',{treads,doors});

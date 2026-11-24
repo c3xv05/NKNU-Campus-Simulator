@@ -22,7 +22,7 @@ export function createPlanSurface(campus,terrain,osm){
  if(!data||!building)return null;
  const f=frame(data.transform),base=terrain.platformHeight(building),H=data.floorHeight;
  // Walls, window glass/sills and glazed entrances all block; open entrances and doors do not.
- const floors=data.floors.map(fl=>{const blocking=[...fl.walls,...(fl.furnitureBlocks||[]),...(fl.sills||[]).map(s=>s.rect),...(fl.doorLeaves||[]),...fl.exits.filter(e=>!e.open).flatMap(e=>e.rect)];return{...fl,y:base+fl.level,near:grid(blocking),blocking};});
+ const floors=[...data.floors,...(data.upperFloors||[])].map(fl=>{const blocking=[...fl.walls,...(fl.furnitureBlocks||[]),...(fl.sills||[]).map(s=>s.rect),...(fl.doorLeaves||[]),...fl.exits.filter(e=>!e.open).flatMap(e=>e.rect)];return{...fl,y:base+fl.level,near:grid(blocking),blocking};});
  const stepRects=floors.flatMap(fl=>fl.exits.flatMap(e=>(e.steps||[]).map(t=>t.rect)));
  function supportAt(x,z,y){
   const p=f.toDrawing(x,z);if(ringDistance(p[0],p[1],data.outline)!==0&&!stepRects.some(r=>inRect(p,r)))return null;
@@ -90,10 +90,13 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
  const cube=new THREE.BoxGeometry(1,1,1),dummy=new THREE.Object3D(),batches=new Map();
  const isExterior=(r,ring)=>[[r[0]-.15,(r[1]+r[3])/2],[r[2]+.15,(r[1]+r[3])/2],[(r[0]+r[2])/2,r[1]-.15],[(r[0]+r[2])/2,r[3]+.15]].some(([x,y])=>ringDistance(x,y,ring)>0);
  function rectBox(r,y0,y1,key){if(y1-y0<=.001)return;const [x,z]=f.toWorld((r[0]+r[2])/2,(r[1]+r[3])/2);if(!batches.has(key))batches.set(key,[]);batches.get(key).push({w:r[2]-r[0],h:y1-y0,d:r[3]-r[1],x,y:(y0+y1)/2,z});}
+ // Box along a slanted drawing segment a→b (e.g. the glazed bay beside 乙梯): length along, 'across' thick, shifted 'out' along n.
+ function oBox(a,b,across,y0,y1,key,n=[0,0],out=0,extend=0){if(y1-y0<=.001)return;const wa=f.toWorld(a[0]+n[0]*out,a[1]+n[1]*out),wb=f.toWorld(b[0]+n[0]*out,b[1]+n[1]*out),len=Math.hypot(wb[0]-wa[0],wb[1]-wa[1]);if(!batches.has(key))batches.set(key,[]);batches.get(key).push({w:len+extend,h:y1-y0,d:across,x:(wa[0]+wb[0])/2,y:(y0+y1)/2,z:(wa[1]+wb[1])/2,ang:Math.atan2(-(wb[1]-wa[1]),wb[0]-wa[0])});}
+ const slanted=(a,b)=>{const dx=Math.abs(b[0]-a[0]),dy=Math.abs(b[1]-a[1]);return Math.min(dx,dy)>.15*Math.max(dx,dy);};
  function slab(triangles,top,bottom,key,name){const pos=[];for(const t of triangles){for(const[x,z]of t)pos.push(x,top,z);for(const[x,z]of[...t].reverse())pos.push(x,bottom,z);}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.computeVertexNormals();const m=new THREE.Mesh(g,mats[key]);m.name=name;m.receiveShadow=true;group.add(m);blockers.push(m);return m;}
  function plate(text,x,y,z,angle,width=1,bg='#23434b',fg='#fff1cc'){const c=document.createElement('canvas');c.width=384;c.height=144;const g=c.getContext('2d');g.fillStyle=bg;g.fillRect(0,0,384,144);g.fillStyle=fg;g.font='bold 80px serif';g.textAlign='center';g.fillText(text,192,100);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const m=new THREE.Mesh(new THREE.PlaneGeometry(width,width*.375),new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide}));m.position.set(x,y,z);m.rotation.y=angle;props.add(m);return m;}
  // A window pane on an outline edge (drawing a→b with outward normal), plus head/sill trim and a mullion.
- function pane(w,y,out=0){const len=Math.hypot(w.b[0]-w.a[0],w.b[1]-w.a[1]),horiz=Math.abs(w.b[1]-w.a[1])<Math.abs(w.b[0]-w.a[0]),cx=(w.a[0]+w.b[0])/2+w.normal[0]*out,cy=(w.a[1]+w.b[1])/2+w.normal[1]*out,r=(along,across)=>horiz?[cx-along/2,cy-across/2,cx+along/2,cy+across/2]:[cx-across/2,cy-along/2,cx+across/2,cy+along/2];
+ function pane(w,y,out=0){if(slanted(w.a,w.b)){oBox(w.a,w.b,.06,y+w.sill,y+w.head,'glass',w.normal,out);oBox(w.a,w.b,.16,y+w.sill-.08,y+w.sill,'trim',w.normal,out,.2);oBox(w.a,w.b,.16,y+w.head,y+w.head+.1,'trim',w.normal,out,.2);return;}const len=Math.hypot(w.b[0]-w.a[0],w.b[1]-w.a[1]),horiz=Math.abs(w.b[1]-w.a[1])<Math.abs(w.b[0]-w.a[0]),cx=(w.a[0]+w.b[0])/2+w.normal[0]*out,cy=(w.a[1]+w.b[1])/2+w.normal[1]*out,r=(along,across)=>horiz?[cx-along/2,cy-across/2,cx+along/2,cy+across/2]:[cx-across/2,cy-along/2,cx+across/2,cy+along/2];
   rectBox(r(len,.06),y+w.sill,y+w.head,'glass');rectBox(r(len+.2,.16),y+w.sill-.08,y+w.sill,'trim');rectBox(r(len+.2,.16),y+w.head,y+w.head+.1,'trim');rectBox(r(.07,.1),y+w.sill,y+w.head,'frame');}
  // Walls: interior partitions off-white; exterior walls brick outside with an off-white inner half; black skirting
  // along every indoor face when a finish is given.
@@ -113,8 +116,8 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
    return;}
   rectBox(inner,y0,top,'inner');const e=.012;if(skirt)rectBox([inner[0]-e,inner[1]-e,inner[2]+e,inner[3]+e],y,y+fin.skirtingHeight,'skirting');}
  let shell=null;
- for(const fl of data.floors){const y=base+fl.level;
-  const s=slab(fl.slabTriangles,y,y-SLAB,'floor',key+'-floor-'+fl.label);shell??=s;
+ for(const fl of [...data.floors,...(data.upperFloors||[])]){const y=base+fl.level;
+  const s=fl.slabTriangles.length?slab(fl.slabTriangles,y,y-SLAB,'floor',key+'-floor-'+fl.label+(fl.hall?'-hall':'')):null;shell??=s;
   if(fin&&fl.garageTriangles){surface(fl.garageTriangles,y+.004,surf.garage,4,key+'-garage-'+fl.label);for(const r of fl.stallLines||[])rectBox(r,y+.004,y+.014,'paint');if(fl.laneTriangles?.length)surface(fl.laneTriangles,y+.012,mats.paint,1,key+'-lanes-'+fl.label);
   if(fl.ramp){const r=fl.ramp.rect,drop=fl.ramp.drop,N=Math.max(2,Math.ceil((r[3]-r[1])/.4)),low=Math.min(...(data.foundationRing||fl.outline).map(([x,yy])=>{const [wx,wz]=f.toWorld(x,yy);return terrain.height(wx,wz);}))-.6;
    const top=yy=>y+.004-drop*(yy-r[1])/(r[3]-r[1]),V=(x,yy,h)=>{const [wx,wz]=f.toWorld(x,yy);return[wx,h,wz];};
@@ -152,14 +155,15 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setAttribute('sidewalkEdgeDistance',new THREE.Float32BufferAttribute(Array(pos.length/3).fill(1),1));g.computeVertexNormals();const m=new THREE.Mesh(g,tm);m.name=key+'-exposed-roof-tiles-'+r.level;m.receiveShadow=true;group.add(m);}}
  const roofY=base+data.roofLevel;slab(data.roofTriangles,roofY-.01,roofY-SLAB,'ceiling',key+'-roof');
  // 3F and above: one solid brick volume with the plan's windows on every facade, floor bands and a parapet.
- if(data.solidAbove){const ring=data.towerOutline,sh=new THREE.Shape();ring.forEach(([x,y],i)=>{const [wx,wz]=f.toWorld(x,y);i?sh.lineTo(wx,-wz):sh.moveTo(wx,-wz);});sh.closePath();const g=new THREE.ExtrudeGeometry(sh,{depth:data.solidAbove.to-data.solidAbove.from,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,mats.outer);m.position.y=base+data.solidAbove.from;m.name=key+'-solid-upper-floors';m.castShadow=true;m.receiveShadow=true;group.add(m);blockers.push(m);
+ if(data.solidAbove){const ring=data.towerOutline,solid=data.solidRing||ring,sh=new THREE.Shape();solid.forEach(([x,y],i)=>{const [wx,wz]=f.toWorld(x,y);i?sh.lineTo(wx,-wz):sh.moveTo(wx,-wz);});sh.closePath();const g=new THREE.ExtrudeGeometry(sh,{depth:data.solidAbove.to-data.solidAbove.from,bevelEnabled:false});g.rotateX(-Math.PI/2);const m=new THREE.Mesh(g,mats.outer);m.position.y=base+data.solidAbove.from;m.name=key+'-solid-upper-floors';m.castShadow=true;m.receiveShadow=true;group.add(m);blockers.push(m);
+  if(data.hallRoofTriangles?.length){const rt=base+data.solidAbove.to;slab(data.hallRoofTriangles,rt,rt-SLAB,'outer',key+'-hall-roof');}   // the hollowed 乙梯 hall keeps its roof
   for(const [label,wins] of Object.entries(data.facade||{})){const level=(+label.replace('F','')-1)*H,y=base+level;for(const w of wins)pane(w,y,.04);}
-  for(let i=0;i<ring.length;i++){const a=ring[i],b=ring[(i+1)%ring.length],horiz=Math.abs(b[1]-a[1])<Math.abs(b[0]-a[0]),len=Math.hypot(b[0]-a[0],b[1]-a[1]),cx=(a[0]+b[0])/2,cy=(a[1]+b[1])/2,r=horiz?[cx-len/2-.1,cy-.12,cx+len/2+.1,cy+.12]:[cx-.12,cy-len/2-.1,cx+.12,cy+len/2+.1];
+  for(let i=0;i<ring.length;i++){const a=ring[i],b=ring[(i+1)%ring.length];if(slanted(a,b)){for(let lv=data.solidAbove.from;lv<data.solidAbove.to-.1;lv+=H)oBox(a,b,.24,base+lv-.12,base+lv+.06,'trim',[0,0],0,.2);oBox(a,b,.24,base+data.solidAbove.to,base+data.solidAbove.to+.9,'outer',[0,0],0,.2);oBox(a,b,.24,base+data.solidAbove.to+.9,base+data.solidAbove.to+1,'trim',[0,0],0,.2);continue;}const horiz=Math.abs(b[1]-a[1])<Math.abs(b[0]-a[0]),len=Math.hypot(b[0]-a[0],b[1]-a[1]),cx=(a[0]+b[0])/2,cy=(a[1]+b[1])/2,r=horiz?[cx-len/2-.1,cy-.12,cx+len/2+.1,cy+.12]:[cx-.12,cy-len/2-.1,cx+.12,cy+len/2+.1];
    for(let lv=data.solidAbove.from;lv<data.solidAbove.to-.1;lv+=H)rectBox(r,base+lv-.12,base+lv+.06,'trim');rectBox(r,base+data.solidAbove.to,base+data.solidAbove.to+.9,'outer');rectBox(r,base+data.solidAbove.to+.9,base+data.solidAbove.to+1,'trim');}}
  // Building name over the main (east) entrance, as on the S05 facade.
  const main=data.floors.find(fl=>fl.label==='1F')?.exits.find(e=>Math.abs(f.toDrawing(...e.outside)[1]-f.toDrawing(...e.inside)[1])>.5&&f.toDrawing(...e.outside)[1]>f.toDrawing(...e.inside)[1]);
  const signText=data.signText??(osm===ZHILI_OSM?'致理大樓':null);
  if(main&&signText){const [a,b]=main.line,mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2,dx=main.outside[0]-mx,dz=main.outside[1]-mz,l=Math.hypot(dx,dz),ang=Math.atan2(-(b[1]-a[1]),b[0]-a[0]);plate(signText,mx+dx/l*.32,base+3.05,mz+dz/l*.32,ang,3.2,'#8e8d80','#f3e3b5');}
- for(const[key,items]of batches){const m=new THREE.InstancedMesh(cube,mats[key],items.length);m.name=data.key?data.key+'-'+key:'zhili-'+key;for(let i=0;i<items.length;i++){const b=items[i];dummy.position.set(b.x,b.y,b.z);dummy.rotation.set(0,f.angle,0);dummy.scale.set(b.w,b.h,b.d);dummy.updateMatrix();m.setMatrixAt(i,dummy.matrix);}m.computeBoundingSphere();m.receiveShadow=true;m.castShadow=key==='outer';group.add(m);if(key!=='glass')blockers.push(m);}
+ for(const[key,items]of batches){const m=new THREE.InstancedMesh(cube,mats[key],items.length);m.name=data.key?data.key+'-'+key:'zhili-'+key;for(let i=0;i<items.length;i++){const b=items[i];dummy.position.set(b.x,b.y,b.z);dummy.rotation.set(0,b.ang??f.angle,0);dummy.scale.set(b.w,b.h,b.d);dummy.updateMatrix();m.setMatrixAt(i,dummy.matrix);}m.computeBoundingSphere();m.receiveShadow=true;m.castShadow=key==='outer';group.add(m);if(key!=='glass')blockers.push(m);}
  return{group,detail:props,shell,blockers,groundCuts:data.floors[0].slabTriangles};
 }

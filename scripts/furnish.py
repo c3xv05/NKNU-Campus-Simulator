@@ -15,7 +15,7 @@ KINDS = [  # (keyword, kind) — first match wins
     ('總務處', 'service'), ('人事會計室', 'service'), ('辦公室', 'office'), ('祕書室', 'office'), ('電化教室', 'classroom'),
     ('普通教室', 'classroom'), ('108 階梯教室', 'lecture'), ('演講廳空調', 'equipment'), ('康樂室', 'recreation'),
     ('社團室', 'club'), ('軍訓室', 'club'), ('電信室', 'equipment'), ('機房', 'equipment'), ('中央控制室', 'control'),
-    ('配電室', 'equipment'), ('機械室', 'equipment'), ('空調機房', 'equipment'), ('器材室', 'storage'), ('儲藏室', 'storage'),
+    ('配電室', 'equipment'), ('機械室', 'equipment'), ('空調機房', 'equipment'), ('器材室', 'storage'), ('儲藏室', 'storage'), ('倉庫', 'storage'),
     ('準備室', 'storage'), ('放映室', 'projection'), ('舞台', 'stage'),
     # current 1F sheet (user 2026-11-19)
     ('視廳教室', 'lecture'), ('研討室', 'classroom'), ('練習教室', 'classroom'), ('開標室', 'conference'), ('晤談室', 'lounge'),
