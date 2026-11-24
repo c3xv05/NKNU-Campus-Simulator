@@ -13,7 +13,7 @@ for(const [i,f] of d.floors.entries()){
  if(f.label==='2F'){assert.equal(f.stairs.length,0);continue;}
  const cores=f.stairs.filter(s=>!s.tiers);assert.deepEqual(cores.map(s=>s.id).sort(),['丁梯','丙梯','乙梯','甲梯'].sort(),f.label+' four cores');
  // B1 also carries the 理學院階梯教室 rake (double-height B1+1F auditorium).
- if(f.label==='B1'){const r=f.stairs.find(s=>s.tiers);assert(r&&r.id==='理學院階梯教室'&&r.treads.length===12);assert(Math.abs(Math.max(...r.treads.map(t=>t.height))-d.floorHeight)<1e-3,'rake reaches 1F');}
+ if(f.label==='B1'){const r=f.stairs.find(s=>s.tiers);assert(r&&r.id==='理學院階梯教室'&&r.treads.length===11);assert(Math.abs(Math.max(...r.treads.map(t=>t.height))-d.floorHeight)<1e-3,'rake reaches 1F');}
  for(const s of cores){const h=s.treads.map(t=>t.height);assert.equal(s.treads.filter(t=>!t.bay).length,23);  // 1F 乙梯: extra half-landing strips run into the glazed bay (bay:true, 2026-11-24)
   if(s.id==='乙梯'&&f.label==='1F')assert(s.treads.some(t=>t.bay&&t.rect[2]>66.4),'乙梯 landing reaches the bay glass');
  assert(Math.abs(Math.max(...h)-d.floorHeight)<1e-3,'flight reaches next floor');
