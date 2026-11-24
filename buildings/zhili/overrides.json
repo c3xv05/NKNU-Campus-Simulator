@@ -5245,6 +5245,22 @@
    ],
    "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
    "note": "甲梯→門廳 門（新版B1圖）"
+  },
+  {
+   "id": "zt1-041",
+   "floor": "1F",
+   "kind": "wall",
+   "a": [
+    60.3,
+    58.865
+   ],
+   "b": [
+    61.84,
+    58.865
+   ],
+   "w": 0.565,
+   "source": "claude-review-2026-11-24 (floor-1F-current.pdf)",
+   "note": "男女廁入口之間的矩形實心牆"
   }
  ]
 }

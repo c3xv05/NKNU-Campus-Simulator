@@ -67,8 +67,9 @@ B1_SW = box(7.07, 55.0, 26.8, 66.6).difference(PLANTERS_Z)
 # Current 1F sheet (user 2026-11-19: "以我後來上傳的平面圖為準"): 全家超商B區 extends south of the old west-lobby
 # front to y≈50.2 (7.8 m wide, x 8.5–16.25); west of it is the open 學生休憩廣場.
 OUTLINE_1F = unary_union([OUTLINE_1F, box(8.5, 46.2, 16.25, 50.25)]).buffer(.05, join_style=2).buffer(-.05, join_style=2)
-OUTLINE_1F = unary_union([OUTLINE_1F.difference(box(64.4, 54.8, 66.0, 58.85)), BAY, TOILET_SE, box(58.6, 63.8, 64.79, 64.35)]).buffer(.01, join_style=2).buffer(-.01, join_style=2)
-OUTLINE_1F = OUTLINE_1F.difference(STAIR_KEEP.difference(box(21.35, 46.0, 22.5, 56.0))).buffer(0)   # the 1F toilet wall stays on its drawn line x21.35 beside 己梯
+OUTLINE_1F = unary_union([OUTLINE_1F.difference(box(64.4, 54.8, 66.0, 58.85)), BAY, TOILET_SE, box(58.6, 63.8, 64.79, 64.35),
+                          box(16.26, 55.18, 21.4, 55.3), box(16.26, 54.89, 16.7, 55.59)])   # user 2026-11-24: drawn wall + column south of 己梯.buffer(.01, join_style=2).buffer(-.01, join_style=2)
+OUTLINE_1F = OUTLINE_1F.difference(STAIR_KEEP.difference(box(21.35, 46.0, 22.5, 56.0)).difference(box(16.0, 55.15, 21.5, 55.33))).buffer(0)   # the 1F toilet wall stays on its drawn line x21.35 beside 己梯
 B1_OUTLINE = B1_PLAN.intersection(unary_union([OUTLINE_1F, *covered, B1_SW]).buffer(.3).buffer(-.3)).intersection(box(-50, -50, 200, 66.6)).buffer(0)
 if B1_OUTLINE.geom_type != 'Polygon': B1_OUTLINE = max(B1_OUTLINE.geoms, key=lambda g: g.area)
 B1_OUTLINE = B1_OUTLINE.difference(STAIR_KEEP)
@@ -413,7 +414,18 @@ for k in ALL_FLOORS:
             ys, xs = np.nonzero(s['mask']); rect = cell_rect(xs.min(), ys.min(), xs.max(), ys.max())
             if k != 'B': rect = fit_hall(TYPICAL[s['name']], ink)
             treads, hole, run, land, divider = stair_layout(rect, STAIR[s['name']]['entrance'])
-            stairs.append({'id': s['name'], 'rect': rect, 'entrance': STAIR[s['name']]['entrance'], 'treads': treads, 'hole': hole, 'divider': divider, 'run': round(run, 3), 'landing': round(land, 3)})
+            if k == '1' and s['name'] == '乙梯': rect = [rect[0], rect[1], min(rect[2], 65.72), rect[3]]   # east end on the bay's side walls
+            treads, hole, run, land, divider = stair_layout(rect, STAIR[s['name']]['entrance'])
+            extra = []
+            if k == '1' and s['name'] == '乙梯':
+                # User 2026-11-24: the half landing runs on into the glazed bay (drawn landing arc), up to the glass.
+                lh = next(t['height'] for t in treads if t['flight'] == -1); inner = BAY.buffer(-.12, join_style=2)
+                for xb in np.arange(rect[2], 66.9, .1):
+                    sl = inner.intersection(box(xb, rect[1], xb + .1, rect[3]))
+                    if sl.is_empty or sl.area < .005: continue
+                    b_ = sl.bounds; extra.append([round(xb, 3), round(b_[1], 3), round(xb + .1, 3), round(b_[3], 3)])
+                treads += [{'rect': r_, 'height': lh, 'flight': -1, 'bay': True} for r_ in extra]
+            stairs.append({'id': s['name'], 'rect': rect, 'entrance': STAIR[s['name']]['entrance'], 'treads': treads, 'hole': hole, 'divider': divider, 'run': round(run, 3), 'landing': round(land, 3), 'extraHoles': extra})
     halls = {st['id']: st['rect'] for st in prev + stairs if st['id'] in STAIR}
     lines = line_raster(LABEL[k])
     for sid, hr in halls.items():
@@ -649,7 +661,9 @@ for i, fl in enumerate(floors_out):
     slab = OUTLINE[fl['key']]
     if fl['key'] == 'B': slab = slab.difference(box(*RAMP_SLOPE['rect'])); fl['ramp'] = RAMP_SLOPE
     if i > 0:
-        for st in stairs_by_floor[ORDER[i - 1]]: slab = slab.difference(box(*st['hole']))
+        for st in stairs_by_floor[ORDER[i - 1]]:
+            slab = slab.difference(box(*st['hole']))
+            for r_ in st.get('extraHoles', []): slab = slab.difference(box(*r_).buffer(.01, join_style=2))
     vm = fl.pop('voidMask')
     if vm.any():
         cs, _ = cv2.findContours(vm, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -665,6 +679,7 @@ for i, fl in enumerate(floors_out):
     ceil = slab
     for st in stairs_by_floor[fl['key']] + (stairs_by_floor[ORDER[i - 1]] if i > 0 else []):
         ceil = ceil.difference(box(*st['rect']).buffer(.05, join_style=2))
+        for r_ in st.get('extraHoles', []): ceil = ceil.difference(box(*r_).buffer(.05, join_style=2))
         if st.get('tiers'): ceil = ceil.difference(box(*HALL_OPEN_1F))
     for r in fl['openAreas']: ceil = ceil.difference(box(*r))
     gpoly = fl.pop('garagePoly')

@@ -14,8 +14,10 @@ for(const [i,f] of d.floors.entries()){
  const cores=f.stairs.filter(s=>!s.tiers);assert.deepEqual(cores.map(s=>s.id).sort(),['丁梯','丙梯','乙梯','甲梯'].sort(),f.label+' four cores');
  // B1 also carries the 理學院階梯教室 rake (double-height B1+1F auditorium).
  if(f.label==='B1'){const r=f.stairs.find(s=>s.tiers);assert(r&&r.id==='理學院階梯教室'&&r.treads.length===12);assert(Math.abs(Math.max(...r.treads.map(t=>t.height))-d.floorHeight)<1e-3,'rake reaches 1F');}
- for(const s of cores){const h=s.treads.map(t=>t.height);assert.equal(s.treads.length,23);assert(Math.abs(Math.max(...h)-d.floorHeight)<1e-3,'flight reaches next floor');
-  for(const t of s.treads){assert(t.rect[0]>=s.rect[0]-1e-6&&t.rect[2]<=s.rect[2]+1e-6&&t.rect[1]>=s.rect[1]-1e-6&&t.rect[3]<=s.rect[3]+1e-6);treads++;
+ for(const s of cores){const h=s.treads.map(t=>t.height);assert.equal(s.treads.filter(t=>!t.bay).length,23);  // 1F 乙梯: extra half-landing strips run into the glazed bay (bay:true, 2026-11-24)
+  if(s.id==='乙梯'&&f.label==='1F')assert(s.treads.some(t=>t.bay&&t.rect[2]>66.4),'乙梯 landing reaches the bay glass');
+ assert(Math.abs(Math.max(...h)-d.floorHeight)<1e-3,'flight reaches next floor');
+  for(const t of s.treads.filter(t=>!t.bay)){assert(t.rect[0]>=s.rect[0]-1e-6&&t.rect[2]<=s.rect[2]+1e-6&&t.rect[1]>=s.rect[1]-1e-6&&t.rect[3]<=s.rect[3]+1e-6);treads++;
    for(const w of f.walls){const c=[(t.rect[0]+t.rect[2])/2,(t.rect[1]+t.rect[3])/2];assert(!inRect(c,w),'wall inside stair tread '+f.label+' '+s.id);}}
   // Typical floors share one stacked stairwell per core.
   if(i>=2){const prev=d.floors[i-1].stairs.find(q=>q.id===s.id);assert.deepEqual(prev.rect,s.rect);assert.equal(prev.entrance,s.entrance);}
