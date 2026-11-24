@@ -34,6 +34,8 @@ assert(treads>150&&doors>20,JSON.stringify({treads,doors}));
   for(const door of f.doors){const [a,b]=door.line.map(p=>dr(...p)),m=[(a[0]+b[0])/2,(a[1]+b[1])/2];for(const r of f.furnitureBlocks||[])assert(Math.hypot(Math.max(r[0]-m[0],0,m[0]-r[2]),Math.max(r[1]-m[1],0,m[1]-r[3]))>1.0,'doorway kept clear '+f.label+' '+door.name);}}}
 // 2026-11-19: hairlines across one space (the 1F north–south corridor at y≈40.5, world X≈-145.7) must not become walls.
 {const f1=d.floors.find(f=>f.label==='1F');for(let y=34;y<=46;y+=.1)assert(!f1.walls.some(r=>54.2>=r[0]&&54.2<=r[2]&&y>=r[1]&&y<=r[3])&&!f1.walls.some(r=>54.8>=r[0]&&54.8<=r[2]&&y>=r[1]&&y<=r[3]),'1F corridor open at y '+y.toFixed(1));}
+// 2026-11-24 (user): every door gets a frame (jambs + head) as thick as its wall.
+for(const f of d.floors)for(const door of f.doors)assert(Array.isArray(door.frame)&&door.frame[0]>=.05&&door.frame[0]<=.7,'door frame '+f.label+' '+door.name);
 // 2026-11-24: the 乙梯 is hollowed out of the solid upper floors and stacked up to 8F (data.upperFloors), roofed and glazed at the bay.
 {const up=d.upperFloors,inSlab=(f,p)=>f.slab.some(([o,...hs])=>ringDistance(p[0],p[1],o)===0&&!hs.some(h=>ringDistance(p[0],p[1],h)===0));
  assert.deepEqual(up.map(f=>f.label),['2F','3F','4F','5F','6F','7F','8F']);
