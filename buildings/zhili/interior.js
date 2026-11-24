@@ -22,7 +22,7 @@ export function createPlanSurface(campus,terrain,osm){
  if(!data||!building)return null;
  const f=frame(data.transform),base=terrain.platformHeight(building),H=data.floorHeight;
  // Walls, window glass/sills and glazed entrances all block; open entrances and doors do not.
- const floors=[...data.floors,...(data.upperFloors||[])].map(fl=>{const blocking=[...fl.walls,...(fl.furnitureBlocks||[]),...(fl.sills||[]).map(s=>s.rect),...(fl.doorLeaves||[]),...fl.exits.filter(e=>!e.open).flatMap(e=>e.rect)];return{...fl,y:base+fl.level,near:grid(blocking),blocking};});
+ const floors=[...data.floors,...(data.upperFloors||[])].map(fl=>{const blocking=[...fl.walls,...(fl.furnitureBlocks||[]),...(fl.sills||[]).map(s=>s.rect),...(fl.blockOnly||[]),...(fl.doorLeaves||[]),...fl.exits.filter(e=>!e.open).flatMap(e=>e.rect)];return{...fl,y:base+fl.level,near:grid(blocking),blocking};});
  const stepRects=floors.flatMap(fl=>fl.exits.flatMap(e=>(e.steps||[]).map(t=>t.rect)));
  function supportAt(x,z,y){
   const p=f.toDrawing(x,z);if(ringDistance(p[0],p[1],data.outline)!==0&&!stepRects.some(r=>inRect(p,r)))return null;
@@ -130,6 +130,7 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
    const gS=new THREE.BufferGeometry();gS.setAttribute('position',new THREE.Float32BufferAttribute(posS,3));gS.computeVertexNormals();const mS=new THREE.Mesh(gS,mats.outer);mS.name=key+'-ramp-base-'+fl.label;group.add(mS);}for(const p of fl.garageLights||[])rectBox([p[0]-.6,p[1]-.06,p[0]+.6,p[1]+.06],y+H-SLAB-.1,y+H-SLAB-.04,'lamp');}
   if(fin){surface(fl.tileTriangles||fl.slabTriangles,y+.004,surf.floor,surf.floorRepeat,key+'-tiles-'+fl.label);if(fl.ceilingTriangles)surface(fl.ceilingTriangles,y+fin.ceilingHeight,surf.ceiling,surf.ceilingRepeat,key+'-ceiling-'+fl.label);}
   for(const w of fl.walls)wall(w,y,fl.outline);
+  for(const d of fl.diagWalls||[])oBox(d.a,d.b,2*d.w,y,y+(d.top??H-SLAB),'inner');   // slanted walls and curbs: true rotated boxes
   for(const w of fl.sills||[])wall(w.rect,y,fl.outline,y-.45,y+w.top);
   for(const w of fl.heads||[])wall(w.rect,y,fl.outline,y+w.bottom,y+H-SLAB,false);
   for(const w of fl.windows||[])pane(w,y,-.12);

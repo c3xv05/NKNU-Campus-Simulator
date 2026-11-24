@@ -36,6 +36,12 @@ assert(treads>150&&doors>20,JSON.stringify({treads,doors}));
 {const f1=d.floors.find(f=>f.label==='1F');for(let y=34;y<=46;y+=.1)assert(!f1.walls.some(r=>54.2>=r[0]&&54.2<=r[2]&&y>=r[1]&&y<=r[3])&&!f1.walls.some(r=>54.8>=r[0]&&54.8<=r[2]&&y>=r[1]&&y<=r[3]),'1F corridor open at y '+y.toFixed(1));}
 // 2026-11-24 (user): every door gets a frame (jambs + head) as thick as its wall.
 for(const f of d.floors)for(const door of f.doors)assert(Array.isArray(door.frame)&&door.frame[0]>=.05&&door.frame[0]<=.7,'door frame '+f.label+' '+door.name);
+// 2026-11-24: stage platform (+0.8 m, 準備室 on the same platform), 0.2 m curbs as rotated boxes, 戊梯 climbing from the 門廳 to 1F.
+{const b1=d.floors[0],stage=b1.stairs.find(q=>q.id==='舞台'),wu=b1.stairs.find(q=>q.id==='戊梯');
+ assert(stage&&Math.max(...stage.treads.map(t=>t.height))===.8&&stage.treads.some(t=>t.height===.2)&&stage.treads.some(t=>t.height===.6),'stage platform and corner steps');
+ assert(b1.diagWalls.length===6&&b1.diagWalls.every(w=>w.top===1.0)&&b1.blockOnly.length>20,'diagonal curbs are rotated boxes with collision rects');
+ assert(wu&&Math.abs(Math.max(...wu.treads.map(t=>t.height))-3.6)<1e-6&&wu.hole[2]<=5.0,'戊梯 reaches the 1F floor');
+ const hs=[...new Set(wu.treads.map(t=>t.height))].sort((x,y)=>x-y);for(let i=1;i<hs.length;i++)assert(hs[i]-hs[i-1]<.2001+1e-9,'戊梯 risers <= 0.2 m '+hs[i]);}
 // 2026-11-24: the 乙梯 is hollowed out of the solid upper floors and stacked up to 8F (data.upperFloors), roofed and glazed at the bay.
 {const up=d.upperFloors,inSlab=(f,p)=>f.slab.some(([o,...hs])=>ringDistance(p[0],p[1],o)===0&&!hs.some(h=>ringDistance(p[0],p[1],h)===0));
  assert.deepEqual(up.map(f=>f.label),['2F','3F','4F','5F','6F','7F','8F']);

@@ -93,13 +93,24 @@ OUTLINE = {'B': B1_OUTLINE, '1': OUTLINE_1F, '2': TOWER, **{k: TOWER for k in AL
 RAKE = {'rect': [10.24, 20.9, 21.24, 40.1], 'tiers': 11}
 # Seats from the sheet: columns on every tread against the next riser; y blocks 21.65–26.15 (10), 27.3–33.3 (13), 34.45–38.95 (10).
 SEAT_BLOCKS = [(21.65, 26.15, 10), (27.3, 33.3, 13), (34.45, 38.95, 10)]
-# 舞台 (+0.8 m, drawing −290 cm over the −370 cm hall floor) x1.4–6.74, y24.7–36.3 with a 4-step stair at each corner notch down to the hall;
-# 準備室 on the B1 floor (戊梯 door) north and south of it, linked to the stage by a doorway beside the west wall (x1.4–2.4) with 4 steps.
-STAGE_H, STAGE_MIRROR = .8, 61.0
-STAGE_POLY = [(1.45, 24.75), (4.96, 24.75), (5.84, 25.68), (6.74, 26.52), (6.74, 34.48), (5.84, 35.32), (4.96, 36.25), (1.45, 36.25)]
+# 舞台 (+0.8 m, drawing −290 cm over the −370 cm hall floor) x1.4–6.74, y24.7–36.3 with a 4-step stair at each corner notch down to the hall.
+# User 2026-11-24 (2nd pass): the 準備室 floors are the SAME raised platform (solid down to the B1 floor), joined to the stage by the doorway beside
+# the west wall; the 戊梯 hall below the lower 準備室 climbs from the 門廳 (3 steps) to a landing at stage height (door to the 準備室), then 戊梯 up to 1F.
+# A 0.2 m curb above the stage floor runs along the stage front and the sides of the corner stairs (not a full wall).
+STAGE_H, STAGE_MIRROR, CURB_TOP = .8, 61.0, 1.0
+STAGE_POLY = [(1.45, 24.7), (4.96, 24.7), (5.84, 25.68), (6.74, 26.52), (6.74, 34.48), (5.84, 35.32), (4.96, 36.3), (1.45, 36.3)]
+PREP_TOP = [(1.45, 21.05), (6.8, 21.05), (6.8, 22.96), (4.96, 24.7), (1.45, 24.7)]
+PREP_BOT = [(1.45, 36.3), (4.96, 36.3), (6.8, 38.04), (6.8, 40.8), (1.45, 40.8)]   # the lower room runs to its door wall y40.7
 STAIR_QUAD = [(4.96, 24.68), (6.4, 23.4), (7.24, 24.34), (5.84, 25.68)]   # top corner stair (W, N, E, S); the bottom one is its mirror
-STAGE_WALLS = [((6.8, 21.0), (6.8, 22.96), .07), ((6.8, 22.96), (4.96, 24.68), .07), ((2.4, 24.7), (4.96, 24.7), .05),
-               ((5.84, 25.68), (7.24, 24.34), .07), ((5.84, 25.68), (6.8, 26.52), .07)]
+STAGE_WALLS = [((6.8, 21.0), (6.8, 22.96), .07, None), ((2.4, 24.7), (4.96, 24.7), .05, None)]          # full-height room walls (rect walls, exact)
+STAGE_CURBS = [((6.8, 22.96), (4.96, 24.68), .07, CURB_TOP), ((5.84, 25.68), (7.24, 24.34), .07, CURB_TOP), ((5.84, 25.68), (6.74, 26.52), .07, CURB_TOP),
+               ((6.74, 26.52), (6.74, 34.48), .07, CURB_TOP)]   # diagonal ones are drawn as true rotated boxes (no raster teeth)
+# 戊梯 (B1): small flight from the 門廳, landing at stage height, lower flight W, half landing, upper flight E up to the 1F floor (2.8 m over 14 risers)
+WU_TREADS = [[6.5, 42.45, 6.75, 43.95, .2], [6.25, 42.45, 6.5, 43.95, .4], [6.0, 42.45, 6.25, 43.95, .6], [4.95, 40.7, 6.74, 42.45, .8], [4.95, 42.45, 6.0, 43.95, .8]]
+WU_TREADS += [[round(4.95 - (i + 1) * 2.0 / 6, 3), 42.5, round(4.95 - i * 2.0 / 6, 3), 43.95, round(1.0 + .2 * i, 2)] for i in range(6)]
+WU_TREADS += [[1.5, 41.0, 2.95, 43.95, 2.2]]
+WU_TREADS += [[round(2.95 + i * 2.0 / 7, 3), 41.0, round(2.95 + (i + 1) * 2.0 / 7, 3), 42.45, round(2.4 + .2 * i, 2)] for i in range(7)]
+WU_HOLE = [1.5, 41.0, 4.95, 43.95]
 HALL_OPEN_1F = [6.6, 20.7, 21.4, 40.3]   # no 1F slab or partitions over the seating; the stage void is the plan void (挑空). The current 1F sheet (2026-11-19) shows 演講廳空調機房 and 118 全家超商A區 as 1F rooms west of it.
 HALL_CLEAR_B1 = [6.4, 20.8, 21.1, 40.2]  # seating volume on B1 (B05 rows, B04 under the rake)
 FREE = {'classroom', 'office', 'library', 'hall', 'corridor', 'toilet', 'stair', 'service', 'mech', 'balcony', 'plaza', 'unknown', 'garage'}
@@ -459,27 +470,22 @@ for k in ALL_FLOORS:
         stairs.append({'id': '理學院階梯教室', 'rect': RAKE['rect'], 'entrance': 'x0', 'tiers': True, 'hole': HALL_OPEN_1F,
                        'treads': [{'rect': [round(x0 + i * d, 3), y0, round(x0 + (i + 1) * d, 3), y1], 'height': round(FLOOR_H * (i + 1) / n, 4), 'flight': 0} for i in range(n)],
                        'run': round(d, 3), 'landing': 0})
-        # Stage platform, corner stairs (cells graded by distance along the flight) and the doorway steps beside the west wall.
-        Xc, Yc = ox + xs_grid * CELL, oy + ys_grid * CELL
-        def quad_mask(Q): return poly_mask(Polygon(Q))
-        def mir(Q): return [(x, STAGE_MIRROR - y) for x, y in Q]
-        stage_m = poly_mask(Polygon(STAGE_POLY)); step_m = {}
-        W_, N_, E_, S_ = [np.array(q) for q in STAIR_QUAD]
+        # Raised platform (stage + 準備室), corner stairs graded along the flight, 戊梯: all on the 2.5 cm grid so diagonal edges have no 10 cm teeth.
+        Xf = (fox + (np.arange(W * FS) + .5) * FINE).astype(np.float32)[None, :]; Yf = (foy + (np.arange(H * FS) + .5) * FINE).astype(np.float32)[:, None]
+        mir = lambda Q: [(x, STAGE_MIRROR - y) for x, y in Q]
+        plat = unary_union([Polygon(STAGE_POLY), Polygon(PREP_TOP), Polygon(PREP_BOT)]); plat_m = fine_poly(plat); step_m = {}
         for sign in (1, -1):
             Q = STAIR_QUAD if sign == 1 else mir(STAIR_QUAD)
-            qm = quad_mask(Q); Wq, Nq = np.array(Q[0]), np.array(Q[1]); u = (Nq - Wq) / np.hypot(*(Nq - Wq))
-            a_ = (Xc - Wq[0]) * u[0] + (Yc - Wq[1]) * u[1]
+            qm = fine_poly(Polygon(Q)); Wq, Nq = np.array(Q[0]), np.array(Q[1]); u = (Nq - Wq) / np.hypot(*(Nq - Wq))
+            a_ = (Xf - Wq[0]) * u[0] + (Yf - Wq[1]) * u[1]
             for lo, hi, h_ in ((-9, .68, STAGE_H), (.68, 1.03, .6), (1.03, 1.38, .4), (1.38, 9, .2)):
-                m_ = qm & (a_ >= lo) & (a_ < hi)
-                (stage_m.__ior__(m_) if h_ == STAGE_H else None)
-                if h_ != STAGE_H: step_m.setdefault(h_, np.zeros_like(stage_m)); step_m[h_] |= m_
-        stage_m &= O; entry = []
-        for i, (ya, yb, h_) in enumerate(((24.4, 24.7, .6), (24.1, 24.4, .4), (23.8, 24.1, .2))):
-            for yy0, yy1 in ((ya, yb), (STAGE_MIRROR - yb, STAGE_MIRROR - ya)): entry.append({'rect': [1.45, yy0, 2.4, yy1], 'height': h_, 'flight': 0})
-        st_treads = [{'rect': r_, 'height': STAGE_H, 'flight': 0} for r_ in rects(stage_m)]
-        for h_, m_ in step_m.items(): st_treads += [{'rect': r_, 'height': h_, 'flight': 0} for r_ in rects(m_ & O)]
-        st_treads += entry
-        stairs.append({'id': '舞台', 'rect': [1.4, 23.3, 7.3, 37.7], 'entrance': 'x0', 'tiers': True, 'mat': 'wood', 'hole': [0, 0, .001, .001], 'treads': st_treads, 'run': .3, 'landing': 0})
+                m_ = qm & ((a_ >= lo) & (a_ < hi)).astype(np.uint8)
+                if h_ == STAGE_H: plat_m |= m_
+                else: step_m.setdefault(h_, np.zeros_like(plat_m)); step_m[h_] |= m_
+        st_treads = [{'rect': r_, 'height': STAGE_H, 'flight': 0} for r_ in fine_rects(plat_m)]
+        for h_, m_ in step_m.items(): st_treads += [{'rect': r_, 'height': h_, 'flight': 0} for r_ in fine_rects(m_)]
+        stairs.append({'id': '舞台', 'rect': [1.4, 21.0, 7.3, 40.85], 'entrance': 'x0', 'tiers': True, 'mat': 'wood', 'hole': [0, 0, .001, .001], 'treads': st_treads, 'run': .3, 'landing': 0})
+        stairs.append({'id': '戊梯', 'rect': [1.4, 40.75, 6.8, 44.0], 'entrance': 'x1', 'tiers': True, 'hole': WU_HOLE, 'treads': [{'rect': r_[:4], 'height': r_[4], 'flight': 0} for r_ in WU_TREADS], 'run': .3, 'landing': 0})
     stairs_by_floor[k] = stairs
     # Exterior entrances (drawing positions); runtime decides open, stepped or glazed from the ground outside.
     exits = []
@@ -565,11 +571,23 @@ for k in ALL_FLOORS:
                 label = (str(room['num']) if room.get('num') is not None else room['name']) if room else '門'
                 door_list.append({'name': label, 'kind': room['type'] if room else 'unknown', 'to': 'manual', 'manual': True,
                                   'line': [world(list(a_)), world(list(b_))], 'drawing': [ed['a'], ed['b']]})
-    if k == 'B':   # 準備室 / stage-corner walls on the drawn lines (the generated ones here were removed by hand-drawn strokes)
+    diag_walls, block_only, curb_sills = [], [], []
+    if k == 'B':   # 準備室 room walls (exact rects) and the stage curbs; diagonal ones are rotated boxes at runtime (diagWalls) with a collision-only fine raster
         walls &= 1 - (rect_mask([1.5, 21.05, 6.95, 40.6]) & (1 - solid) & (1 - band))
-        for (pa, pb, w_) in STAGE_WALLS:
-            for (qa, qb) in (((pa[0], pa[1]), (pb[0], pb[1])), ((pa[0], STAGE_MIRROR - pa[1]), (pb[0], STAGE_MIRROR - pb[1]))):
-                m_ = poly_mask(LineString([qa, qb]).buffer(w_, cap_style=2)) & O; walls |= m_; doors &= 1 - m_; ov_wall |= m_
+        walls &= 1 - (rect_mask([1.5, 41.0, 4.95, 43.95]) & (1 - solid) & (1 - band))   # 戊梯 well: generated lines are not walls
+        m_ = poly_mask(LineString([(6.8, 40.0), (6.8, 40.7)]).buffer(.07, cap_style=2)) & O; walls |= m_; doors &= 1 - m_; ov_wall |= m_   # east wall of the lower 準備室 down to its door wall
+        for lst in (STAGE_WALLS, STAGE_CURBS):
+            for (pa, pb, w_, top_) in lst:
+                for (qa, qb) in (((pa[0], pa[1]), (pb[0], pb[1])), ((pa[0], STAGE_MIRROR - pa[1]), (pb[0], STAGE_MIRROR - pb[1]))):
+                    axis = abs(qa[0] - qb[0]) < 1e-6 or abs(qa[1] - qb[1]) < 1e-6
+                    g_ = LineString([qa, qb]).buffer(w_, cap_style=2)
+                    if axis and top_ is None:
+                        m_ = poly_mask(g_) & O; walls |= m_; doors &= 1 - m_; ov_wall |= m_
+                    elif axis:
+                        b_ = g_.bounds; curb_sills.append({'rect': [round(v, 3) for v in b_], 'top': top_})
+                    else:
+                        diag_walls.append({'a': [round(qa[0], 3), round(qa[1], 3)], 'b': [round(qb[0], 3), round(qb[1], 3)], 'w': w_, 'top': top_})
+                        block_only += fine_rects(fine_poly(g_))
     doors &= 1 - walls   # lintel strips over drawn door openings
     walls_final = walls & (1 - doors)
     for e in exits:
@@ -588,7 +606,7 @@ for k in ALL_FLOORS:
     exit_polys = [[[r[0], r[1]], [r[2], r[1]], [r[2], r[3]], [r[0], r[3]]] for e in exits for r in e['rect']]
     wins = window_plan(k, O, [s for s in spaces if s['type'] != 'void'], exit_polys) if k != 'B' else []
     wins = [w for w in wins if not any(g.contains(Point((w['a'][0] + w['b'][0]) / 2, (w['a'][1] + w['b'][1]) / 2)) for g in NO_WINDOWS.get(k, []))]
-    sills, heads, glass = list(ov_sills), [], []
+    sills, heads, glass = list(ov_sills) + curb_sills, [], []
     for w in wins:
         a, b = w['a'], w['b']; r = [min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1])]
         r = [r[0] - (.4 if abs(w['normal'][0]) > .5 else 0), r[1] - (.4 if abs(w['normal'][1]) > .5 else 0), r[2] + (.4 if abs(w['normal'][0]) > .5 else 0), r[3] + (.4 if abs(w['normal'][1]) > .5 else 0)]
@@ -648,6 +666,8 @@ for k in ALL_FLOORS:
         if not st.get('tiers'): keep |= rect_mask(st['rect'])
     for sid, hr in halls.items(): keep |= rect_mask(hr)
     if k == '2': keep |= rect_mask(OPEN_2F)
+    if k == 'B':   # doorways between the 準備室 and the stage beside the west wall stay clear of shelves
+        for r_ in ([1.4, 23.2, 2.5, 25.2], [1.4, 35.4, 2.5, 37.4]): keep |= rect_mask(r_)
     keep = cv2.dilate(keep.astype(np.uint8), disk(int(1.3 / CELL)))
     furniture, fblocks = furnish_floor([sp for sp in spaces if not (k == 'B' and sp['name'].startswith('B04'))] , walls_final, keep, O, H, W, CELL, ox, oy, CELL)   # B04 is solid under the rake
     furniture += ov_fixtures; fblocks += [f['r'] for f in ov_fixtures if f['y'][1] > .3]
@@ -664,8 +684,8 @@ for k in ALL_FLOORS:
                     furniture += [{'r': seat, 'y': [h, h + .45], 'm': 'fabric', 'room': '理學院階梯教室'},
                                   {'r': [round(xb - .12, 3), round(y0s, 3), round(xb - .06, 3), round(y1s, 3)], 'y': [h + .45, h + .95], 'm': 'fabric', 'room': '理學院階梯教室'}]
                     fblocks.append(seat)
-        for it in furniture:   # lectern etc. stands on the stage platform
-            if it['room'].startswith('舞台'): it['y'] = [round(it['y'][0] + STAGE_H, 3), round(it['y'][1] + STAGE_H, 3)]
+        for it in furniture:   # lectern, 準備室 shelves: standing on the raised platform
+            if it['room'].startswith('舞台') or it['room'] == '準備室': it['y'] = [round(it['y'][0] + STAGE_H, 3), round(it['y'][1] + STAGE_H, 3)]
     # Fine walls: cells that came from the drawn line work or a user wall strip are replaced by those exact shapes;
     # everything else (exterior band, cores, stair-hall walls, welds) keeps its cell outline.
     protect = (band | solid).astype(np.uint8)
@@ -692,7 +712,7 @@ for k in ALL_FLOORS:
         dr['frame'] = [round(t1 - t0, 3), round((t0 + t1) / 2, 3)] if t1 - t0 <= .45 else [.25, 0.0]   # thicker readings (door beside a solid core) fall back to a 0.25 m frame   # user 2026-11-24: every door gets a frame (jambs + head) as thick as the wall at its jambs; centre offset along the normal
         fine_poly(Polygon([a2 - u2 * .08 + n2 * t0, b2 + u2 * .08 + n2 * t0, b2 + u2 * .08 + n2 * t1, a2 - u2 * .08 + n2 * t1]), lint)
     lint &= 1 - wf
-    floors_out.append({'garagePoly': garage_poly, 'stallLines': [[round(v, 3) for v in r] for r in stall_lines], 'garageLights': garage_lights, 'openAreas': [OPEN_2F] if k == '2' else ([DRIVE_OPEN_B1] if k == 'B' else []), 'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'outline': ring_coords(Pk), 'walls': fine_rects(wf), 'lintels': fine_rects(lint),
+    floors_out.append({'garagePoly': garage_poly, 'stallLines': [[round(v, 3) for v in r] for r in stall_lines], 'garageLights': garage_lights, 'openAreas': [OPEN_2F] if k == '2' else ([DRIVE_OPEN_B1] if k == 'B' else []), 'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'outline': ring_coords(Pk), 'walls': fine_rects(wf), 'diagWalls': diag_walls, 'blockOnly': block_only, 'lintels': fine_rects(lint),
                        'sills': sills, 'heads': heads, 'windows': glass, 'furniture': furniture, 'furnitureBlocks': fblocks, 'doors': door_list, 'doorLeaves': door_leaves, 'exits': exits, 'stairs': stairs, 'voidMask': void,
                        'spaces': [{'name': s['name'], 'num': s.get('num'), 'type': s['type'], 'anchor': world(s['anchor']) if s.get('anchor') else None} for s in spaces]})
 
