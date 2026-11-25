@@ -6814,6 +6814,38 @@
    "room": "B06",
    "note": "B06 揚水泵浦",
    "source": "claude-review-2026-11-25 (user B1 corrections)"
+  },
+  {
+   "id": "zb-s-12",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    9.1,
+    40.48
+   ],
+   "b": [
+    11.2,
+    40.48
+   ],
+   "w": 0.32,
+   "source": "claude-review-2026-11-25 (user coordinate -131,35.28,-235.19)",
+   "note": "演講廳前廳南門東側補牆，北面與演講廳牆面（y40.16）齊平"
+  },
+  {
+   "id": "zb-s-13",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    6.17,
+    46.19
+   ],
+   "b": [
+    6.76,
+    46.19
+   ],
+   "w": 0.1,
+   "source": "claude-review-2026-11-25 (user coordinate -124.25,35.28,-233.48)",
+   "note": "門廳南雙門西側門框到西牆之間補牆"
   }
  ]
 }
