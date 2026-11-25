@@ -41,13 +41,17 @@ export function createPlanSurface(campus,terrain,osm){
  function blocked(x,z,r,y,riding=false){
   const p=f.toDrawing(x,z);if(ringDistance(p[0],p[1],data.outline)>=r+.05)return false;
   for(const fl of floors){if(y<fl.y-.5||y>fl.y+H-.7)continue;const d=ringDistance(p[0],p[1],fl.outline);if(d>=r+.05)continue;
-   if(riding)return true;
+   // Riding stays out of the building, except on the B1 driveway ramp down to the street (user 2026-11-25: an invisible threshold stopped scooters at the mouth).
+   if(riding&&fl.level>0&&!(fl.ramp&&inRect(p,[fl.ramp.rect[0],fl.ramp.rect[1],fl.ramp.rect[2],fl.ramp.rect[3]+1.2])))return true;   // user 2026-11-25: scooters ride on the ground floor and the basement; upper floors stay on foot
    for(const w of fl.near(p,r+.1))if(rectDistance(p,w)<r+.02)return true;
    if(d===0&&!(fl.openAreas||[]).some(a=>inRect(p,a))&&supportAt(x,z,y)===null)return true;
   }
   return false;
  }
- const result={base,floors,supportAt,blocked,contains:(x,z)=>{const p=f.toDrawing(x,z);return ringDistance(p[0],p[1],data.outline)===0;}};result.osm=osm;cache.set(osm,result);return result;
+ // B1 garage concrete (driveway and lanes) counts as road for scooter speed; any other supported indoor floor is tile.
+ function triContains(t,x,z){const d=(t[1][1]-t[2][1])*(t[0][0]-t[2][0])+(t[2][0]-t[1][0])*(t[0][1]-t[2][1]);if(!d)return false;const a=((t[1][1]-t[2][1])*(x-t[2][0])+(t[2][0]-t[1][0])*(z-t[2][1]))/d,b=((t[2][1]-t[0][1])*(x-t[2][0])+(t[0][0]-t[2][0])*(z-t[2][1]))/d;return a>=0&&b>=0&&a+b<=1;}
+ function groundKind(x,z,y){const h=supportAt(x,z,y);if(h===null)return null;const p=f.toDrawing(x,z);for(const fl of floors){if(Math.abs(h-fl.y)>1.3)continue;if(fl.ramp&&inRect(p,fl.ramp.rect))return'road';for(const t of fl.garageTriangles||[])if(triContains(t,x,z))return'road';}return'tile';}
+ const result={base,floors,supportAt,blocked,groundKind,contains:(x,z)=>{const p=f.toDrawing(x,z);return ringDistance(p[0],p[1],data.outline)===0;}};result.osm=osm;cache.set(osm,result);return result;
 }
 export function zhiliSupportAt(x,z,y,campus,terrain){for(const s of planSurfaces(campus,terrain)){const h=s.supportAt(x,z,y);if(h!==null)return h;}return null;}
 // Meshes: slabs, walls with real window openings, lintels, stair halls and treads, entrances, plan facade for 3F+.
@@ -133,10 +137,10 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
   if(fin){surface(fl.tileTriangles||fl.slabTriangles,y+.004,surf.floor,surf.floorRepeat,key+'-tiles-'+fl.label);if(fl.ceilingTriangles)surface(fl.ceilingTriangles,y+fin.ceilingHeight,surf.ceiling,surf.ceilingRepeat,key+'-ceiling-'+fl.label);}
   for(const w of fl.walls)wall(w,y,fl.outline);
   for(const d of fl.diagWalls||[])oBox(d.a,d.b,2*d.w,y,y+(d.top??H-SLAB),'inner');   // slanted walls and curbs: true rotated boxes
-  for(const w of fl.sills||[])wall(w.rect,y,fl.outline,y-.45,y+w.top);
+  for(const w of fl.sills||[])wall(w.rect,y,fl.outline,w.low?y:y-.45,y+w.top);   // low partitions and curbs stand on their own floor: never below it (user 2026-11-25)
   for(const w of fl.heads||[])wall(w.rect,y,fl.outline,y+w.bottom,y+H-SLAB,false);
   for(const w of fl.windows||[])pane(w,y,-.12);
-  for(const l of fl.lintels)rectBox(l,y+2.25,y+H-SLAB,'inner');
+  for(const l of fl.lintels)rectBox(l,y+2.25+(l[4]||0),y+H-SLAB,'inner');   // a fifth entry lifts the header with a raised floor (stage-height doors)
   for(const l of fl.doorLeaves||[])rectBox(l,y,y+2.25,'wood');
   for(const e of fl.exits){for(const r of e.rect){if(e.header!==false)wall(r,y,fl.outline,y+2.4,y+H-SLAB,false);if(!e.open){rectBox(r,y,y+.15,'outer');rectBox([r[0]+.08,r[1]+.08,r[2]-.08,r[3]-.08],y+.15,y+2.4,'glass');}}}
   // Room furniture (scripts/furnish.py): instanced boxes with the room's materials.
@@ -149,7 +153,7 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
   // Door frames (user 2026-11-24): two jambs and a head round every door opening, as thick as the wall (+2 cm each face); the passage keeps its width.
   for(const d of fl.doors){if(!d.frame)continue;const A=f.toDrawing(...d.line[0]),B=f.toDrawing(...d.line[1]),L=Math.hypot(B[0]-A[0],B[1]-A[1]);if(L<.3)continue;
    const u=[(B[0]-A[0])/L,(B[1]-A[1])/L],n=[-u[1],u[0]],t=Math.max(.12,d.frame[0])+.04,o=d.frame[1],A0=[A[0]-u[0]*.08,A[1]-u[1]*.08],B1=[B[0]+u[0]*.08,B[1]+u[1]*.08];
-   oBox(A0,A,t,y,y+2.25,'frame',n,o);oBox(B,B1,t,y,y+2.25,'frame',n,o);oBox(A0,B1,t,y+2.17,y+2.25,'frame',n,o);}
+   const R=d.raise||0;oBox(A0,A,t,y+R,y+R+2.25,'frame',n,o);oBox(B,B1,t,y+R,y+R+2.25,'frame',n,o);oBox(A0,B1,t,y+R+2.17,y+R+2.25,'frame',n,o);}
   for(const d of fl.doors){const[a,b]=d.line,mx=(a[0]+b[0])/2,mz=(a[1]+b[1])/2,ang=Math.atan2(-(b[1]-a[1]),b[0]-a[0]);if(['classroom','office','library','hall','service','mech','unknown'].includes(d.kind)&&/^[\dB]/.test(d.name))plate(d.name,mx,y+2.55,mz,ang,.8);}
  }
  // Foundation: where the ground under the lowest walkable floor is lower than its slab, fill down to the ground

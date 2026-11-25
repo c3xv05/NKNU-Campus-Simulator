@@ -11,7 +11,7 @@ drawing; exterior walls get window openings where a room meets the facade. 3F+ i
 whose facade windows come from the same plan. Door/window positions and sizes are model
 approximations read from the drawings, not survey data.
 """
-import json
+import json, math
 from pathlib import Path
 import numpy as np, cv2
 from shapely.geometry import Polygon, box, Point, LineString
@@ -102,8 +102,9 @@ STAGE_POLY = [(1.45, 24.7), (4.96, 24.7), (5.84, 25.68), (6.74, 26.52), (6.74, 3
 PREP_TOP = [(1.45, 21.05), (6.8, 21.05), (6.8, 22.96), (4.96, 24.7), (1.45, 24.7)]
 PREP_BOT = [(1.45, 36.3), (4.96, 36.3), (6.8, 38.04), (6.8, 40.8), (1.45, 40.8)]   # the lower room runs to its door wall y40.7
 STAIR_QUAD = [(4.96, 24.68), (6.4, 23.4), (7.24, 24.34), (5.84, 25.68)]   # top corner stair (W, N, E, S); the bottom one is its mirror
-STAGE_WALLS = [((6.8, 21.0), (6.8, 22.96), .07, None), ((2.4, 24.7), (4.96, 24.7), .05, None)]          # full-height room walls (rect walls, exact)
-STAGE_CURBS = [((6.8, 22.96), (4.96, 24.68), .07, CURB_TOP), ((5.84, 25.68), (7.24, 24.34), .07, CURB_TOP), ((5.84, 25.68), (6.74, 26.52), .07, CURB_TOP),
+STAGE_WALLS = [((6.8, 21.0), (6.8, 22.96), .07, None), ((2.4, 24.7), (4.96, 24.7), .05, None),
+               ((6.8, 22.96), (4.96, 24.7), .07, None)]   # user 2026-11-25: the slanted 準備室 wall beside each corner stair is a real full-height wall (was only a 1 m curb)          # full-height room walls (rect walls, exact)
+STAGE_CURBS = [((5.84, 25.68), (7.24, 24.34), .07, CURB_TOP), ((5.84, 25.68), (6.74, 26.52), .07, CURB_TOP),
                ((6.74, 26.52), (6.74, 34.48), .07, CURB_TOP)]   # diagonal ones are drawn as true rotated boxes (no raster teeth)
 # 戊梯 (B1): small flight from the 門廳, landing at stage height, lower flight W, half landing, upper flight E up to the 1F floor (2.8 m over 14 risers)
 WU_TREADS = [[6.5, 42.45, 6.75, 43.95, .2], [6.25, 42.45, 6.5, 43.95, .4], [6.0, 42.45, 6.25, 43.95, .6], [4.95, 40.7, 6.74, 42.45, .8], [4.95, 42.45, 6.0, 43.95, .8]]
@@ -111,6 +112,11 @@ WU_TREADS += [[round(4.95 - (i + 1) * 2.0 / 6, 3), 42.5, round(4.95 - i * 2.0 / 
 WU_TREADS += [[1.5, 41.0, 2.95, 43.95, 2.2]]
 WU_TREADS += [[round(2.95 + i * 2.0 / 7, 3), 41.0, round(2.95 + (i + 1) * 2.0 / 7, 3), 42.45, round(2.4 + .2 * i, 2)] for i in range(7)]
 WU_HOLE = [1.5, 41.0, 4.95, 43.95]
+# 1F: the slanted walls round the stage void (挑空) were raster teeth; now true rotated boxes (user 2026-11-25). (a, b, half thickness)
+FLOOR_DIAGS = {'1': [((6.78, 23.05), (5.0, 24.82), .07), ((5.89, 25.7), (6.54, 26.36), .05), ((5.03, 36.45), (6.55, 37.96), .07)]}
+STAGE_VOID_1F = [1.45, 24.95, 6.5, 36.3]   # nothing stands inside the void between the stage and the 2F level except what the plan draws on its rim
+RAMP_EAST_WALL = [7.05, 60.1, 7.45, 62.4]   # driveway east wall (user 2026-11-25): one continuous full-height wall, no gap above/between the old low sills
+RAISED_DOOR_ZONE = unary_union([Polygon(PREP_BOT), Polygon(PREP_TOP), Polygon(STAGE_POLY), box(4.95, 40.7, 6.8, 42.5)]).buffer(.12)   # floors at stage height (+0.8): doors there are raised with the floor
 HALL_OPEN_1F = [6.6, 20.7, 21.4, 40.3]   # no 1F slab or partitions over the seating; the stage void is the plan void (挑空). The current 1F sheet (2026-11-19) shows 演講廳空調機房 and 118 全家超商A區 as 1F rooms west of it.
 HALL_CLEAR_B1 = [6.4, 20.8, 21.1, 40.2]  # seating volume on B1 (B05 rows, B04 under the rake)
 FREE = {'classroom', 'office', 'library', 'hall', 'corridor', 'toilet', 'stair', 'service', 'mech', 'balcony', 'plaza', 'unknown', 'garage'}
@@ -303,7 +309,74 @@ def fit_hall(rect, ink):
                 if 0 <= px[0] < W and 0 <= px[1] < H and m[px[1], px[0]]: hits.append(q[axis] - sgn * CELL / 2); break
         if len(hits) >= 4: out[i] = round(float(np.median(hits)), 3)
     return out
+GAP_REPORT = []
 WALLS = json.loads((root / 'buildings/zhili/walls.json').read_text())['floors']
+def fill_door_gaps(rects, door_lines, others, report=None, label=''):
+    """User 2026-11-25: a door frame must meet the wall beside it. Where a wall lies within 0.8 m of a door end along the same wall line but a gap is left
+    (raster cut, clearance, thin lintel strips), fill it with a wall as thick as that neighbouring wall, so its faces stay flush with the wall (no recess).
+    Larger gaps are only reported: they are usually real openings."""
+    def cov(R, x, y): return any(r[0] - 1e-6 <= x <= r[2] + 1e-6 and r[1] - 1e-6 <= y <= r[3] + 1e-6 for r in R)
+    R = list(rects) + list(others); add = []
+    for (A, B) in door_lines:
+        vert = abs(A[0] - B[0]) < abs(A[1] - B[1]); c = A[0] if vert else A[1]
+        lo, hi = sorted((A[1], B[1])) if vert else sorted((A[0], B[0]))
+        for end, sg in ((lo, -1), (hi, 1)):
+            hit = None
+            for k in range(0, int(2.6 / .0125)):
+                t = end + sg * k * .0125; pt = (c, t) if vert else (t, c)
+                if any((min(q[0][1], q[1][1]) - .1 <= t <= max(q[0][1], q[1][1]) + .1 and abs(q[0][0] - c) < .5) if vert else (min(q[0][0], q[1][0]) - .1 <= t <= max(q[0][0], q[1][0]) + .1 and abs(q[0][1] - c) < .5)
+                       for q in door_lines if q is not (A, B) and not (q[0] == A and q[1] == B)) and k * .0125 > .02: break   # another door starts here
+                if cov(R, *pt): hit = k * .0125; break
+            if hit is None or hit <= .04: continue
+            if hit > .8:
+                if report is not None and hit <= 2.6: report.append((label, [round(v, 2) for v in A], [round(v, 2) for v in B], round(end, 2), round(hit, 2)))
+                continue
+            t_hit = end + sg * (hit + .02); span = []
+            for k in range(-40, 41):
+                cc = c + k * .0125; pt = (cc, t_hit) if vert else (t_hit, cc)
+                if cov(R, *pt): span.append(cc)
+            seg = [v for v in span if abs(v - c) < .4]
+            if not seg: continue
+            c0, c1 = min(seg), max(seg); a0, a1 = sorted((end, end + sg * (hit + .01)))
+            add.append([round(c0, 3), round(a0, 3), round(c1, 3), round(a1, 3)] if vert else [round(a0, 3), round(c0, 3), round(a1, 3), round(c1, 3)])
+    return add
+def snap_doors(doors, edits):
+    """User 2026-11-25: doors sit square in their wall. Drawn swing arcs give hinge->closed chords a degree or three off axis (and two leaves of one
+    double door, or doors side by side in one wall, disagree by a few cm), so every chord is made exactly axis-aligned, doors that share a wall line
+    take one common wall coordinate, and a drawn door that sits on top of a hand-placed one (front and back of the same opening) is dropped."""
+    out = []
+    for d in doors:
+        h, c = np.array(d['hinge'], float), np.array(d['closed'], float); v = c - h
+        if abs(v[0]) < abs(v[1]): cross = (h[0] + c[0]) / 2; h[0] = c[0] = cross; axis = 'x'
+        else: cross = (h[1] + c[1]) / 2; h[1] = c[1] = cross; axis = 'y'
+        out.append({**d, 'hinge': h.tolist(), 'closed': c.tolist(), '_axis': axis})
+    manual = [(np.array(e['a'], float), np.array(e['b'], float)) for e in edits if e['kind'] == 'door']
+    def seg(d):
+        i = 1 if d['_axis'] == 'x' else 0; lo, hi = sorted((d['hinge'][i], d['closed'][i])); j = 1 - i; return i, lo, hi, d['hinge'][j]
+    keep = []
+    for d in out:
+        i, lo, hi, cross = seg(d); dup = False
+        for a_, b_ in manual:   # a hand-placed door in the same wall line and overlapping span replaces the drawn one
+            ax = 'x' if abs(b_[0] - a_[0]) < abs(b_[1] - a_[1]) else 'y'
+            if ax != d['_axis']: continue
+            l2, h2 = sorted((a_[i], b_[i])); c2 = a_[1 - i]
+            if abs(c2 - cross) < .6 and min(hi, h2) - max(lo, l2) > .3 * min(hi - lo, h2 - l2): dup = True; break
+        d['_dup'] = dup; keep.append(d)   # flagged, not removed: exterior-entrance detection still reads the drawn arc
+    out = keep; par = list(range(len(out)))
+    def find(i):
+        while par[i] != i: par[i] = par[par[i]]; i = par[i]
+        return i
+    for a in range(len(out)):
+        for b in range(a + 1, len(out)):
+            if out[a]['_axis'] != out[b]['_axis']: continue
+            i, la, ha, ca = seg(out[a]); _, lb, hb, cb = seg(out[b])
+            if abs(ca - cb) < .35 and max(la, lb) - min(ha, hb) < .3: par[find(a)] = find(b)   # side by side (or overlapping) in one wall line
+    groups = {}
+    for a in range(len(out)): groups.setdefault(find(a), []).append(a)
+    for g in groups.values():
+        i0 = out[g[0]]['_axis']; ci = 0 if i0 == 'x' else 1; mean = float(np.mean([out[a]['hinge'][ci] for a in g]))
+        for a in g: out[a]['hinge'][ci] = out[a]['closed'][ci] = round(mean, 3)
+    return out
 # Manual wall / door / opening edits by the user (致理牆門編輯器), grouped by floor label.
 OVERRIDES = {}
 for _ed in json.loads((root / 'buildings/zhili/overrides.json').read_text()).get('edits', []): OVERRIDES.setdefault(_ed['floor'], []).append(_ed)
@@ -386,7 +459,7 @@ for k in ALL_FLOORS:
         if sp['type'] in FREE: lab[sp['mask'] > 0] = i
     # Walls and doors read straight from the drawing's line work (scripts/extract-zhili-walls.py -> walls.json):
     # every drawn double line is a wall, every swing arc is a door, gaps without a leaf stay open (user 2026-11-19).
-    WF = WALLS[LABEL[k]]
+    WF = {**WALLS[LABEL[k]], 'doors': snap_doors(WALLS[LABEL[k]]['doors'], OVERRIDES.get(LABEL[k], []))}
     ink = np.zeros((H, W), np.uint8)
     for ring, holes in zip(WF['walls'], WF['wallHoles']):
         if len(ring) > 2: ink |= poly_mask(Polygon(ring, [h for h in holes if len(h) > 2]).buffer(.02, join_style=2))
@@ -404,6 +477,7 @@ for k in ALL_FLOORS:
         return space_polys[min(hits)[1]][0] if hits else None
     toilet_polys = [g for sp, g in space_polys if sp['type'] == 'toilet']; toilet_doors = []
     for d in WF['doors']:
+        if d.get('_dup'): continue   # a hand-placed door already stands in this opening
         h, c, o = np.array(d['hinge']), np.array(d['closed']), np.array(d['open'])
         mid = (h + c) / 2; nrm = (o - h) / max(np.hypot(*(o - h)), 1e-6)
         if any(e_['kind'] == 'nodoor' and e_['rect'][0] <= mid[0] <= e_['rect'][2] and e_['rect'][1] <= mid[1] <= e_['rect'][3] for e_ in OVERRIDES.get(LABEL[k], [])): continue   # user: drawn swing that is a stall front, not a room door
@@ -549,7 +623,7 @@ for k in ALL_FLOORS:
         if ed['kind'] == 'wall' and ed.get('top'):   # low partition (e.g. toilet stall, 'top' metres, half-thickness 'w')
             w_ = float(ed.get('w', .04)); L_ = LineString([a_, b_]).buffer(w_, cap_style=2)
             xs_, ys_ = L_.exterior.xy
-            ov_sills.append({'rect': [round(min(xs_), 3), round(min(ys_), 3), round(max(xs_), 3), round(max(ys_), 3)], 'top': float(ed['top'])})
+            ov_sills.append({'rect': [round(min(xs_), 3), round(min(ys_), 3), round(max(xs_), 3), round(max(ys_), 3)], 'top': float(ed['top']), 'low': True})
             walls &= 1 - poly_mask(L_); continue
         if ed['kind'] == 'wall':
             strip = poly_mask(LineString([a_, b_]).buffer(float(ed.get('w', .08)), cap_style=2)) & O; walls |= strip; doors &= 1 - strip; ov_wall |= strip; fine_poly(LineString([a_, b_]).buffer(float(ed.get('w', .08)), cap_style=2), ov_fine)
@@ -584,10 +658,17 @@ for k in ALL_FLOORS:
                     if axis and top_ is None:
                         m_ = poly_mask(g_) & O; walls |= m_; doors &= 1 - m_; ov_wall |= m_
                     elif axis:
-                        b_ = g_.bounds; curb_sills.append({'rect': [round(v, 3) for v in b_], 'top': top_})
+                        b_ = g_.bounds; curb_sills.append({'rect': [round(v, 3) for v in b_], 'top': top_, 'low': True})
                     else:
                         diag_walls.append({'a': [round(qa[0], 3), round(qa[1], 3)], 'b': [round(qb[0], 3), round(qb[1], 3)], 'w': w_, 'top': top_})
                         block_only += fine_rects(fine_poly(g_))
+    for (pa, pb, w_) in FLOOR_DIAGS.get(k, []):   # slanted walls drawn as true rotated boxes (collision keeps a fine raster); the raster teeth are cleared first
+        g_ = LineString([pa, pb]).buffer(w_, cap_style=2)
+        walls &= 1 - (poly_mask(LineString([pa, pb]).buffer(.24, cap_style=2)) & (1 - solid) & (1 - band))
+        ux, uy = (pb[0] - pa[0]), (pb[1] - pa[1]); ln_ = math.hypot(ux, uy); ex, ey = ux / ln_ * .06, uy / ln_ * .06   # 6 cm overlap into the straight walls it meets
+        diag_walls.append({'a': [round(pa[0] - ex, 3), round(pa[1] - ey, 3)], 'b': [round(pb[0] + ex, 3), round(pb[1] + ey, 3)], 'w': w_, 'top': None})
+        block_only += fine_rects(fine_poly(g_))
+    if k == '1': walls &= 1 - (rect_mask(STAGE_VOID_1F) & (1 - solid) & (1 - band))   # stage void: no leftover wall bits or beams inside it
     doors &= 1 - walls   # lintel strips over drawn door openings
     walls_final = walls & (1 - doors)
     for e in exits:
@@ -629,18 +710,47 @@ for k in ALL_FLOORS:
         # Ramp cutting: its side walls are retaining walls standing ~1 m above the outside ground (low walls, not full height).
         rr = rect_mask([1.4, 60.2, 7.45, 66.9]); rw = (walls_final & rr).astype(np.uint8); walls_final &= 1 - rr
         sills += [dict(rect=q, top=2.5) for q in rects(rw)]
+        # User 2026-11-25: the driveway's east side must be one sealed wall. The drawn wall x7.15-7.45 stopped at y60.16, the low sills after it left a
+        # 0.9 m gap above B03 and a hole at y61.26-62.16; it now runs full height to the B03 corner, and the west end of the ramp wall is closed too.
+        sills = [q for q in sills if not (q['rect'][0] >= 7.0 and q['rect'][1] < 62.0 and q['rect'][3] <= 62.4)]
+        walls_final |= rect_mask(RAMP_EAST_WALL)
+        sills += [dict(rect=[7.05, 62.16, 7.15, 62.4], top=2.5), dict(rect=[1.75, 65.96, 1.95, 66.66], top=2.5)]
+        for q in sills:   # one wall face along the whole east side of the ramp (x7.05), no 0.2 m step where the wall turns into the retaining wall
+            if q['rect'][0] < 7.05 < q['rect'][2] and q['rect'][1] >= 62.0: q['rect'][0] = 7.05
         # Garage: concrete floor, painted stalls and tube lights instead of tiles and a T-bar ceiling.
         gm = np.zeros((H, W), np.uint8)
         for s in spaces:
             if s['type'] == 'garage': gm |= s['mask']
         gm |= rect_mask([1.76, 58.0, 7.07, 66.6]) & O
         gm = cv2.morphologyEx(gm & O, cv2.MORPH_CLOSE, disk(3))
+        # User 2026-11-25: no concrete wedges where a door opens into a tiled room. Split the floor at walls and doorways; a pocket that is mostly tile
+        # (rooms behind a door) loses any garage cells that leaked in, and the doorway itself takes the room's tile so the pattern runs through the door.
+        barrier = (walls_final | doors).astype(np.uint8)
+        n_c, lab_c = cv2.connectedComponents((O & (1 - barrier)).astype(np.uint8), connectivity=4)
+        tile_pocket = np.zeros((H, W), np.uint8)
+        for i_c in range(1, n_c):
+            comp = lab_c == i_c
+            if gm[comp].mean() < .5 or (comp.sum() * CELL * CELL < 80 and not (comp & rect_mask([1.5, 56.0, 7.2, 66.7])).any()): gm[comp] = 0; tile_pocket |= comp.astype(np.uint8)   # rooms behind doors are tile
+        gm &= 1 - (cv2.dilate(tile_pocket, disk(3)) & doors)
+        for dr_ in door_list:   # whatever is left: on the room side of each door the doorway and the swing area are tile
+            a_, b_ = [np.array(drawing(q)) for q in dr_['line']]; u_ = (b_ - a_) / max(np.hypot(*(b_ - a_)), 1e-6); n_ = np.array([-u_[1], u_[0]]); m_ = (a_ + b_) / 2
+            if any((space_at(m_ + n_ * .8 * sg) or {}).get('type') not in (None, 'garage') for sg in (1, -1)) or dr_['kind'] != 'garage':   # the doorway itself takes the room's tile
+                gm &= 1 - poly_mask(Polygon([a_ - u_ * .2 - n_ * .45, b_ + u_ * .2 - n_ * .45, b_ + u_ * .2 + n_ * .45, a_ - u_ * .2 + n_ * .45]))
+            for sg in (1, -1):
+                tp_ = (space_at(m_ + n_ * .8 * sg) or {}).get('type')
+                if tp_ not in (None, 'garage'):
+                    side = Polygon([a_ - u_ * .15, b_ + u_ * .15, b_ + u_ * .15 + n_ * sg * 1.5, a_ - u_ * .15 + n_ * sg * 1.5])
+                    gm &= 1 - (poly_mask(side) & (1 - walls_final))
         cs_g, hi_g = cv2.findContours(gm, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE); gp = []
         for i_g, c_g in enumerate(cs_g):
             if hi_g[0][i_g][3] != -1 or cv2.contourArea(c_g) < 50: continue
             holes_g = [[[ox + x * CELL, oy + y * CELL] for x, y in cs_g[j].reshape(-1, 2)] for j in range(len(cs_g)) if hi_g[0][j][3] == i_g and len(cs_g[j]) > 2]
             gp.append(Polygon([[ox + x * CELL, oy + y * CELL] for x, y in c_g.reshape(-1, 2)], holes_g).buffer(0))
         garage_poly = unary_union(gp).intersection(Pk).buffer(0)
+        # User 2026-11-25: concrete must not leak through a doorway into a tiled room (grey door-swing wedges on the tiles): whatever the plan calls a
+        # room, corridor or stair hall (anything but 車道／停車場) is tile, so the garage paint stops at the wall line.
+        non_garage = unary_union([g for sp, g in space_polys if sp['type'] != 'garage' and sp['type'] not in ('plaza', 'unknown')])
+        garage_poly = garage_poly.difference(non_garage.buffer(-.04)).buffer(0)
         for st_ in plans['B'].get('stalls', []):
             P_ = Polygon(st_)
             if not Pk.buffer(-.1).contains(P_.centroid): continue
@@ -699,10 +809,11 @@ for k in ALL_FLOORS:
     wf = (cv2.morphologyEx(wf, cv2.MORPH_CLOSE, np.ones((7, 7), np.uint8)) & up(walls_final | (exact & (1 - doors)))) | wf
     wf &= 1 - shut | up(walls_final)
     # Lintels: one box per door, as thick as the wall at its jambs (was the 0.4 m door clearance strip).
-    lint = np.zeros_like(wf)
+    lint = np.zeros_like(wf); lint_up = np.zeros_like(wf)
     for dr in door_list:
         a2, b2 = [np.array(drawing(q)) for q in dr['line']]; L2 = np.hypot(*(b2 - a2))
         if L2 < .3: continue
+        if k == 'B' and RAISED_DOOR_ZONE.contains(Point(*((a2 + b2) / 2))): dr['raise'] = STAGE_H   # user 2026-11-25: doors on the stage-height floor rise with it (frame head and lintel were 0.8 m too low)
         u2 = (b2 - a2) / L2; n2 = np.array([-u2[1], u2[0]]); lo, hi = [], []
         for pnt in (a2 - u2 * .12, b2 + u2 * .12, a2 - u2 * .2, b2 + u2 * .2):
             ts = [t for t in np.arange(-.4, .401, FINE / 2) if (lambda q: 0 <= q[1] < wf.shape[0] and 0 <= q[0] < wf.shape[1] and wf[q[1], q[0]])([int((pnt[0] + n2[0] * t - fox) / FINE), int((pnt[1] + n2[1] * t - foy) / FINE)])]
@@ -710,9 +821,11 @@ for k in ALL_FLOORS:
         t0, t1 = (float(np.median(lo)), float(np.median(hi))) if lo else (-.1, .1)
         if t1 - t0 < .08: t0, t1 = -.1, .1
         dr['frame'] = [round(t1 - t0, 3), round((t0 + t1) / 2, 3)] if t1 - t0 <= .45 else [.25, 0.0]   # thicker readings (door beside a solid core) fall back to a 0.25 m frame   # user 2026-11-24: every door gets a frame (jambs + head) as thick as the wall at its jambs; centre offset along the normal
-        fine_poly(Polygon([a2 - u2 * .08 + n2 * t0, b2 + u2 * .08 + n2 * t0, b2 + u2 * .08 + n2 * t1, a2 - u2 * .08 + n2 * t1]), lint)
-    lint &= 1 - wf
-    floors_out.append({'garagePoly': garage_poly, 'stallLines': [[round(v, 3) for v in r] for r in stall_lines], 'garageLights': garage_lights, 'openAreas': [OPEN_2F] if k == '2' else ([DRIVE_OPEN_B1] if k == 'B' else []), 'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'outline': ring_coords(Pk), 'walls': fine_rects(wf), 'diagWalls': diag_walls, 'blockOnly': block_only, 'lintels': fine_rects(lint),
+        fine_poly(Polygon([a2 - u2 * .08 + n2 * t0, b2 + u2 * .08 + n2 * t0, b2 + u2 * .08 + n2 * t1, a2 - u2 * .08 + n2 * t1]), lint_up if dr.get('raise') else lint)
+    lint &= 1 - wf; lint_up &= 1 - wf
+    for q_ in sills:   # floor containment (AGENTS.md): only walls of the outer shell may reach into the slab; interior sills stand on their own floor
+        if not q_.get('low') and Pk.exterior.distance(box(*q_['rect'])) > .5: q_['low'] = True
+    floors_out.append({'garagePoly': garage_poly, 'stallLines': [[round(v, 3) for v in r] for r in stall_lines], 'garageLights': garage_lights, 'openAreas': [OPEN_2F] if k == '2' else ([DRIVE_OPEN_B1] if k == 'B' else []), 'key': k, 'label': LABEL[k], 'level': LEVEL[k], 'outline': ring_coords(Pk), 'walls': (lambda W_: W_ + fill_door_gaps(W_, [tuple(drawing(q) for q in dd_['line']) for dd_ in door_list if np.hypot(*(np.array(drawing(dd_['line'][0])) - np.array(drawing(dd_['line'][1])))) > .3], [q['rect'] for q in sills] + [r_ for e_ in exits for r_ in e_['rect']], GAP_REPORT, LABEL[k]))(fine_rects(wf)), 'diagWalls': diag_walls, 'blockOnly': block_only, 'lintels': fine_rects(lint) + [r_ + [STAGE_H] for r_ in fine_rects(lint_up)],
                        'sills': sills, 'heads': heads, 'windows': glass, 'furniture': furniture, 'furnitureBlocks': fblocks, 'doors': door_list, 'doorLeaves': door_leaves, 'exits': exits, 'stairs': stairs, 'voidMask': void,
                        'spaces': [{'name': s['name'], 'num': s.get('num'), 'type': s['type'], 'anchor': world(s['anchor']) if s.get('anchor') else None} for s in spaces]})
 

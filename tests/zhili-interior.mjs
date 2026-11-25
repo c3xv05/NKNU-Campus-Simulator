@@ -39,7 +39,7 @@ for(const f of d.floors)for(const door of f.doors)assert(Array.isArray(door.fram
 // 2026-11-24: stage platform (+0.8 m, 準備室 on the same platform), 0.2 m curbs as rotated boxes, 戊梯 climbing from the 門廳 to 1F.
 {const b1=d.floors[0],stage=b1.stairs.find(q=>q.id==='舞台'),wu=b1.stairs.find(q=>q.id==='戊梯');
  assert(stage&&Math.max(...stage.treads.map(t=>t.height))===.8&&stage.treads.some(t=>t.height===.2)&&stage.treads.some(t=>t.height===.6),'stage platform and corner steps');
- assert(b1.diagWalls.length===6&&b1.diagWalls.every(w=>w.top===1.0)&&b1.blockOnly.length>20,'diagonal curbs are rotated boxes with collision rects');
+ assert(b1.diagWalls.length===6&&b1.diagWalls.filter(w=>w.top===1.0).length===4&&b1.diagWalls.filter(w=>w.top==null).length===2&&b1.blockOnly.length>20,'diagonal curbs are rotated boxes with collision rects; the slanted 準備室 walls are full height (user 2026-11-25)');
  assert(wu&&Math.abs(Math.max(...wu.treads.map(t=>t.height))-3.6)<1e-6&&wu.hole[2]<=5.0,'戊梯 reaches the 1F floor');
  const hs=[...new Set(wu.treads.map(t=>t.height))].sort((x,y)=>x-y);for(let i=1;i<hs.length;i++)assert(hs[i]-hs[i-1]<.2001+1e-9,'戊梯 risers <= 0.2 m '+hs[i]);}
 // 2026-11-24: the 乙梯 is hollowed out of the solid upper floors and stacked up to 8F (data.upperFloors), roofed and glazed at the bay.
@@ -56,4 +56,29 @@ for(const f of d.floors)for(const door of f.doors)assert(Array.isArray(door.fram
  // the 2F→3F roof slab must open over the flight
  const tri=(x,y)=>d.roofTriangles.some(t=>{const T=d.transform,q=t.map(([wx,wz])=>[T.a*(wx-T.tx)+T.b*(wz-T.tz),-T.b*(wx-T.tx)+T.a*(wz-T.tz)]),sg=(p,a,b)=>(p[0]-b[0])*(a[1]-b[1])-(a[0]-b[0])*(p[1]-b[1]),p=[x,y],d1=sg(p,q[0],q[1]),d2=sg(p,q[1],q[2]),d3=sg(p,q[2],q[0]);return !((d1<0||d2<0||d3<0)&&(d1>0||d2>0||d3>0));});
  assert(!tri(centre[0],centre[1]),'roof slab opening over the 2F→3F flight');assert(tri(ji.rect[0]+.4,(ji.rect[1]+ji.rect[3])/2),'roof slab over the west landing');}
+// 2026-11-25 (user B1 corrections).
+{const b1=d.floors[0],f1=d.floors.find(f=>f.label==='1F'),rect=(r,x,y)=>x>=r[0]&&x<=r[2]&&y>=r[1]&&y<=r[3];
+ // driveway east wall: continuous from the garage mouth to the ramp end (no hole at y61.3-62.2)
+ for(let y=58.5;y<=66.5;y+=.05)assert(b1.walls.some(r=>rect(r,7.3,y))||b1.sills.some(q=>rect(q.rect,7.05,y)||rect(q.rect,7.3,y)),'driveway east wall closed at y '+y.toFixed(2));
+ for(let y=60.2;y<=62.3;y+=.05)assert(b1.walls.some(r=>rect(r,7.3,y)),'full-height wall beside B03 at y '+y.toFixed(2));
+ // every door is square in its wall; the raised doors beside the stage lift their frame and header with the floor
+ const T=d.transform,dr=p=>{const x=p[0]-T.tx,z=p[1]-T.tz;return[T.a*x+T.b*z,-T.b*x+T.a*z];};
+ for(const f of d.floors.filter(f=>['B1','1F','2F'].includes(f.label)))for(const door of f.doors){const[a,b]=door.line.map(dr);assert(Math.min(Math.abs(a[0]-b[0]),Math.abs(a[1]-b[1]))<.011,'door square in its wall '+f.label+' '+door.name+' '+a.map(v=>v.toFixed(2)));}
+ assert(b1.doors.some(q=>q.raise===.8)&&b1.lintels.some(l=>l[4]===.8),'doors on the stage-height floor are raised');
+ // no door standing in front of another (B1 甲梯 had a drawn and a hand-placed door in one opening)
+ for(const f of d.floors.filter(f=>['B1','1F','2F'].includes(f.label)))for(let i=0;i<f.doors.length;i++)for(let j=i+1;j<f.doors.length;j++){const[a,b]=f.doors[i].line.map(dr),[c,e]=f.doors[j].line.map(dr);const vert=Math.abs(a[0]-b[0])<.02&&Math.abs(c[0]-e[0])<.02,hor=Math.abs(a[1]-b[1])<.02&&Math.abs(c[1]-e[1])<.02;
+  const ov=vert?Math.min(Math.max(a[1],b[1]),Math.max(c[1],e[1]))-Math.max(Math.min(a[1],b[1]),Math.min(c[1],e[1])):hor?Math.min(Math.max(a[0],b[0]),Math.max(c[0],e[0]))-Math.max(Math.min(a[0],b[0]),Math.min(c[0],e[0])):-1;
+  const gap=vert?Math.abs(a[0]-c[0]):hor?Math.abs(a[1]-c[1]):9;assert(!(ov>.3&&gap<.6),'doors stacked '+f.label+' '+f.doors[i].name+'/'+f.doors[j].name);}
+ // sealed B06 / B07 doors, closed little 蓄水池 room beside 丁梯, its interior cleared
+ for(const y of[28.6,29.2,29.8])assert(b1.walls.some(r=>rect(r,53.35,y)),'B07 door sealed at y '+y);
+ for(const y of[30.9,31.3])assert(b1.walls.some(r=>rect(r,53.3,y)),'B06 door sealed at y '+y);
+ assert(!b1.doors.some(q=>{const[a]=q.line.map(dr);return Math.abs(a[0]-53.3)<.2&&a[1]>28&&a[1]<31.7;}),'no B06/B07 door left to walk through');
+ assert(b1.doorLeaves.some(l=>l[0]<45&&l[2]>43.9&&l[1]<10.9&&l[3]>10.5),'小蓄水池室 door is a closed leaf');
+ assert(!b1.walls.some(r=>r[0]>42&&r[2]<44.3&&r[1]>5&&r[3]<10),'小蓄水池室 interior walls cleared');
+ // slanted 1F walls round the stage void are rotated boxes now
+ assert(f1.diagWalls.length>=3&&f1.diagWalls.every(w=>w.top==null),'1F stage void rim is smooth');
+}
+// 2026-11-25: floor containment — low partitions never reach below their own floor; door frames meet walls.
+{const f1=d.floors.find(f=>f.label==='1F');const st=f1.sills.filter(q=>q.rect[0]>=21.4&&q.rect[2]<=26.4&&q.rect[1]>=46.2&&q.rect[3]<=55.0&&q.top<2.0);assert(st.length>3&&st.every(q=>q.low===true),'己梯旁廁所隔間 stand on the 1F floor, not in B1');}
+for(const f of d.floors)for(const q of f.sills)if(q.top<2.0&&q.rect[0]>20&&q.rect[0]<45&&q.rect[1]>46&&q.rect[1]<50&&f.label==='1F')assert(q.low===true,'interior partition '+q.rect);
 console.log('PASS: Zhili B1–2F empty-room interior (3F+ solid), stacked four-core stairwells reaching every floor, stair openings, doors for numbered rooms',{treads,doors});

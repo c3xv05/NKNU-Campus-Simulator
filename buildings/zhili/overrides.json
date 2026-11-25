@@ -6646,6 +6646,206 @@
    ],
    "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
    "note": "B04 南門改為手動關閉門"
+  },
+  {
+   "id": "zb-s-01",
+   "floor": "B1",
+   "kind": "clear",
+   "rect": [
+    41.65,
+    4.75,
+    44.5,
+    10.3
+   ],
+   "note": "丁梯左側清水蓄水池小室：不進入，室內牆面清空（外圍牆保留）",
+   "source": "claude-review-2026-11-25 (user B1 corrections)"
+  },
+  {
+   "id": "zb-s-02",
+   "floor": "B1",
+   "kind": "nodoor",
+   "rect": [
+    43.7,
+    10.35,
+    45.1,
+    11.2
+   ],
+   "note": "小室南門改為手動關閉門",
+   "source": "claude-review-2026-11-25 (user B1 corrections)"
+  },
+  {
+   "id": "zb-s-03",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    43.97,
+    10.7
+   ],
+   "b": [
+    44.84,
+    10.7
+   ],
+   "closed": true,
+   "note": "丁梯左側清水蓄水池小室：關閉的門（遊玩不進入）",
+   "source": "claude-review-2026-11-25 (user B1 corrections)"
+  },
+  {
+   "id": "zb-s-04",
+   "floor": "B1",
+   "kind": "nodoor",
+   "rect": [
+    52.9,
+    28.0,
+    53.9,
+    30.5
+   ],
+   "note": "B07 空調機房門封起來",
+   "source": "claude-review-2026-11-25 (user B1 corrections)"
+  },
+  {
+   "id": "zb-s-05",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    53.35,
+    28.15
+   ],
+   "b": [
+    53.35,
+    30.35
+   ],
+   "w": 0.15,
+   "note": "B07 空調機房：門洞以牆封起來",
+   "source": "claude-review-2026-11-25 (user B1 corrections)"
+  },
+  {
+   "id": "zb-s-06",
+   "floor": "B1",
+   "kind": "nodoor",
+   "rect": [
+    52.9,
+    30.5,
+    53.9,
+    31.75
+   ],
+   "note": "B06 清水蓄水池門封起來",
+   "source": "claude-review-2026-11-25 (user B1 corrections)"
+  },
+  {
+   "id": "zb-s-07",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    53.3,
+    30.5
+   ],
+   "b": [
+    53.3,
+    31.65
+   ],
+   "w": 0.14,
+   "note": "B06 清水蓄水池：門洞以牆封起來（機台做完後封門）",
+   "source": "claude-review-2026-11-25 (user B1 corrections)"
+  },
+  {
+   "id": "zb-s-08",
+   "floor": "B1",
+   "kind": "fixture",
+   "rect": [
+    54.5,
+    32.0,
+    59.5,
+    34.4
+   ],
+   "h": 2.2,
+   "m": "steel",
+   "y0": 0,
+   "room": "B06",
+   "note": "B06 左側水槽",
+   "source": "claude-review-2026-11-25 (user B1 corrections)"
+  },
+  {
+   "id": "zb-s-09",
+   "floor": "B1",
+   "kind": "fixture",
+   "rect": [
+    60.6,
+    32.0,
+    65.2,
+    34.4
+   ],
+   "h": 2.2,
+   "m": "steel",
+   "y0": 0,
+   "room": "B06",
+   "note": "B06 右側水槽",
+   "source": "claude-review-2026-11-25 (user B1 corrections)"
+  },
+  {
+   "id": "zb-s-10",
+   "floor": "B1",
+   "kind": "fixture",
+   "rect": [
+    54.3,
+    34.55,
+    55.7,
+    34.95
+   ],
+   "h": 1.0,
+   "m": "metal",
+   "y0": 0,
+   "room": "B06",
+   "note": "B06 揚水泵浦",
+   "source": "claude-review-2026-11-25 (user B1 corrections)"
+  },
+  {
+   "id": "zb-s-11",
+   "floor": "B1",
+   "kind": "fixture",
+   "rect": [
+    60.4,
+    34.55,
+    61.8,
+    34.95
+   ],
+   "h": 1.0,
+   "m": "metal",
+   "y0": 0,
+   "room": "B06",
+   "note": "B06 揚水泵浦",
+   "source": "claude-review-2026-11-25 (user B1 corrections)"
+  },
+  {
+   "id": "zb-s-12",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    9.1,
+    40.48
+   ],
+   "b": [
+    11.2,
+    40.48
+   ],
+   "w": 0.32,
+   "source": "claude-review-2026-11-25 (user coordinate -131,35.28,-235.19)",
+   "note": "演講廳前廳南門東側補牆，北面與演講廳牆面（y40.16）齊平"
+  },
+  {
+   "id": "zb-s-13",
+   "floor": "B1",
+   "kind": "wall",
+   "a": [
+    6.17,
+    46.19
+   ],
+   "b": [
+    6.76,
+    46.19
+   ],
+   "w": 0.1,
+   "source": "claude-review-2026-11-25 (user coordinate -124.25,35.28,-233.48)",
+   "note": "門廳南雙門西側門框到西牆之間補牆"
   }
  ]
 }

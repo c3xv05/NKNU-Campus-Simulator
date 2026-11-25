@@ -60,3 +60,7 @@ Bio A (444867696) = 生物科技館 and Bio B (444867695) = 生物教學大樓 n
 ## Library drawing rebuild (2026-11-25)
 
 圖資大樓 follows the user's 1F/2F floor plans (buildings/library/source, README there). Drawing 1F = game B1, drawing 2F = game 1F (entrance level from the west fan plaza 204, below S04); nothing above; 4.5 m storeys. 201 beds, 202 steps up to S04, 203 platform, 204 deck over the half-open 125, G/H stairs from the B1 ground up to the S04 side, and the thin ㄇ wall (legs on the ground, beam over 204) are user-confirmed. Rebuild with scripts/build-library-interior.py then build-building-catalog.py; runtime buildings/library/interior.js (world-coordinate prisms and walk surfaces, joined through planSurfaces). Terrain cuts must be convex pieces (site.cuts triangles). B1 is derived from the S04 sidewalk height; tests/library-interior.mjs walks the main routes.
+
+## Floor containment rule (2026-11-25, user)
+
+Without the user's explicit consent, partitions, interior walls and furniture of one floor must never appear on another floor (no stalls, sills, fixtures or wall boxes poking through a slab into the storey below or above). Low partitions and curbs stand on their own floor surface (`low:true` sills in interior.json); only exterior-shell wall bodies may extend into the slab thickness. Check the neighbouring floors from a first-person view after changing any interior geometry.
