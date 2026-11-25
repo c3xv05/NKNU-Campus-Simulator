@@ -1,5 +1,6 @@
 import {addJiyuanInterior} from './foresight/renderer.js';
 import {addZhiliInterior} from './zhili/interior.js';
+import {addLibraryInterior} from './library/interior.js';
 import {passageLevel} from '../building-passages.js';
 import {SIDEWALK_RISE,ROAD_SURFACE_LIFT} from '../sidewalk-layout.js';
 import {selectFront} from '../building-layout.js';
@@ -12,6 +13,8 @@ export function addBuildings(THREE,scene,campus,terrain,profiles,network){
  function outline(ring){const s=new THREE.Shape();ring.forEach(([x,z],i)=>i?s.lineTo(x,-z):s.moveTo(x,-z));s.closePath();return s;}
  for(const a of [...campus.places,...campus.buildings].filter(a=>a.height)){
   const p=profiles[a.osm],base=terrain.platformHeight(a),xs=a.ring.map(v=>v[0]),zs=a.ring.map(v=>v[1]),cx=(Math.min(...xs)+Math.max(...xs))/2,cz=(Math.min(...zs)+Math.max(...zs))/2;
+  // 圖資大樓: plan-driven prisms replace the shell and the generic facade (buildings/library/interior.js).
+  if(p.interiorData&&p.interiorKind==='library'){const lib=addLibraryInterior(THREE,group,campus,terrain,p.interiorData);blockers.push(...lib.blockers);entries.push({id:p.id,cx,cz,detail:lib.detail,shell:lib.shell,limit:p.detailDistance||145});continue;}
   if(p.interiorData&&p.interiorKind!=='zhili'&&p.interiorKind!=='plan'){const interior=addJiyuanInterior(THREE,group,campus,terrain,p.interiorData);blockers.push(...interior.blockers);entries.push({id:p.id,cx,cz,detail:interior.detail,shell:interior.shell,limit:p.detailDistance||145});continue;}
   if(p.style==='gatehouse'){const detail=new THREE.Group(),shell=scene.getObjectByName('entrance-guardhouse');group.add(detail);if(shell)blockers.push(shell);entries.push({id:p.id,cx,cz,detail,shell,limit:p.detailDistance||145});continue;}
   const wall=material(p.wall,['canteen','technology','library'].includes(p.style)?'tiles':['brick-frame','foresight','academic','dorm-two-tone','guesthouse'].includes(p.style)),accent=material(p.accent||p.wall),frame=material(p.frame),glass=material(p.glass),dark=material('#25363c'),awning=material('#477f7b');

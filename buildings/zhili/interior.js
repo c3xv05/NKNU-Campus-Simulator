@@ -1,6 +1,7 @@
 import {ringDistance} from '../../planar.js';
 import {sidewalkPlan} from '../../data/sidewalk-plan.js';
 import {ROAD_SURFACE_LIFT} from '../../sidewalk-layout.js';
+import {createLibrarySurface} from '../library/interior.js';
 // Zhili B1–2F interior and plan-driven facade compiled from the reviewed floor plans (scripts/build-zhili-interior.py).
 // Geometry is authored in the drawing frame (axis-aligned rectangles) and placed with one rigid transform.
 export const ZHILI_OSM=444867693;
@@ -15,7 +16,8 @@ const insideRegions=(p,regions)=>regions.some(([outer,...holes])=>ringDistance(p
 // Index wall rectangles on a 4m grid so walking checks stay cheap.
 function grid(rects){const cells=new Map();for(const r of rects)for(let i=Math.floor(r[0]/4);i<=Math.floor(r[2]/4);i++)for(let j=Math.floor(r[1]/4);j<=Math.floor(r[3]/4);j++){const k=i+','+j;if(!cells.has(k))cells.set(k,[]);cells.get(k).push(r);}return(p,m)=>{const out=new Set();for(let i=Math.floor((p[0]-m)/4);i<=Math.floor((p[0]+m)/4);i++)for(let j=Math.floor((p[1]-m)/4);j<=Math.floor((p[1]+m)/4);j++)for(const r of cells.get(i+','+j)||[])out.add(r);return out;};}
 export function createZhiliSurface(campus,terrain){return createPlanSurface(campus,terrain,ZHILI_OSM);}
-export function planSurfaces(campus,terrain){return PLAN_OSMS.map(o=>createPlanSurface(campus,terrain,o)).filter(Boolean);}
+// The library (buildings/library/interior.js) has its own prism data but the same surface interface.
+export function planSurfaces(campus,terrain){return [...PLAN_OSMS.map(o=>createPlanSurface(campus,terrain,o)),createLibrarySurface(campus,terrain)].filter(Boolean);}
 export function createPlanSurface(campus,terrain,osm){
  if(!prepared.has(campus))prepared.set(campus,new Map());const cache=prepared.get(campus);if(cache.has(osm))return cache.get(osm);
  const data=campus.planInteriors?.[osm]??(osm===ZHILI_OSM?campus.zhiliInterior:null),building=[...campus.places,...campus.buildings].find(b=>b.osm===osm);

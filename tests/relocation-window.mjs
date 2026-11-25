@@ -12,7 +12,9 @@ export function relocationWindow(campus,margin=15){
  // 2026-11-23: Bio A/B redrawn from the floor plans (new pads, 1F 0.9 m lower, terraced ramps to S01): own window.
  const bio=[...campus.places].filter(p=>p.osm===444867696||p.osm===444867695).flatMap(p=>[p.ring,p.beforeDrawingFootprint?.ring||[]]);if(campus.bioConnection?.stairs?.ring)bio.push(campus.bioConnection.stairs.ring);const w1=bio.length?windowOf(bio,margin):null;
  // 2026-11-23: S06/S07 were returned to the real terrain (added rise 14m/8m -> 0), so the whole former lift region may differ (+6m for grade smoothing).
+ // 2026-11-25: 圖資大樓 placed from the floor plans on the orthophoto (new shell, terrain pad and fan plaza): own window.
+ const lib=[...campus.places,...campus.buildings].filter(p=>p.osm===381963953).flatMap(p=>[p.ring,p.beforeRelocationRing||[],p.terrainRing||[]]).filter(r=>r.length);const w2=lib.length?windowOf(lib,margin+10):null;
  const lifted=(x,z)=>[[0,0],[6,0],[-6,0],[0,6],[0,-6]].some(([dx,dz])=>yongjiLiftInfluence(x+dx,z+dz)>0);
  const inside=(w,x,z)=>w&&x>=w[0]&&x<=w[2]&&z>=w[1]&&z<=w[3];
- return(x,z)=>inside(w0,x,z)||inside(w1,x,z)||lifted(x,z);
+ return(x,z)=>inside(w0,x,z)||inside(w1,x,z)||inside(w2,x,z)||lifted(x,z);
 }

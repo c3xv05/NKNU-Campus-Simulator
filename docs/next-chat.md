@@ -1,5 +1,13 @@
 # 新對話接續摘要
 
+## 2026-11-25（圖資大樓依平面圖重建）
+
+分支 `claude/magical-thompson-jllwq5`。使用者上傳圖資大樓一層／二層平面圖（`buildings/library/source/`），回答疑問後要求開始做。使用者確認：圖面1F＝遊戲B1、圖面2F＝遊戲1F（大廳218入口層，比S04低、要下階梯），上面沒有樓層；層高4.5m；201花圃、202樓梯（上到S04）、203平台（接204處有短階）、204平台（125半戶外的屋頂）；G／H梯照圖（1F地面往外上升）；穿過204的大弧是ㄇ字薄牆（兩端落地、中段橫樑下可通過）；挑空、水池、129戶外、E／F梯、停車格只畫線、只標房號、空房間門開啟、外觀先做量體＋窗、依正射影像移位都照預設。
+- 新流程：`scripts/library_drawing.py`（比例8m柱距、2F圖頁平移、正射影像定位旋轉2°）→ `scripts/extract-library-walls.py`（沿用致理雙線／門弧函式）→ `scripts/build-library-interior.py`（世界座標棱柱＋行走面 `buildings/library/interior.json`，並改寫 building.json 的 ring／terrainRing／platformAnchor／platformOffset，舊外框存 beforeRelocationRing）→ `build-building-catalog.py`。執行端 `buildings/library/interior.js`，經 `planSurfaces` 接入移動；`renderer.js` 以 interiorKind 'library' 取代通用外殼；index.html 以 `site.cuts`（凸三角形）挖地形與步道。
+- 高程：B1＝S04人行道−5.8m（目前B1 10.58、1F 15.08、S04人行道16.38）；地台改為新外框（platformOffset +1.06）。扇形外緣到人行道補一圈坡面鋪面（北段貼齊路邊高度約17.2）。
+- 測試：新增 `tests/library-interior.mjs`（扇形→大廳、C梯下B1、D梯上1F、125→126、挑空欄杆、天橋、ㄇ字橫樑下通行、房號齊全）；`relocation-window.mjs` 加圖資視窗、`teaching-quarter.mjs` 允許圖資 platformOffset。Node 測試只剩既有 photo-buildings 失敗；Python 幾何測試失敗項目與 HEAD 相同。瀏覽器：Node Playwright 實機截圖與走路（扇形→大廳→C梯→B1、D梯）無 JS 錯誤；Python 瀏覽器測試在本環境載入逾時（90s，swiftshader 慢），未跑完。
+- 待辦：使用者走查；E梯上端去向不明；廁所器具；停車場實際範圍；102外側坡道；屋頂太陽能板與外牆0／1圖案；門扇樣式。細節見 `buildings/library/README.md`。
+
 ## 2026-11-24（致理 B1 新圖、牆厚、廁所）
 
 使用者上傳較新的致理 B1（地下室，2021）與 1F 平面圖（1F 與現有 floor-1F-current.pdf 相同），指出牆判斷不準、廁所尤其明顯、牆厚不一。已做：B1 圖源換成 `buildings/zhili/source/floor-B1-current.pdf`（套合參數與排除線見 buildings/zhili/README.md 2026-11-24）；輸出牆改 0.025 m 細格點、厚度依圖面，門楣依兩側牆厚（B1～2F）；B1 兩間廁所依新圖逐條量測重畫；B01 北牆門移除（新圖無門）、B01 改名保管組倉庫。使用者決定：B02／B03 南半部維持舊做法（不進入）。續：B1 甲梯左牆與甲梯→門廳門；1F 己梯旁牆改在圖面 x21.35 且無窗、己梯上方牆改在 y48.1；1F 東南廁所依圖面重畫並開放；乙梯旁三角凸窗 1F～8F 玻璃（詳見 buildings/zhili/README.md）。再續：乙梯 3F～8F 挖空並做樓梯（`upperFloors`／`solidRing`，只有乙梯）、2F 己梯旁窗已刪、1F 己梯上方圖面為窗但遊戲已是常開門洞。再續：所有門加門框（`doors[].frame`）；1F 全部六間廁所依圖面做好並開放（男女、小便斗、蹲式／座式，隔間無門板），2F 廁所仍封閉。再續：B1 補 18 個門（雙開門等）、舞台（+0.8 m）、上下準備室（B1 地面）與靠西牆的出入口、階梯教室改 11 階與依圖面座椅；細節見 buildings/zhili/README.md。二修：準備室與舞台同為 +0.8 m 平台；舞台前緣／小梯側為 0.2 m 矮牆；斜牆改旋轉方塊；戊梯（門廳→平台→1F）已做。待確認：舞台高度 0.8 m。待辦：遊戲內走查 B1 廁所與門；新圖多數門弧未自動辨識（門洞仍開放，只是無門框）；B04 名稱（館藏室？）待確認；北外牆內側 y4.6 有一道圖面薄線與外牆帶之間約 0.14 m 縫（不可進入）。
