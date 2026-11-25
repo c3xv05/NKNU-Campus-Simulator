@@ -65,6 +65,27 @@ def extract(fl):
     return raw, s, arcs, quads
 
 
+def gates(fl):
+    """Iron (rolling) doors: a double line with a dashed line drawn along its middle (user 2026-11-25:
+    「雙線裡面為虛線的才是鐵門」). Plain double lines with '+' ticks are walls, not doors."""
+    raw = LD.raw_segments(fl); s = LD.segments(fl); prs = ZW.pairs(s)
+    rm = (raw[:, :2] + raw[:, 2:]) / 2; rL = np.hypot(raw[:, 2] - raw[:, 0], raw[:, 3] - raw[:, 1])
+    rth = np.mod(np.arctan2(raw[:, 3] - raw[:, 1], raw[:, 2] - raw[:, 0]), np.pi)
+    out = []
+    for i, j, d, t0, t1, u, n in prs:
+        if t1 - t0 < 1.5 or not (.1 <= abs(d) <= .35): continue
+        mi = (s[i, :2] + s[i, 2:]) / 2; oc = mi @ n + d / 2; th = math.atan2(u[1], u[0]) % math.pi
+        sel = (rL > .04) & (rL < .45) & (np.abs(np.sin(rth - th)) < .09)
+        R = rm[sel]; inside = (np.abs(R @ n - oc) < abs(d) * .3) & (R @ u > t0) & (R @ u < t1)
+        if inside.sum() < 5: continue
+        cover = rL[sel][inside].sum() / (t1 - t0)
+        if not (.45 <= cover <= .9): continue          # dashes: ~2/3 ink; the '+'-ticked walls are ~1/4
+        a = (u * t0 + n * oc).tolist(); b = (u * t1 + n * oc).tolist()
+        if not any(math.dist(a, g['a']) < .3 and math.dist(b, g['b']) < .3 for g in out):
+            out.append({'a': [round(v, 3) for v in a], 'b': [round(v, 3) for v in b], 'w': round(abs(d), 3)})
+    return out
+
+
 if __name__ == '__main__':
     out = {}
     for fl in ['1F', '2F']:

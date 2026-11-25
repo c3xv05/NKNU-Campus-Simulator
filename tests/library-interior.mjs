@@ -19,7 +19,7 @@ function route(name,start,y0,moves,expectEnd){
  for(const[dx,dy]of moves){const L=Math.hypot(dx,dy),n=Math.ceil(L/.2);for(let i=0;i<n;i++){x+=dx/n;y+=dy/n;[wx,wz]=W(x,y);
   assert(!s.blocked(wx,wz,.35,h),`${name}: blocked at drawing (${x.toFixed(2)},${y.toFixed(2)}) y ${h.toFixed(2)}`);
   const g=s.supportAt(wx,wz,h);assert(g!==null,`${name}: no support at (${x.toFixed(2)},${y.toFixed(2)})`);assert(g-h<=.46,`${name}: step too high`);h=g;}}
- assert(Math.abs(h-(base+expectEnd))<.1,`${name}: ends at ${(h-base).toFixed(2)} m, expected ${expectEnd}`);return h;
+ if(expectEnd!==null)assert(Math.abs(h-(base+expectEnd))<.1,`${name}: ends at ${(h-base).toFixed(2)} m, expected ${expectEnd}`);return h;
 }
 const top=d.prisms&&s.supportAt(...W(9.0,88.8),base+8);   // S04 side of the fan
 // S04 sidewalk side -> 202 steps -> 203 -> 204 plaza -> 218 main entrance -> lobby (1F).
@@ -35,4 +35,9 @@ assert.equal(s.blocked(...W(61.3,90),.35,base+4.5),true,'atrium balustrade besid
 assert(Math.abs(s.supportAt(...W(52,116),base+4.6)-base-.02)<.05,'wing void opens to B1');
 // The ㄇ wall's middle is a beam over the plaza: walkers pass under it, its legs block.
 assert.equal(s.blocked(...W(34.3,90),.35,base+4.5),false,'pass under the ㄇ beam');
+// G/H stairs: from the approach walk at the S04 side all the way down to the B1 ground by the fan corners.
+for(const[name,a0,a1,b1]of[['H',[24.09,73.58],[14.76,66.50],[15.95,64.93]],['G',[21.01,91.50],[9.86,95.06],[10.51,97.13]]]){const L=Math.hypot(a1[0]-a0[0],a1[1]-a0[1]),u=[(a1[0]-a0[0])/L,(a1[1]-a0[1])/L],st=[(a1[0]+b1[0])/2+u[0],(a1[1]+b1[1])/2+u[1]];{let h=base+9;const end=route(name+' stair down',st,h,[[-u[0]*(L+1.5),-u[1]*(L+1.5)]],null);assert(end-base<.5,name+' stair reaches the bottom treads');}}
+// Iron rolling doors (double line with a dashed middle, user 2026-11-25) are open passages, not walls.
+route('2F shutters 236',[58,75],base+4.5,[[0,-4.5]],4.5);
+route('2F shutter 221/233',[50.5,82],base+4.5,[[0,-3.5]],4.5);
 console.log(JSON.stringify({result:'PASS',base:+base.toFixed(2),prisms:d.prisms.length,walks:d.walks.length,labels:d.labels.length}));
