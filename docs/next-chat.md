@@ -1,5 +1,14 @@
 # 新對話接續摘要
 
+## 2026-11-25：S26／S27／S28／S32 依正射影像北移貼高斯南牆
+
+使用者指出 S26、S28 應幾乎沿高斯南側邊緣。高斯外殼 2026-11-18 依平面圖北移 7～12 m，道路未跟著動，S26／S27 離外殼 15.6 m、S28 11.9 m。疊 NLSC 2023 正射影像（WMTS PHOTO2）後確認真實瀝青迴車坡面緊貼高斯南牆，路口比 OSM 節點偏北約 6～9 m，S27 的斑馬紋車道起點約 (-85.4,-157.9)。
+
+做法：`scripts/shift-gauss-south-roads.py`（冪等，舊線存 beforeGaussSouthShift）。S26 改 [-64.8,-162.4]→[-69.5,-165.8]→[-75,-167.3]→[-81.5,-166.6]→[-87.6,-164]；S27 起點移到 [-87.6,-164] 並在 [-79.3,-144] 加節點，其餘不動（S27／S05 交口 [-50.4,-125.1] 不變）；S28 沿南牆（中心線約距外殼 4.3 m）到 [-124,-158]；S32 道路與下沉步道 742398750／campus-corridors courtyardAccess 起點同步移到 [-124,-158]（下沉坡約 44→34 m，最大縱坡 11.8%→11.77%，沒有變陡）；S32 西段終點不動、避開寰宇南牆（直線北移會穿牆）。**S05 的節點、高程、均勻坡度完全沒動**。
+
+重建順序：shift → build-junction-fillets → build-campus-corridors → build-campus-plazas → build-zhili-curbcuts → build-walk-obstacles → build-pedestrian-patches → build-sidewalk-plan → build-motor-pavement-plan → build-court-access → build-road-regions → build-sidewalk-sections → build-r04-vegetation；之後把 campus.json 的 yongxuAccess 還原成 HEAD（這串重建會弄丟 groundClipRing／groundFootprints）。landscape.js 種子階段改用舊道路線（beforeGaussSouthShift）判斷 eligible，避免全校草重新洗牌；tests/relocation-window.mjs 加上這四條路的搬移窗口。
+待辦：S32 西段、S28 在樹冠下的真實路徑看不到，仍是模型近似；S26 與 S05 交口節點仍是 OSM 的 [-64.8,-162.4]（真實路口約在 z=-168，路面重疊所以看不出）。
+
 ## 2026-11-24（致理 B1 新圖、牆厚、廁所）
 
 使用者上傳較新的致理 B1（地下室，2021）與 1F 平面圖（1F 與現有 floor-1F-current.pdf 相同），指出牆判斷不準、廁所尤其明顯、牆厚不一。已做：B1 圖源換成 `buildings/zhili/source/floor-B1-current.pdf`（套合參數與排除線見 buildings/zhili/README.md 2026-11-24）；輸出牆改 0.025 m 細格點、厚度依圖面，門楣依兩側牆厚（B1～2F）；B1 兩間廁所依新圖逐條量測重畫；B01 北牆門移除（新圖無門）、B01 改名保管組倉庫。使用者決定：B02／B03 南半部維持舊做法（不進入）。續：B1 甲梯左牆與甲梯→門廳門；1F 己梯旁牆改在圖面 x21.35 且無窗、己梯上方牆改在 y48.1；1F 東南廁所依圖面重畫並開放；乙梯旁三角凸窗 1F～8F 玻璃（詳見 buildings/zhili/README.md）。再續：乙梯 3F～8F 挖空並做樓梯（`upperFloors`／`solidRing`，只有乙梯）、2F 己梯旁窗已刪、1F 己梯上方圖面為窗但遊戲已是常開門洞。再續：所有門加門框（`doors[].frame`）；1F 全部六間廁所依圖面做好並開放（男女、小便斗、蹲式／座式，隔間無門板），2F 廁所仍封閉。再續：B1 補 18 個門（雙開門等）、舞台（+0.8 m）、上下準備室（B1 地面）與靠西牆的出入口、階梯教室改 11 階與依圖面座椅；細節見 buildings/zhili/README.md。二修：準備室與舞台同為 +0.8 m 平台；舞台前緣／小梯側為 0.2 m 矮牆；斜牆改旋轉方塊；戊梯（門廳→平台→1F）已做。待確認：舞台高度 0.8 m。待辦：遊戲內走查 B1 廁所與門；新圖多數門弧未自動辨識（門洞仍開放，只是無門框）；B04 名稱（館藏室？）待確認；北外牆內側 y4.6 有一道圖面薄線與外牆帶之間約 0.14 m 縫（不可進入）。

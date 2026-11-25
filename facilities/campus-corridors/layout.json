@@ -6,7 +6,7 @@
     "line": [
       [
         -124,
-        -147.5
+        -158
       ],
       [
         -124,
@@ -34,7 +34,25 @@
     ],
     "groundBlend": 3,
     "clearanceBuilding": 444867694,
-    "buildingClearance": 0.8
+    "buildingClearance": 0.8,
+    "beforeGaussSouthShift": [
+      [
+        -124,
+        -147.5
+      ],
+      [
+        -124,
+        -159
+      ],
+      [
+        -123,
+        -171
+      ],
+      [
+        -132,
+        -190
+      ]
+    ]
   },
   "biology": {
     "northEndVertices": [

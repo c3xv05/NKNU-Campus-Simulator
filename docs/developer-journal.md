@@ -1,5 +1,14 @@
 # 開發者紀錄與後續討論入口
 
+## 2026-11-25：S26／S27／S28／S32 依正射影像北移貼高斯南牆
+
+使用者指出 S26、S28 應幾乎沿高斯南側邊緣。高斯外殼 2026-11-18 依平面圖北移 7～12 m，道路未跟著動，S26／S27 離外殼 15.6 m、S28 11.9 m。疊 NLSC 2023 正射影像（WMTS PHOTO2）後確認真實瀝青迴車坡面緊貼高斯南牆，路口比 OSM 節點偏北約 6～9 m，S27 的斑馬紋車道起點約 (-85.4,-157.9)。
+
+做法：`scripts/shift-gauss-south-roads.py`（冪等，舊線存 beforeGaussSouthShift）。S26 改 [-64.8,-162.4]→[-69.5,-165.8]→[-75,-167.3]→[-81.5,-166.6]→[-87.6,-164]；S27 起點移到 [-87.6,-164] 並在 [-79.3,-144] 加節點，其餘不動（S27／S05 交口 [-50.4,-125.1] 不變）；S28 沿南牆（中心線約距外殼 4.3 m）到 [-124,-158]；S32 道路與下沉步道 742398750／campus-corridors courtyardAccess 起點同步移到 [-124,-158]（下沉坡約 44→34 m，最大縱坡 11.8%→11.77%，沒有變陡）；S32 西段終點不動、避開寰宇南牆（直線北移會穿牆）。**S05 的節點、高程、均勻坡度完全沒動**。
+
+重建順序：shift → build-junction-fillets → build-campus-corridors → build-campus-plazas → build-zhili-curbcuts → build-walk-obstacles → build-pedestrian-patches → build-sidewalk-plan → build-motor-pavement-plan → build-court-access → build-road-regions → build-sidewalk-sections → build-r04-vegetation；之後把 campus.json 的 yongxuAccess 還原成 HEAD（這串重建會弄丟 groundClipRing／groundFootprints）。landscape.js 種子階段改用舊道路線（beforeGaussSouthShift）判斷 eligible，避免全校草重新洗牌；tests/relocation-window.mjs 加上這四條路的搬移窗口。
+待辦：S32 西段、S28 在樹冠下的真實路徑看不到，仍是模型近似；S26 與 S05 交口節點仍是 OSM 的 [-64.8,-162.4]（真實路口約在 z=-168，路面重疊所以看不出）。
+
 ## 2026-11-23：生科A／B與連接處依平面圖重繪
 
 圖面為向量PDF：用尺寸線（A 4357.5cm＝409.92pt、2638.5cm＝247.68pt；B 4267.5cm＝401.52pt）求得約9.40 pt／m，再直接讀線段座標。通廊、花瓣廣場、坡道階梯區、污水機房在圖上共用一條中心線，正好拿來對齊既有T支線接點，兩張圖以B端玻璃面（通廊寬度一致）拼接。圖面高程與模型地形不一致（S01低約6.4m），依使用者選擇平面照圖、高差線性放大，比例由執行期 `biologyTerraceScale` 依S01與1F計算。細節見 facilities/biology-link/README.md。

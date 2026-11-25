@@ -8,6 +8,8 @@ export function relocationWindow(campus,margin=15){
  for(const a of campus.levelAreas||[])if(['foresight-forecourt','restaurant-quarter'].includes(a.id))rings.push(a.ring,a.beforeRelocationRing||[]);
  for(const p of [...campus.places,...campus.buildings])if(p.osm===381732645||p.osm===381734405)rings.push(p.ring);
  rings.push([[-272,-34],[-220,28]]);
+ // 2026-11-25: S26/S27(top)/S28/S32 moved north onto the orthophoto (scripts/shift-gauss-south-roads.py); old and new lines.
+ for(const r of campus.roads||[])if(r.beforeGaussSouthShift)rings.push(r.beforeGaussSouthShift,r.line);
  const w0=windowOf(rings,margin);
  // 2026-11-23: Bio A/B redrawn from the floor plans (new pads, 1F 0.9 m lower, terraced ramps to S01): own window.
  const bio=[...campus.places].filter(p=>p.osm===444867696||p.osm===444867695).flatMap(p=>[p.ring,p.beforeDrawingFootprint?.ring||[]]);if(campus.bioConnection?.stairs?.ring)bio.push(campus.bioConnection.stairs.ring);const w1=bio.length?windowOf(bio,margin):null;

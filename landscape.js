@@ -7,6 +7,7 @@ import {offsetRing} from './building-layout.js';
 import {ringDistance} from './terrain.js';
 import {coverAt} from './landcover.js';
 import {landscapeSeedAreas} from './data/landscape-seed-areas.js';
+import {createRoadNetwork} from './roads.js';
 import {createTreeSpecies,treeSpeciesIndex,treeCrownPalette} from './tree-models.js';
 function bezier(a,b,c,d,t){const u=1-t;return[u*u*u*a[0]+3*u*u*t*b[0]+3*u*t*t*c[0]+t*t*t*d[0],u*u*u*a[1]+3*u*u*t*b[1]+3*u*t*t*c[1]+t*t*t*d[1]];}
 export function entranceBed(){
@@ -22,9 +23,11 @@ export function landscapeAreas(campus){return [...(campus.campusTransitions||[])
 export function createLandscapeLayout(campus,network,height){
  let seed=170491;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
  const bed=entranceBed(),areas=landscapeSeedAreas,currentAreas=landscapeAreas(campus);
+ // 2026-11-25: S26/S27/S28/S32 moved north; the frozen seed pass must see the OLD road lines or every later weed shifts.
+ const legacyNetwork=(campus.roads||[]).some(r=>r.beforeGaussSouthShift)?createRoadNetwork(campus.roads.map(r=>r.beforeGaussSouthShift?{...r,line:r.beforeGaussSouthShift}:r),()=>0,{},{}):network;
  function eligible(x,z,margin=0,list=areas){
   if(ringDistance(x,z,campus.boundary)!==0)return false;
-  const road=network.nearest(x,z);if(road){const s=road.segment,side=Math.sign((x-s.a.x)*(-s.dz)+(z-s.a.z)*s.dx),walk=(campus.sidewalkRoadIds||[]).includes(s.route.osm)&&sidewalkSides(campus,s.route.osm).includes(side)?SIDEWALK_WIDTH:0;if(road.d<road.width/2+walk+margin)return false;}
+  const road=(list===areas?legacyNetwork:network).nearest(x,z);if(road){const s=road.segment,side=Math.sign((x-s.a.x)*(-s.dz)+(z-s.a.z)*s.dx),walk=(campus.sidewalkRoadIds||[]).includes(s.route.osm)&&sidewalkSides(campus,s.route.osm).includes(side)?SIDEWALK_WIDTH:0;if(road.d<road.width/2+walk+margin)return false;}
   if(ringDistance(x,z,bed)<1+margin)return false;
   return !list.some(a=>x>=a.west-margin&&x<=a.east+margin&&z>=a.north-margin&&z<=a.south+margin&&ringDistance(x,z,a.ring)<margin+.01);
  }
