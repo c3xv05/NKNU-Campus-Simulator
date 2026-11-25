@@ -37,8 +37,9 @@ export function findBuildingDestinations(campus,network,profiles={},publicDestin
  return result;
 }
 export const MAX_SCOOTER_SPEED=75/3.6;
-export function stepScooter(state,dt,throttle,steer,onRoad=true){
- const forward=onRoad?MAX_SCOOTER_SPEED:4,target=throttle>=0?throttle*forward:throttle*2.5;
+export const SIDEWALK_SCOOTER_SPEED=50/3.6;
+export function stepScooter(state,dt,throttle,steer,onRoad=true,onSidewalk=false){
+ const forward=onRoad?MAX_SCOOTER_SPEED:onSidewalk?SIDEWALK_SCOOTER_SPEED:4,target=throttle>=0?throttle*forward:throttle*2.5;
  const acceleration=throttle===0?5:state.speed*target<0?11:6;
  state.speed+=Math.max(-acceleration*dt,Math.min(acceleration*dt,target-state.speed));
  if(Math.abs(state.speed)<.005)state.speed=0;

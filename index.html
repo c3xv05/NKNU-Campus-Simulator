@@ -29,7 +29,7 @@ body.phone-hud #hudThumbSlot{grid-column:span 2;display:grid;gap:4px;justify-ite
 <div id="top"><h1>🏫 NKNU 燕巢校園探索</h1><small>山坡校園・實地回饋校正地形</small><div id="progress">已探索 0 / 13 個地標</div></div>
 <div id="mapbox"><button id="mapOpen" type="button" aria-label="開啟校園大地圖" aria-haspopup="dialog"><canvas id="map" width="220" height="220"></canvas><span>點擊大地圖 · 雙指縮放</span></button><button id="miniMapReset" type="button" hidden>復原小地圖</button><div id="legend">▲ 你的位置　■ 校園地標<br>藍色：湖泊 · 米白：人行道<br><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div></div>
 <div id="tools"><details id="travelMenu"><summary>快速傳送</summary><button type="button" data-travel="gate">1 · 大門</button><button type="button" data-travel="canteen">2 · 歸燕食巢</button><button type="button" data-travel="zhili">3 · 致理大樓</button><button type="button" data-travel="library">4 · 圖資大樓</button><button type="button" data-travel="technology">5 · 科技大樓</button><div id="developerTravel" hidden><p>開發者 · 其他建築</p><div id="developerTravelList"></div></div></details><button id="rideToggle" type="button" aria-pressed="false">🛵 騎機車</button><button id="viewToggle" type="button" aria-pressed="false">👁 第一人稱</button><div id="aerialControls" hidden><button id="aerialToggle" type="button" aria-pressed="false">空中觀察</button><div id="aerialSettings" hidden><label for="aerialHeight">離地高度 <output id="aerialHeightValue">60</output> m</label><input id="aerialHeight" type="range" min="10" max="200" step="1" value="60"><div id="floorCutBox" hidden><label for="floorCut">樓層剖切 <span id="floorCutBuilding"></span></label><select id="floorCut"></select></div><p>搖桿／WASD 平移 · 拖曳環看<br>Q／E 降低／升高 · 再按返回原位</p></div></div><span id="speed" hidden>0 km/h</span></div><div id="travelToast" role="status"></div><div id="status"></div><div id="info">靠近建築查看資訊</div>
-<div id="touch"><div id="stickArea"><div id="joystick" role="group" aria-label="移動搖桿，拖曳控制方向與速度"><span class="stick-cross">＋</span><div id="stickKnob"></div></div><span id="stickHint">拖曳移動</span></div><div id="touchright"><button id="turnL" type="button">↶</button><button id="turnR" type="button">↷</button><button id="interact" type="button">互動</button></div></div>
+<div id="touch"><div id="stickArea"><div id="joystick" role="group" aria-label="移動搖桿，拖曳控制方向與速度"><span class="stick-cross">＋</span><div id="stickKnob"></div></div><span id="stickHint">拖曳移動</span></div><div id="touchright"><button id="jump" type="button">⤒ 跳</button><button id="interact" type="button">互動</button></div></div>
 <dialog id="mapDialog" aria-labelledby="mapTitle"><div class="map-heading"><div><h2 id="mapTitle">燕巢校園地圖</h2><p>北方朝上 · ▲ 目前位置 · 點建築或清單查看位置</p></div><button id="mapClose" type="button" aria-label="關閉地圖">✕</button></div><div class="map-tabs" role="group" aria-label="地圖顯示模式"><button id="buildingsMode" type="button" aria-pressed="true">建築地圖</button><button id="zonesMode" type="button" aria-pressed="false" hidden>道路植被分區</button><a id="vegetationEditorLink" href="./zones.html" hidden>開啟校正工作頁 ↗</a></div><div class="map-layout"><div class="map-drawing"><svg id="largeMap" viewBox="-455 -580 940 1160" role="img" aria-label="燕巢校區建築與目前位置"></svg></div><div class="map-sidebar"><p id="mapSelection" role="status">選擇建築，在地圖上標示位置</p><div id="buildingList"></div><div class="map-sources"><span id="mapKey">藍色：未探索 · 綠色：已探索<br>底色深淺表示近似高低起伏。</span><br>地形：<a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener">Mapzen Terrain Tiles</a> / USGS SRTM。衛星高程約 30 公尺級，道路、建築與場地平台經簡化平整及現場回饋校正，非測量成果。<br>建築位置參考 <a href="https://w3.nknu.edu.tw/images/files/yt_01_map.pdf" target="_blank" rel="noopener">高師大官方校區圖</a>及 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>。</div></div></div></dialog>
 <div id="start"><div id="panel"><div style="font-size:44px">🏫</div><h2>燕巢校園模擬器</h2><p>從校門出發，沿山坡走訪 13 個地標。<span class="wide-guide"><br>電腦：WASD 移動、滑鼠拖曳視角、Shift 奔跑、V 第一／第三人稱、E 互動、M 地圖、R 騎車／下車、1～5 傳送；進入室內會自動切換第一人稱。<br>手機：左手拖曳搖桿，右手滑動畫面調整視角；點小地圖查看全校，左上可傳送或切換騎車。騎車時向前推搖桿加速、左右推轉向。</span><span class="phone-guide"><br>左手拖曳搖桿，右手滑動畫面看四周。<br>右上小地圖看全校，左上 ☰ 傳送或切換校區，右下 🛵 騎車、👁 切換第一人稱。</span></p><button id="play" type="button" disabled>載入校園…</button><p id="notice">校園輪廓源自 OpenStreetMap；地形依 Mapzen／USGS SRTM 高程近似重建並依現場回饋校正，建築高度與場地平台為簡化模型。</p></div></div>
 <script type="module">
@@ -263,7 +263,9 @@ const retainingWall=landscapeGroup.getObjectByName('A1-retaining-wall');if(retai
 const player=new THREE.Group();scene.add(player);const avatar=createAvatar(THREE);player.add(avatar.group);
 const {body,head,backpack}=avatar;const initialGate=roadNetwork.nearest(-279,512,true),initialX=initialGate.segment.a.x+initialGate.segment.dx*initialGate.t,initialZ=initialGate.segment.a.z+initialGate.segment.dz*initialGate.t;player.position.set(initialX,walkHeight(initialX,initialZ),initialZ);
 const scooter=createScooter(THREE);scooter.scale.setScalar(.62);player.add(scooter);
-const motion={riding:false,speed:0,heading:0};
+const motion={riding:false,speed:0,heading:0,air:false,vy:0};
+const GRAVITY=22,STEP_DROP=.45;
+function jump(){if(!active||aerial.enabled||motion.air||document.getElementById('mapDialog').open||window.campusDeveloper?.isOpen?.())return;motion.air=true;motion.vy=motion.riding?5.5:6.5;}
 const destinations=findDestinations(campus,roadNetwork);
 const buildingDestinations=findBuildingDestinations(campus,roadNetwork,buildingProfiles,destinations);
 function refreshDeveloperTravel(){const section=document.getElementById('developerTravel'),list=document.getElementById('developerTravelList');list.replaceChildren();section.hidden=!isDeveloper();if(!isDeveloper())return;for(const place of buildingDestinations){if(destinations.some(p=>p.id===place.id))continue;const button=document.createElement('button');button.type='button';button.dataset.travel=place.id;button.textContent=place.label;list.append(button);}}
@@ -275,7 +277,7 @@ function teleport(id){
  const place=destinations.find(d=>d.id===id)||(isDeveloper()?buildingDestinations.find(d=>d.id===id):null);if(!place)return;
  const destination=motion.riding&&place.roadArrival?{...place,...place.roadArrival}:place;
  if(aerial.enabled)setAerial(false);
- clearInput();motion.speed=0;
+ clearInput();motion.speed=0;motion.air=false;motion.vy=0;
  let facing=destination.yaw;
  if(motion.riding&&id!=='gate'){const nearest=roadNetwork.nearest(destination.x,destination.z);if(nearest){const sign=nearest.segment.route.style.reverse?-1:1;facing=Math.atan2(-nearest.segment.dx*sign,-nearest.segment.dz*sign);}}
  motion.heading=facing;yaw=facing;
@@ -331,7 +333,7 @@ let yaw=0, pitch=.31, keys={},visited=new Set(),near=null,nearLake=null,interact
   if(event.code==='KeyV'&&!event.repeat){event.preventDefault();toggleView();return;}
   if(['Digit1','Digit2','Digit3','Digit4','Digit5'].includes(event.code)&&!event.repeat){event.preventDefault();teleport(destinations[Number(event.code.at(-1))-1].id);return;}
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(event.code))event.preventDefault();
-  keys[event.code]=true;if(event.code==='KeyE'&&!event.repeat&&!aerial.enabled)interact();
+  if(event.code==='Space'&&!event.repeat)jump();keys[event.code]=true;if(event.code==='KeyE'&&!event.repeat&&!aerial.enabled)interact();
 });
 window.addEventListener('keyup',event=>keys[event.code]=false);
 // Track each finger independently so moving and looking can happen together.
@@ -402,7 +404,7 @@ for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
 }
 document.querySelectorAll('#touch button').forEach(button => {
   button.type = 'button';
-  const labels = { KeyW: '前進', KeyS: '後退', KeyA: '向左移動', KeyD: '向右移動', turnL: '視角向左', turnR: '視角向右' };
+  const labels = { KeyW: '前進', KeyS: '後退', KeyA: '向左移動', KeyD: '向右移動', jump: '跳躍' };
   button.setAttribute('aria-label', labels[button.dataset.key || button.id] || '查看地標資訊');
   button.addEventListener('pointerdown', event => {
     if (!active || document.getElementById('mapDialog').open || (event.pointerType === 'mouse' && event.button !== 0)) return;
@@ -411,6 +413,7 @@ document.querySelectorAll('#touch button').forEach(button => {
     button.classList.add('held');
     button.setPointerCapture(event.pointerId);
     if (button.id === 'interact') interact();
+    if (button.id === 'jump') jump();
   });
   for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
     button.addEventListener(type, event => {
@@ -431,7 +434,7 @@ function updateInstructions() {
   if(aerial.enabled){document.getElementById('status').textContent='空中觀察 · 平移、拖曳環看與調整高度 · 返回原位可繼續探索';return;}
   document.getElementById('status').textContent = mobile.matches
     ? (motion.riding?'搖桿前後加減速、左右轉向 · 右手看四周':'左手搖桿 · 右手滑動視角 · 👁 切換第一人稱')
-    : (motion.riding?'W/S 加減速 · A/D 轉向 · 拖曳視角 · R 下車 · 1–5 傳送':'WASD 移動 · 拖曳視角 · V 第一／第三人稱 · E 互動 · M 地圖 · R 騎車 · 1–5 傳送');
+    : (motion.riding?'W/S 加減速 · A/D 轉向 · 空白鍵跳躍 · 拖曳視角 · R 下車 · 1–5 傳送':'WASD 移動 · 空白鍵跳躍 · 拖曳視角 · V 第一／第三人稱 · E 互動 · M 地圖 · R 騎車 · 1–5 傳送');
 }
 updateInstructions();
 mobile.addEventListener('change', updateInstructions);
@@ -559,16 +562,21 @@ function movePlayer(dx,dz,radius){
  const steps=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.6));
  for(let i=0;i<steps;i++){
   const x=THREE.MathUtils.clamp(player.position.x+dx/steps,bounds.west,bounds.east),z=THREE.MathUtils.clamp(player.position.z+dz/steps,bounds.north,bounds.south);
-  const linkLevel=siteDetails.bridgeLevel,connection=parkingSupportAt(x,z,player.position.y,campus,terrain,roadNetwork)??(motion.riding?null:stairHeightAt(x,z,player.position.y,campus,terrain,roadNetwork))??corridorSupportAt(x,z,player.position.y,campus,terrain,roadNetwork)??(motion.riding?null:(platformHeightAt(x,z,player.position.y,campus,terrain,roadNetwork)??bridgeHeight(x,z,player.position.y,campus.levelLink,linkLevel)??(campus.bioConnection.corridor?null:bridgeHeight(x,z,player.position.y,campus.bioConnection,siteDetails.bioLevel))));
+  const linkLevel=siteDetails.bridgeLevel,connection=parkingSupportAt(x,z,player.position.y,campus,terrain,roadNetwork)??stairHeightAt(x,z,player.position.y,campus,terrain,roadNetwork)??corridorSupportAt(x,z,player.position.y,campus,terrain,roadNetwork)??platformHeightAt(x,z,player.position.y,campus,terrain,roadNetwork)??bridgeHeight(x,z,player.position.y,campus.levelLink,linkLevel)??(campus.bioConnection.corridor?null:bridgeHeight(x,z,player.position.y,campus.bioConnection,siteDetails.bioLevel));
   const lake=lakeAt(x,z,campus);
   if(lake){const road=roadNetwork.nearest(x,z);if(!(road&&road.d<road.width/2&&roadNetwork.surfaceHeight(x,z)>terrain.platformHeight(lake)+.2)){motion.speed=0;showToast('前方是湖泊，請沿岸行走');return false;}}
   const jiyuan=createJiyuanSurface(campus,terrain);const plans=planSurfaces(campus,terrain);
   const blockedBuilding=obstacles.some(building=>!(jiyuan&&building.osm===JIYUAN_OSM)&&!plans.some(s=>s.osm===building.osm)&&distanceToRing(x,z,building.ring)<radius&&!(building.passage&&!motion.riding&&passageAt(x,z,player.position.y,building,terrain,radius))&&!(connection!==null&&[campus.levelLink.from,campus.levelLink.to,campus.bioConnection.from,campus.bioConnection.to].includes(building.osm)));
   if(jiyuan?.blocked(x,z,radius,player.position.y,motion.riding)||plans.some(s=>s.blocked(x,z,radius,player.position.y,motion.riding))||welcomeBoard.blocked(x,z,radius)||blockedBuilding||landscapeLayout.blocked(x,z,radius)||siteDetails.blocked(x,z,radius,player.position.y)){motion.speed=0;return false;}
-  player.position.set(x,connection??walkHeight(x,z),z);
+  const ground=connection??walkHeight(x,z),y=player.position.y;
+  if(motion.air)player.position.set(x,y,z);
+  else if(ground<y-STEP_DROP){motion.air=true;motion.vy=0;player.position.set(x,y,z);}
+  else player.position.set(x,ground,z);
  }
  return true;
 }
+function groundAt(x,z){const y=player.position.y;return parkingSupportAt(x,z,y,campus,terrain,roadNetwork)??stairHeightAt(x,z,y,campus,terrain,roadNetwork)??corridorSupportAt(x,z,y,campus,terrain,roadNetwork)??platformHeightAt(x,z,y,campus,terrain,roadNetwork)??bridgeHeight(x,z,y,campus.levelLink,siteDetails.bridgeLevel)??walkHeight(x,z);}
+function stepVertical(dt){motion.vy-=GRAVITY*dt;const y=player.position.y+motion.vy*dt,ground=groundAt(player.position.x,player.position.z);if(motion.vy<=0&&y<=ground){player.position.y=ground;motion.air=false;motion.vy=0;}else player.position.y=y;}
 let previous=performance.now();
 function frame(now){
  requestAnimationFrame(frame);const dt=Math.max(0,Math.min((now-previous)/1000,.05));previous=now;
@@ -576,16 +584,16 @@ function frame(now){
  if(window.campusDeveloper?.isOpen())return;
  if(document.getElementById('mapDialog').open){campusMap.update();return;}
  if(active){
-  const turns=[...heldPointers.values()];yaw+=((turns.some(b=>b.id==='turnL')?1:0)-(turns.some(b=>b.id==='turnR')?1:0))*1.8*dt;
   const f=(pressed('KeyW')||pressed('ArrowUp')?1:0)-(pressed('KeyS')||pressed('ArrowDown')?1:0)-stick.z;
   const side=(pressed('KeyD')||pressed('ArrowRight')?1:0)-(pressed('KeyA')||pressed('ArrowLeft')?1:0)+stick.x;
+  if(motion.air&&!aerial.enabled)stepVertical(dt);
   if(aerial.enabled){
    const dir=new THREE.Vector3(side,0,-f);if(dir.lengthSq()>1)dir.normalize();dir.applyAxisAngle(new THREE.Vector3(0,1,0),yaw);
    aerial.center.x=THREE.MathUtils.clamp(aerial.center.x+dir.x*35*dt,bounds.west,bounds.east);
    aerial.center.z=THREE.MathUtils.clamp(aerial.center.z+dir.z*35*dt,bounds.north,bounds.south);
    if(keys.KeyQ||keys.KeyE)setAerialHeight(aerial.height+((keys.KeyE?1:0)-(keys.KeyQ?1:0))*35*dt);
   }else if(motion.riding){
-   const move=stepScooter(motion,dt,THREE.MathUtils.clamp(f,-1,1),THREE.MathUtils.clamp(side,-1,1),roadNetwork.onMotorRoad(player.position.x,player.position.z));
+   const move=stepScooter(motion,dt,THREE.MathUtils.clamp(f,-1,1),THREE.MathUtils.clamp(side,-1,1),roadNetwork.onMotorRoad(player.position.x,player.position.z),siteDetails.sidewalkAt(player.position.x,player.position.z)!=null);
    if(Math.hypot(move.dx,move.dz)>0)movePlayer(move.dx,move.dz,.65);
    player.rotation.y=motion.heading;
    const front=walkHeight(player.position.x-Math.sin(motion.heading)*1.2,player.position.z-Math.cos(motion.heading)*1.2);
