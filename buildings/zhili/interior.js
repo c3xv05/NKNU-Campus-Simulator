@@ -39,7 +39,8 @@ export function createPlanSurface(campus,terrain,osm){
  function blocked(x,z,r,y,riding=false){
   const p=f.toDrawing(x,z);if(ringDistance(p[0],p[1],data.outline)>=r+.05)return false;
   for(const fl of floors){if(y<fl.y-.5||y>fl.y+H-.7)continue;const d=ringDistance(p[0],p[1],fl.outline);if(d>=r+.05)continue;
-   if(riding)return true;
+   // Riding stays out of the building, except on the B1 driveway ramp down to the street (user 2026-11-25: an invisible threshold stopped scooters at the mouth).
+   if(riding&&!(fl.ramp&&inRect(p,[fl.ramp.rect[0],fl.ramp.rect[1],fl.ramp.rect[2],fl.ramp.rect[3]+1.2])))return true;
    for(const w of fl.near(p,r+.1))if(rectDistance(p,w)<r+.02)return true;
    if(d===0&&!(fl.openAreas||[]).some(a=>inRect(p,a))&&supportAt(x,z,y)===null)return true;
   }
@@ -131,7 +132,7 @@ export function addZhiliInterior(THREE,parent,campus,terrain,data,network){
   if(fin){surface(fl.tileTriangles||fl.slabTriangles,y+.004,surf.floor,surf.floorRepeat,key+'-tiles-'+fl.label);if(fl.ceilingTriangles)surface(fl.ceilingTriangles,y+fin.ceilingHeight,surf.ceiling,surf.ceilingRepeat,key+'-ceiling-'+fl.label);}
   for(const w of fl.walls)wall(w,y,fl.outline);
   for(const d of fl.diagWalls||[])oBox(d.a,d.b,2*d.w,y,y+(d.top??H-SLAB),'inner');   // slanted walls and curbs: true rotated boxes
-  for(const w of fl.sills||[])wall(w.rect,y,fl.outline,y-.45,y+w.top);
+  for(const w of fl.sills||[])wall(w.rect,y,fl.outline,w.low?y:y-.45,y+w.top);   // low partitions and curbs stand on their own floor: never below it (user 2026-11-25)
   for(const w of fl.heads||[])wall(w.rect,y,fl.outline,y+w.bottom,y+H-SLAB,false);
   for(const w of fl.windows||[])pane(w,y,-.12);
   for(const l of fl.lintels)rectBox(l,y+2.25+(l[4]||0),y+H-SLAB,'inner');   // a fifth entry lifts the header with a raised floor (stage-height doors)
