@@ -107,7 +107,7 @@ DOME_R = 8.0
 
 # Exterior entrances (drawing point on the outline, width, floor)
 ENTRANCES = [('1F', (67.25, 45.9), 2.0, '152 北側門廳'), ('1F', (37.9, 85.2), 2.4, '125→126'),
-             ('1F', (76.68, 90.6), 2.0, '129 東側'), ('2F', (37.9, 85.2), 3.0, '218 大廳主入口'), ('2F', (85.69, 56.9), 1.4, 'F梯')]
+             ('1F', (76.68, 90.6), 2.0, '129 東側'), ('2F', (37.9, 85.2), 3.0, '218 大廳主入口'), ('2F', (85.69, 56.9), 1.4, 'F梯'), ('1F', (36.25, 92.41), 1.9, '106 西側鐵捲門')]
 
 LABELS = json.loads((B / 'labels.json').read_text())
 
@@ -176,6 +176,7 @@ def stair_zone(fl):
     z = [Polygon(s['foot']).buffer(.08) for s in STAIRS]
     return unary_union(z + [e.buffer(.02) for e in ELEVATORS])
 
+GATES = {}
 def walls_of(fl):
     raw, s, arcs, quads = XLW.extract(fl)
     long_ = mask_of([q for q, lg, d in quads if lg]); short = mask_of([q for q, lg, d in quads if not lg]) & (1 - long_)
@@ -211,6 +212,10 @@ def walls_of(fl):
         wall &= 1 - mask_of(BRIDGE.buffer(-.12))
     else:
         wall &= 1 - mask_of(Point(ATRIUM_C).buffer(8.6))                    # pool rings / dashed 2F edges
+    # iron (rolling) doors: open passages through the double-line band (rendered as rolled-up shutters)
+    gl = [g for g in XLW.gates(fl) if ENC[fl].buffer(-.3).contains(Point(g['a'])) and ENC[fl].buffer(-.3).contains(Point(g['b']))]
+    for g in gl: wall &= 1 - mask_of(LineString([g['a'], g['b']]).buffer(g['w'] / 2 + .55, cap_style=2))   # shutter + the glazed door line behind it
+    GATES[fl] = gl
     # door swings: cut the sector and the strip through the wall
     doors = []
     dw = cv2.distanceTransform((1 - wall).astype(np.uint8), cv2.DIST_L2, 3) * C
@@ -302,6 +307,11 @@ for fl in ['1F', '2F']:
         leaf = LineString([c, (c[0] + v[0] * .96, c[1] + v[1] * .96)]).buffer(.025, cap_style=2)
         prism(leaf, y + .02, y + 2.15, 'wood', False)
     exterior(fl, y)
+    # rolled-up iron shutters: housing box under the slab and guide rails at both ends (open, passable)
+    for g in GATES.get(fl, []):
+        a, b = np.array(g['a']), np.array(g['b']); u = (b - a) / np.linalg.norm(b - a)
+        prism(LineString([a, b]).buffer(.18, cap_style=2), y + H - SLAB - .45, y + H - SLAB, 'steel', False)
+        for e in (a + u * .05, b - u * .05): prism(Point(e).buffer(.06, 4), y, y + H - SLAB - .45, 'steel', False)
     # columns
     for col in XLW.columns(fl):
         P = Point(col['c']).buffer(col['r'], 20) if col['r'] else Polygon(col['ring'])
@@ -433,6 +443,17 @@ for i in range(len(_at) // 2):
     d = _inv(_pts[f'p{i}']); r = math.dist(d, FAN_C); k = min(1, max(0, (r - 37.35) / 3.0))
     _yv.append(round(top_rel * (1 - k) + (_hw[f'p{i}'] - BASE) * k, 3))
 walks.append({'t': _at, 'y': round(top_rel, 4), 'yv': _yv, 'm': 'paving', 'k': 'approach'})
+def approach_height(w):
+    best = None
+    for i in range(0, len(_at) // 2, 3):
+        (ax, az), (bx, bz), (cx, cz) = [(_at[2 * (i + j)], _at[2 * (i + j) + 1]) for j in range(3)]
+        dd = (bz - cz) * (ax - cx) + (cx - bx) * (az - cz)
+        if abs(dd) < 1e-12: continue
+        l1 = ((bz - cz) * (w[0] - cx) + (cx - bx) * (w[1] - cz)) / dd; l2 = ((cz - az) * (w[0] - cx) + (ax - cx) * (w[1] - cz)) / dd; l3 = 1 - l1 - l2
+        if min(l1, l2, l3) >= -1e-6: return _yv[i] * l1 + _yv[i + 1] * l2 + _yv[i + 2] * l3
+        e = -min(l1, l2, l3)
+        if best is None or e < best[0]: best = (e, _yv[i] * l1 + _yv[i + 1] * l2 + _yv[i + 2] * l3)
+    return best[1]
 prism(approach, -.5, min(_yv) - .02, 'trim')
 # retaining face under 203 toward 125 and the colonnade drawn on 1F (123)
 prism(LineString(EDGE204).buffer(.25, cap_style=2).difference(deck), -.3, H, 'outer')
@@ -443,13 +464,16 @@ def straight_stair(inner_line, outer_line, name, rises):
     a0, a1, b0, b1 = map(np.array, (a0, a1, b0, b1))
     L = np.linalg.norm(a1 - a0); u = (a1 - a0) / L
     n = rises; run = L / n
-    end = (a1 + b1) / 2; wv = W(tuple(end)); k = min(range(len(_yv)), key=lambda i: math.dist(wv, _pts[f'p{i}']))
-    top = max(top_rel, _yv[k])                       # land on the approach walk at the stair head
+    end = (a1 + b1) / 2 + u * .3; wv = W(tuple(end))
+    top = approach_height(wv)                        # land exactly on the sloped approach walk at the stair head
     for i in range(n):
         q = Polygon([a0 + u * run * i, a0 + u * run * (i + 1), b0 + u * run * (i + 1) + (b0 - a0) * 0, b0 + u * run * i])
         q = Polygon([a0 + u * run * i, a0 + u * run * (i + 1), b0 + (a1 - a0) / L * run * (i + 1), b0 + (a1 - a0) / L * run * i])
         h = top * (i + 1) / n
         prism(q, -.5, h, 'tread'); walk(q, h, None, render=False, kind='stair-' + name)
+    # head landing: from the last tread out onto the approach walk (no gap at the stair head)
+    be = b0 + (a1 - a0); land = Polygon([a1 - u * .05, be - u * .05, be + u * 1.8, a1 + u * 1.8])
+    prism(land, -.5, top, 'tread'); walk(land, top, None, render=False, kind='stair-' + name)
     side = LineString([a0, a1]).buffer(.12, cap_style=2)
     for i in range(n):
         seg = LineString([a0 + u * run * i, a0 + u * run * (i + 1)]).buffer(.12, cap_style=2)
