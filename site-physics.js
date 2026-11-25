@@ -1,5 +1,5 @@
 import {jiyuanSupportAt} from './buildings/foresight/surface.js';
-import {zhiliSupportAt} from './buildings/zhili/interior.js';
+import {zhiliSupportAt,planSurfaces} from './buildings/zhili/interior.js';
 import {corridorSupportAt} from './facilities/campus-corridors/surface.js';
 import {parkingSupportAt} from './facilities/basketball-parking/surface.js';
 import {passageSupportAt} from './building-passages.js';
@@ -51,4 +51,10 @@ export function platformHeightAt(x,z,currentY,campus,terrain,network){
  const courtyard=courtyardSupportAt(x,z,currentY,campus,terrain);if(courtyard!==null)return courtyard;
  if(p.floorRegions)return null;
  return ringDistance(x,z,p.ring)===0&&currentY>=level-.8?level+.08:null;
+}
+// Scooter surface class (user 2026-11-25): 'road' = basement garage lanes and driveway, 'tile' = indoor floors, plazas and the road-level paving pads; otherwise null.
+export function groundKindAt(x,z,currentY,campus,terrain,network){
+ for(const s of planSurfaces(campus,terrain)){const k=s.groundKind?.(x,z,currentY);if(k)return k;}
+ if(campus.zhiliPlatformSupport?.(x,z,currentY)!=null||campus.zhiliCurbCutSupport?.(x,z,currentY)!=null)return'tile';
+ return corridorSupportAt(x,z,currentY,campus,terrain,network)!==null?'tile':null;
 }

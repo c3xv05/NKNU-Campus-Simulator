@@ -40,13 +40,16 @@ export function createPlanSurface(campus,terrain,osm){
   const p=f.toDrawing(x,z);if(ringDistance(p[0],p[1],data.outline)>=r+.05)return false;
   for(const fl of floors){if(y<fl.y-.5||y>fl.y+H-.7)continue;const d=ringDistance(p[0],p[1],fl.outline);if(d>=r+.05)continue;
    // Riding stays out of the building, except on the B1 driveway ramp down to the street (user 2026-11-25: an invisible threshold stopped scooters at the mouth).
-   if(riding&&!(fl.ramp&&inRect(p,[fl.ramp.rect[0],fl.ramp.rect[1],fl.ramp.rect[2],fl.ramp.rect[3]+1.2])))return true;
+   if(riding&&fl.level>0&&!(fl.ramp&&inRect(p,[fl.ramp.rect[0],fl.ramp.rect[1],fl.ramp.rect[2],fl.ramp.rect[3]+1.2])))return true;   // user 2026-11-25: scooters ride on the ground floor and the basement; upper floors stay on foot
    for(const w of fl.near(p,r+.1))if(rectDistance(p,w)<r+.02)return true;
    if(d===0&&!(fl.openAreas||[]).some(a=>inRect(p,a))&&supportAt(x,z,y)===null)return true;
   }
   return false;
  }
- const result={base,floors,supportAt,blocked,contains:(x,z)=>{const p=f.toDrawing(x,z);return ringDistance(p[0],p[1],data.outline)===0;}};result.osm=osm;cache.set(osm,result);return result;
+ // B1 garage concrete (driveway and lanes) counts as road for scooter speed; any other supported indoor floor is tile.
+ function triContains(t,x,z){const d=(t[1][1]-t[2][1])*(t[0][0]-t[2][0])+(t[2][0]-t[1][0])*(t[0][1]-t[2][1]);if(!d)return false;const a=((t[1][1]-t[2][1])*(x-t[2][0])+(t[2][0]-t[1][0])*(z-t[2][1]))/d,b=((t[2][1]-t[0][1])*(x-t[2][0])+(t[0][0]-t[2][0])*(z-t[2][1]))/d;return a>=0&&b>=0&&a+b<=1;}
+ function groundKind(x,z,y){const h=supportAt(x,z,y);if(h===null)return null;const p=f.toDrawing(x,z);for(const fl of floors){if(Math.abs(h-fl.y)>1.3)continue;if(fl.ramp&&inRect(p,fl.ramp.rect))return'road';for(const t of fl.garageTriangles||[])if(triContains(t,x,z))return'road';}return'tile';}
+ const result={base,floors,supportAt,blocked,groundKind,contains:(x,z)=>{const p=f.toDrawing(x,z);return ringDistance(p[0],p[1],data.outline)===0;}};result.osm=osm;cache.set(osm,result);return result;
 }
 export function zhiliSupportAt(x,z,y,campus,terrain){for(const s of planSurfaces(campus,terrain)){const h=s.supportAt(x,z,y);if(h!==null)return h;}return null;}
 // Meshes: slabs, walls with real window openings, lintels, stair halls and treads, entrances, plan facade for 3F+.
