@@ -37,4 +37,13 @@ for(const d of defs.filter(d=>d.type==='ramp'))for(const [end,h] of [[d.line[0],
   {const end=[a[0]+(a[0]-b[0])/len*1.5,a[1]+(a[1]-b[1])/len*1.5];let y=flight.bottom+.08;for(let i=0;i<=400;i++){const u=i/400,x=b[0]+(end[0]-b[0])*u,z=b[1]+(end[1]-b[1])*u,h=stairHeightAt(x,z,y,c,t,n)??s.heightAt(x,z,y);assert(h!==null,lane+' stair -> stem lost support at '+u.toFixed(3));assert(Math.abs(h-y)<.2);y=h;}assert(Math.abs(y-stem.heightAt(...end)-.08)<1e-6,'walked onto the stem');}
   // The well is open: no stem floor above the middle of the flight; the ground stays below every tread.
   const mid=[(a[0]+b[0])/2,(a[1]+b[1])/2];assert.equal(stem.heightAt(...mid),null);assert(c.bioConnection.sideStairs.every(s=>s.pieces.every(p=>p.ring.length===4)),'convex ground cuts (index.html) under both side-stair pieces');}}
-console.log('PASS: Bio drawing levels (1F 4.5 m, 2F = T deck), drawing names, 25 terrace pieces, continuous lanes and ramps ≤30%, +505 side stairs up to the T stem',{k:+scale.k.toFixed(4),foot:+scale.foot.toFixed(2),hall:+s.bioLower.toFixed(2)});
+// Flower beds (user 2026-11-25): no trees; every bed is exactly as high as the stair tread on the same line, never above it.
+{const st=bio.stairs;assert(!('treePits' in st),'beds are beds, no trees');
+ const lanes=defs.filter(d=>/-(left|right)-/.test(d.id));
+ const inside=(ring,x,z)=>{let c=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const [xi,zi]=ring[i],[xj,zj]=ring[j];if((zi>z)!==(zj>z)&&x<(xj-xi)*(z-zi)/(zj-zi)+xi)c=!c;}return c;};
+ let checked=0;for(const bed of [...st.planters,...st.wallPlanters]){assert.equal(bed.raise,0);const cx=bed.ring.reduce((a,p)=>a+p[0],0)/bed.ring.length,cz=bed.ring.reduce((a,p)=>a+p[1],0)/bed.ring.length;
+  // The lane stair on the same line: project the bed centre onto the lane line axis (same y on the drawing = same distance along the line).
+  let best=null;for(const d of lanes){const [a,b]=d.line,dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz),t=((cx-a[0])*dx+(cz-a[1])*dz)/(len*len);if(t<-1e-6||t>1+1e-6)continue;const side=Math.abs((cx-a[0])*-dz+(cz-a[1])*dx)/len;if(!best||side<best.side)best={d,t,side};}
+  if(!best)continue;const h=stairSurface(best.d,Math.min(1,best.t));assert(Math.abs(scale.height(bed.h)-h)<.2+1e-6,'bed '+bed.h+' vs tread '+h.toFixed(3));checked++;}
+ assert(checked>100,'beds checked '+checked);}
+console.log('PASS: Bio drawing levels (1F 4.5 m, 2F = T deck), drawing names, 25 terrace pieces, continuous lanes and ramps ≤30%, +505 side stairs up to the T stem, flush flower beds',{k:+scale.k.toFixed(4),foot:+scale.foot.toFixed(2),hall:+s.bioLower.toFixed(2)});
