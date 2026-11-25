@@ -1,7 +1,7 @@
 // Bio A/B link from the user's floor plans (2026-11-23, scripts/biology_layout.py):
 // 1F hall with full-height glazing (落地窗) and doors, 2F open deck rails, the closed
 // sewage room (污水機房) under the T deck, the flower-pattern plaza and the terraced
-// planters / tree pits beside the zigzag ramps. Walkable treads/ramps/landings are
+// stepped flower beds beside the zigzag ramps. Walkable treads/ramps/landings are
 // stair definitions in stair-layout.js; this module renders the rest and blocks it.
 import {biologyTerraceScale} from '../../stair-layout.js';
 import {ringDistance} from '../../planar.js';
@@ -51,16 +51,16 @@ export function addBiologyLink(THREE,group,campus,terrain,network,tileMaterial){
   const tex=new THREE.CanvasTexture(canvas);tex.anisotropy=4;const m=new THREE.Mesh(new THREE.PlaneGeometry(size,size),new THREE.MeshStandardMaterial({map:tex,transparent:true,roughness:.9,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}));
   m.rotation.x=-Math.PI/2;m.rotation.z=Math.atan2(-pat.axis[1],pat.axis[0]);m.position.set(pat.center[0],floor+.015,pat.center[1]);m.name='biology-flower-plaza-pattern';group.add(m);
   for(const ring of plaza.sidePlanters||[]){blockers.push(prism(ring,floor+.5,floor-1.2,planterWall,'biology-plaza-planter'));prism(ring.map(p=>lerp(p,ring.reduce((s,q)=>[s[0]+q[0]/4,s[1]+q[1]/4],[0,0]),.12)),floor+.52,floor+.3,soil,'biology-plaza-planter-soil');solids.push(ring);}}
- // Terraced planters between the ramps, wall planters along both side walls, trees in the drawn pits.
+ // Terraced planters between the ramps and wall planters along both side walls: flower beds as drawn (no trees), each flush with the tread of the side stair on the same line.
  const stairs=bio.stairs,planterTops=[];if(scale&&stairs?.planters){const base=Math.min(scale.foot-1.5,...stairs.ring.map(([x,z])=>terrain.height(x,z)-1.5));
   for(const p of [...stairs.planters,...stairs.wallPlanters]){const top=scale.height(p.h)+p.raise;blockers.push(prism(p.ring,top,base,planterWall,'biology-terrace-planter'));const c=p.ring.reduce((s,q)=>[s[0]+q[0]/p.ring.length,s[1]+q[1]/p.ring.length],[0,0]);prism(p.ring.map(q=>lerp(q,c,.08)),top+.02,top-.2,soil,'biology-terrace-planter-soil');planterTops.push({ring:p.ring,top});}
-  for(const pit of stairs.treePits){const top=Math.max(...planterTops.filter(p=>ringDistance(...pit.center,p.ring)<pit.size).map(p=>p.top),scale.height(pit.h)+.45),h=4.2;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.12,.17,h*.55,7),bark);trunk.position.set(pit.center[0],top+h*.27,pit.center[1]);group.add(trunk);const crown=new THREE.Mesh(new THREE.SphereGeometry(1.5,9,7),leaves);crown.scale.set(1,.8,1);crown.position.set(pit.center[0],top+h*.62,pit.center[1]);crown.name='biology-terrace-tree';group.add(crown);}}
+}
  return{blockers,blocked(x,z,r,currentY){
   if(currentY>floor-.6&&currentY<ceiling&&walls.some(l=>segmentDistance(x,z,l)<r+.1))return true;
   if(Math.abs(currentY-deck-.6)<.9&&rails.some(l=>segmentDistance(x,z,l)<r+.06))return true;
   if(currentY<ceiling&&solids.some(ring=>ringDistance(x,z,ring)<r))return true;
   if(sideWalls.some(w=>currentY<w.top&&ringDistance(x,z,w.ring)<r))return true;
   if(stem&&sideRails.some(l=>segmentDistance(x,z,l)<r+.08&&currentY<stem.profile(x,z)+1))return true;
-  return planterTops.some(p=>currentY<p.top-.3&&ringDistance(x,z,p.ring)<r*.5);
+  return planterTops.some(p=>currentY<p.top+1.1&&ringDistance(x,z,p.ring)<r*.5);   // beds are flush with the treads: never walk onto them
  }};
 }
