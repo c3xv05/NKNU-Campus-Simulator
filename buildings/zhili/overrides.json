@@ -431,227 +431,6 @@
    ]
   },
   {
-   "id": "ualfl9wnf419hpp7l3rl",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    6.15,
-    23.35
-   ],
-   "b": [
-    6.15,
-    26.15
-   ]
-  },
-  {
-   "id": "8zvgps3d52wpymx1q4tw",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    2.4,
-    24.6
-   ],
-   "b": [
-    5.05,
-    24.6
-   ]
-  },
-  {
-   "id": "0zpcho2r6aeb1o37nu1q",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    4.95,
-    24.6
-   ],
-   "b": [
-    6,
-    24.6
-   ]
-  },
-  {
-   "id": "xz7s4sbylg7ti4s83t2d",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    6.05,
-    23.65
-   ],
-   "b": [
-    6.05,
-    24.65
-   ]
-  },
-  {
-   "id": "sifztbubl3v48100mojl",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    5,
-    24.55
-   ],
-   "b": [
-    6.15,
-    24.55
-   ]
-  },
-  {
-   "id": "uomv07b69a5yhjl0zjsj",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    2.6,
-    36.45
-   ],
-   "b": [
-    4.95,
-    36.45
-   ]
-  },
-  {
-   "id": "c3t10clo31ywz51l470r",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    6.25,
-    34.8
-   ],
-   "b": [
-    6.25,
-    35.8
-   ]
-  },
-  {
-   "id": "8cnsx7k722eu4mxws9lp",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    6,
-    34.85
-   ],
-   "b": [
-    6,
-    35.95
-   ]
-  },
-  {
-   "id": "1kv1a8xcwnq3nxq7nsnf",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    5.1,
-    36.6
-   ],
-   "b": [
-    6.25,
-    36.6
-   ]
-  },
-  {
-   "id": "mzqtgvy6cfae9rhen0zv",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    6.4,
-    36.55
-   ],
-   "b": [
-    6.4,
-    37.8
-   ]
-  },
-  {
-   "id": "zdkpxkbdzmg5qqpk5gw0",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    6,
-    36.65
-   ],
-   "b": [
-    6,
-    37.75
-   ]
-  },
-  {
-   "id": "qwv68k4pkzds404jiogp",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    5.65,
-    36.65
-   ],
-   "b": [
-    5.65,
-    37.4
-   ]
-  },
-  {
-   "id": "ysp3hqnxmzmyq698852l",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    5.1,
-    36.65
-   ],
-   "b": [
-    5.1,
-    37.15
-   ]
-  },
-  {
-   "id": "ln3m762k2n0o218pgaid",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    6,
-    23.6
-   ],
-   "b": [
-    6,
-    24.65
-   ]
-  },
-  {
-   "id": "91u59tzrvnwe0rhj5kvd",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    5.65,
-    23.95
-   ],
-   "b": [
-    5.65,
-    24.8
-   ]
-  },
-  {
-   "id": "8bji6mpwj0djz3j5n1r2",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    5.3,
-    24
-   ],
-   "b": [
-    5.3,
-    24.7
-   ]
-  },
-  {
-   "id": "s82b6n9rdpjf597e8hzo",
-   "floor": "B1",
-   "kind": "open",
-   "a": [
-    5.7,
-    25.6
-   ],
-   "b": [
-    5.7,
-    26.05
-   ]
-  },
-  {
    "id": "re3xb5ntt7hn9i5dv09n",
    "floor": "B1",
    "kind": "open",
@@ -6541,6 +6320,332 @@
    "m": "white",
    "room": "男廁",
    "source": "claude-review-2026-11-24 (floor-1F-current.pdf)"
+  },
+  {
+   "id": "zb-door-01",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    6.95,
+    20.7
+   ],
+   "b": [
+    8.0,
+    20.7
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "演講廳前廳 北側雙開門（左）"
+  },
+  {
+   "id": "zb-door-02",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    8.0,
+    20.7
+   ],
+   "b": [
+    9.1,
+    20.7
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "演講廳前廳 北側雙開門（右）"
+  },
+  {
+   "id": "zb-door-03",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    6.95,
+    40.15
+   ],
+   "b": [
+    8.0,
+    40.15
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "演講廳前廳 南側雙開門（左）"
+  },
+  {
+   "id": "zb-door-04",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    8.0,
+    40.15
+   ],
+   "b": [
+    9.1,
+    40.15
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "演講廳前廳 南側雙開門（右）"
+  },
+  {
+   "id": "zb-door-05",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    21.6,
+    17.05
+   ],
+   "b": [
+    21.6,
+    18.2
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "門廳東側雙開門（上）"
+  },
+  {
+   "id": "zb-door-06",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    21.6,
+    18.2
+   ],
+   "b": [
+    21.6,
+    19.4
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "門廳東側雙開門（下）"
+  },
+  {
+   "id": "zb-door-07",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    49.1,
+    27.95
+   ],
+   "b": [
+    49.1,
+    29.05
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "B07 門廳西側雙開門（上）"
+  },
+  {
+   "id": "zb-door-08",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    49.1,
+    29.05
+   ],
+   "b": [
+    49.1,
+    30.1
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "B07 門廳西側雙開門（下）"
+  },
+  {
+   "id": "zb-door-09",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    39.7,
+    48.55
+   ],
+   "b": [
+    40.8,
+    48.55
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "甲梯門廳北側雙開門（左）"
+  },
+  {
+   "id": "zb-door-10",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    40.8,
+    48.55
+   ],
+   "b": [
+    41.9,
+    48.55
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "甲梯門廳北側雙開門（右）"
+  },
+  {
+   "id": "zb-door-11",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    39.65,
+    55.0
+   ],
+   "b": [
+    40.75,
+    55.0
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "甲梯門廳南側雙開門（左，通B01，關閉）",
+   "closed": true
+  },
+  {
+   "id": "zb-door-12",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    40.75,
+    55.0
+   ],
+   "b": [
+    41.9,
+    55.0
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "甲梯門廳南側雙開門（右，通B01，關閉）",
+   "closed": true
+  },
+  {
+   "id": "zb-door-13",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    60.15,
+    55.6
+   ],
+   "b": [
+    60.15,
+    56.65
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "乙梯西側雙開門（上）"
+  },
+  {
+   "id": "zb-door-14",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    60.15,
+    56.65
+   ],
+   "b": [
+    60.15,
+    57.7
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "乙梯西側雙開門（下）"
+  },
+  {
+   "id": "zb-door-15",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    6.75,
+    46.2
+   ],
+   "b": [
+    7.85,
+    46.2
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "西側門廳南側雙開門（左）"
+  },
+  {
+   "id": "zb-door-16",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    7.85,
+    46.2
+   ],
+   "b": [
+    8.95,
+    46.2
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "西側門廳南側雙開門（右）"
+  },
+  {
+   "id": "zb-door-17",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    20.26,
+    20.69
+   ],
+   "b": [
+    21.03,
+    20.69
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "B04 北門（儲藏室，關閉）",
+   "closed": true
+  },
+  {
+   "id": "zb-door-18",
+   "floor": "B1",
+   "kind": "door",
+   "a": [
+    20.26,
+    40.09
+   ],
+   "b": [
+    21.03,
+    40.09
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "B04 南門（儲藏室，關閉）",
+   "closed": true
+  },
+  {
+   "id": "zb-nd-19",
+   "floor": "B1",
+   "kind": "nodoor",
+   "rect": [
+    12.0,
+    21.8,
+    13.6,
+    22.6
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "座椅符號被誤判成門"
+  },
+  {
+   "id": "zb-nd-20",
+   "floor": "B1",
+   "kind": "nodoor",
+   "rect": [
+    16.2,
+    29.6,
+    17.3,
+    30.6
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "階梯教室斜線被誤判成門"
+  },
+  {
+   "id": "zb-nd-21",
+   "floor": "B1",
+   "kind": "nodoor",
+   "rect": [
+    20.0,
+    20.3,
+    21.3,
+    21.6
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "B04 北門改為手動關閉門"
+  },
+  {
+   "id": "zb-nd-22",
+   "floor": "B1",
+   "kind": "nodoor",
+   "rect": [
+    20.0,
+    39.2,
+    21.3,
+    40.4
+   ],
+   "source": "claude-review-2026-11-24 (floor-B1-current.pdf)",
+   "note": "B04 南門改為手動關閉門"
   }
  ]
 }
