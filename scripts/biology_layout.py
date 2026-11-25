@@ -73,28 +73,36 @@ def terraces(F):
                    'width': (bx1 - bx0) / D.A_SCALE, 'steps': 1, 'hTop': bh, 'hBottom': bh})
     for piece in pieces:
         piece['ring'] = ring(piece)
-    # Stepped planters fill the rest of the ramp field: tiers follow the drawn 0.34 m tread lines.
+    # Stepped planters (user 2026-11-25): flower beds only (no trees), each strip exactly as high as the tread of the
+    # side stair on the same line (same y), with strip edges on that stair's tread lines. Left half follows the left
+    # lane, right half the right lane; the wall beds beside each lane follow their own lane's treads.
     y0, y1 = D.TERRACE[1], D.TERRACE[3]
     field = box(fx0, y0, fx1, y1).difference(unary_union(bands + [bay])).buffer(-.02).buffer(.02)
-    def average(y):  # drawing height of the ramp centre at this station
-        return max(0, min(500, 40 + 80 * (y - 174.4) / 30.24))
+
+    def treads(stations):
+        """[(ya, yb, drawing height)] for every landing and every tread of one lane, y rising towards the plaza."""
+        out = []
+        for st in stations:
+            if st[0] == 'landing':
+                out.append((st[1], st[2], st[3]))
+            else:
+                a, b, hb, ht, n = st[1], st[2], st[3], st[4], st[5]
+                for k in range(n):   # k = 0 is the top tread (y = b), as in stairSurface
+                    out.append((b - (k + 1) * (b - a) / n, b - k * (b - a) / n, ht - (ht - hb) * k / n))
+        return out
+
     planters = []
-    tier = 3.2
-    n = math.ceil((y1 - y0) / tier)
-    for j in range(n):
-        strip = field.intersection(box(fx0 - 1, y0 + j * tier, fx1 + 1, min(y1, y0 + (j + 1) * tier)))
-        for part in (list(strip.geoms) if hasattr(strip, 'geoms') else [strip]):
-            if part.geom_type == 'Polygon' and part.area > .05:
-                mid = part.centroid.y
-                planters.append({'ring': D.ccw([F.a(x, y) for x, y in list(part.exterior.coords)[:-1]]), 'h': round(average(mid), 2), 'raise': .45})
+    for stations, (cx0, cx1) in ((D.LEFT, (fx0, D.AXIS_X)), (D.RIGHT, (D.AXIS_X, fx1))):
+        for ya, yb, h in treads(stations):
+            part = field.intersection(box(cx0 - 1, ya, cx1 + 1, yb)).intersection(box(cx0, ya, cx1, yb))
+            for piece in (list(part.geoms) if hasattr(part, 'geoms') else [part]):
+                if piece.geom_type == 'Polygon' and piece.area > .05:
+                    planters.append({'ring': D.ccw([F.a(x, y) for x, y in list(piece.exterior.coords)[:-1]]), 'h': h, 'raise': 0})
     walls = []
     for wx0, wx1 in D.WALL_BOX:
-        lane = 'left' if wx0 < D.AXIS_X else 'right'
-        for s in (D.LEFT if lane == 'left' else D.RIGHT):
-            h = s[3] if s[0] == 'landing' else max(s[3], s[4])
-            walls.append({'ring': F.rect((wx0, s[1], wx1, s[2])), 'h': h, 'raise': .6})
-    pits = [{'center': F.a(x, y), 'size': D.TREE_PIT_SIZE / D.A_SCALE, 'h': average(y)} for x, y in D.TREE_PITS]
-    return pieces, planters, walls, pits
+        for ya, yb, h in treads(D.LEFT if wx0 < D.AXIS_X else D.RIGHT):
+            walls.append({'ring': F.rect((wx0, ya, wx1, yb)), 'h': h, 'raise': 0})
+    return pieces, planters, walls
 
 
 def derive_biology(c, source):
@@ -171,10 +179,10 @@ def derive_biology(c, source):
                                       'axis': [-north[0], -north[1]]},
                           'sidePlanters': [F.rect(r) for r in D.PLAZA_SIDE]}
     tx0, ty0, tx1, ty1 = D.TERRACE
-    pieces, planters, walls, pits = terraces(F)
+    pieces, planters, walls = terraces(F)
     stairs = {'kind': 'terraces', 'name': '生科東側坡道階梯', 'road': cfg['stairs']['road'],
               'line': [F.a(D.AXIS_X, ty1), F.a(D.AXIS_X, ty0)], 'width': (tx1 - tx0) / D.A_SCALE,
-              'drawingTop': D.DRAWING_TOP, 'pieces': pieces, 'planters': planters, 'wallPlanters': walls, 'treePits': pits,
+              'drawingTop': D.DRAWING_TOP, 'pieces': pieces, 'planters': planters, 'wallPlanters': walls,
               'desc': '依生物科技館1F平面圖：之字形坡道、兩側直梯與階梯式花台（+0～+500）；平面照圖，高差依使用者2026-11-23選擇等比例放大以接上模型S01。'}
     stairs['ring'] = F.rect(D.TERRACE)
     bio['stairs'] = stairs
