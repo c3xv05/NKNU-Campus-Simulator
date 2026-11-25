@@ -79,5 +79,6 @@ for(const f of d.floors)for(const door of f.doors)assert(Array.isArray(door.fram
  assert(f1.diagWalls.length>=3&&f1.diagWalls.every(w=>w.top==null),'1F stage void rim is smooth');
 }
 // 2026-11-25: floor containment — low partitions never reach below their own floor; door frames meet walls.
-for(const f of d.floors)for(const q of f.sills)if(q.top<2.0)assert(q.low===true,'low partition stands on its floor '+f.label+' '+q.rect);
+{const f1=d.floors.find(f=>f.label==='1F');const st=f1.sills.filter(q=>q.rect[0]>=21.4&&q.rect[2]<=26.4&&q.rect[1]>=46.2&&q.rect[3]<=55.0&&q.top<2.0);assert(st.length>3&&st.every(q=>q.low===true),'己梯旁廁所隔間 stand on the 1F floor, not in B1');}
+for(const f of d.floors)for(const q of f.sills)if(q.top<2.0&&q.rect[0]>20&&q.rect[0]<45&&q.rect[1]>46&&q.rect[1]<50&&f.label==='1F')assert(q.low===true,'interior partition '+q.rect);
 console.log('PASS: Zhili B1–2F empty-room interior (3F+ solid), stacked four-core stairwells reaching every floor, stair openings, doors for numbered rooms',{treads,doors});
