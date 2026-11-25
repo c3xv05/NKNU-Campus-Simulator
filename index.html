@@ -63,7 +63,7 @@ import {addBuildings,loadBuildingProfiles} from './buildings/renderer.js';
 import {stairHeightAt} from './connections.js';
 import {parkingSupportAt} from './facilities/basketball-parking/surface.js';
 import {gradeCampusCorridors,corridorSupportAt} from './facilities/campus-corridors/surface.js';
-import {lakeAt,bridgeHeight,platformHeightAt} from './site-physics.js';
+import {lakeAt,bridgeHeight,platformHeightAt,groundKindAt} from './site-physics.js';
 import {sidegateWalls} from './facilities/s24-sidegate/renderer.js';
 import {addWelcomeBoard} from './facilities/welcome-board/renderer.js';
 import {createLandscapeLayout,addLandscape} from './landscape.js';
@@ -601,7 +601,7 @@ function frame(now){
    aerial.center.z=THREE.MathUtils.clamp(aerial.center.z+dir.z*35*dt,bounds.north,bounds.south);
    if(keys.KeyQ||keys.KeyE)setAerialHeight(aerial.height+((keys.KeyE?1:0)-(keys.KeyQ?1:0))*35*dt);
   }else if(motion.riding){
-   const move=stepScooter(motion,dt,THREE.MathUtils.clamp(f,-1,1),THREE.MathUtils.clamp(side,-1,1),roadNetwork.onMotorRoad(player.position.x,player.position.z),siteDetails.sidewalkAt(player.position.x,player.position.z)!=null);
+   const kind=groundKindAt(player.position.x,player.position.z,player.position.y,campus,terrain,roadNetwork),move=stepScooter(motion,dt,THREE.MathUtils.clamp(f,-1,1),THREE.MathUtils.clamp(side,-1,1),roadNetwork.onMotorRoad(player.position.x,player.position.z)&&kind===null,siteDetails.sidewalkAt(player.position.x,player.position.z)!=null||kind==='road',kind==='tile');
    if(Math.hypot(move.dx,move.dz)>0)movePlayer(move.dx,move.dz,.65);
    player.rotation.y=motion.heading;
    const front=walkHeight(player.position.x-Math.sin(motion.heading)*1.2,player.position.z-Math.cos(motion.heading)*1.2);
