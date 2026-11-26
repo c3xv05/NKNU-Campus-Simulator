@@ -15,6 +15,7 @@ export function findDestinations(campus,network){
    if(!best||score<best.score)best={x,z,score,distance};
    if(!segment.route.style.path&&(!roadBest||score<roadBest.score))roadBest={x,z,score};
   }
+  if(target.arrival)best={x:target.arrival[0],z:target.arrival[1],score:0,distance:ringDistance(target.arrival[0],target.arrival[1],target.ring)};   // fixed walking arrival from the building definition
   if(!best)throw new Error('無法找到安全傳送點：'+name);
   result.push({id,label:name,x:best.x,z:best.z,yaw:Math.atan2(best.x-c.x,best.z-c.z),...(id==='library'&&roadBest?{roadArrival:{x:roadBest.x,z:roadBest.z,yaw:Math.atan2(roadBest.x-c.x,roadBest.z-c.z)}}:{})});
  }

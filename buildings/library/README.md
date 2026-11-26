@@ -23,7 +23,7 @@
 
 - `scripts/library_drawing.py`：圖面框架與定位。圖面公尺＝1F 圖頁座標 × S（S＝8m／112.8pt，柱距8m，約1:200 A1）；2F 圖頁＝1F 平移 (68.09, 37.06)pt（72 根柱位重合誤差 <0.25pt）。依 NLSC 2023 正射影像（中央圓頂中心＋南翼方向；扇形廣場邊緣核對）定位：旋轉 2.0°、平移 (-16.661, -143.445)。屋頂（含屋簷、空拍傾斜）比牆線略大，屬正常。
 - `scripts/extract-library-walls.py`：沿用致理的向量雙線配對、門弧偵測（`scripts/extract-zhili-walls.py` 的函式），柱子由 300dpi 圖面實心塊取得。
-- `scripts/build-library-interior.py`：產生 `interior.json`（世界座標棱柱＋行走面，高度相對 B1 地面）並更新 `building.json`（ring＝新外框、`beforeRelocationRing`＝舊 OSM 外框、`terrainRing`／`platformAnchor`／`platformOffset`＝新地台，使地台高度＝B1 地面）。高度以 `scripts/library-heights.mjs` 量 S04 人行道：B1＝人行道 −5.8m（4.5m 層高＋203 平台 0.3m＋202 約 1.0m），目前 B1 約 10.58、1F 約 15.08、S04 人行道約 16.38。
+- `scripts/build-library-interior.py`：產生 `interior.json`（世界座標棱柱＋行走面，高度相對 B1 地面）並更新 `building.json`（ring＝新外框、`beforeRelocationRing`＝舊 OSM 外框、`terrainRing`／`platformAnchor`／`platformOffset`＝新地台，使地台高度＝B1 地面）。高度以 `scripts/library-heights.mjs` 量 S04 人行道：B1＝人行道 −5.8m（4.5m 層高＋203 平台 0.3m＋202 約 1.0m），目前 B1 約 10.21、1F 約 14.71、S04 人行道約 16.38（2026-11-26 移除步道後 S04 人行道取樣高度略降，B1 由 10.58 變 10.21）。
 - 執行端：`buildings/library/interior.js`（`addLibraryInterior` 渲染、`createLibrarySurface` 支撐／碰撞），透過 `buildings/zhili/interior.js` 的 `planSurfaces` 接入移動與 `site-physics`；`buildings/renderer.js` 以 `interiorKind: 'library'` 取代通用外殼；`index.html` 以 `site.cuts`（凸三角形，road-ground.js 只能減凸多邊形）挖除地形與步道。
 - 房號：`labels.json`（OCR 讀圖面編號框，誤讀已依圖面人工更正）。
 - 檢視圖：`review/plan-review.png`（左 1F、右 2F；紅＝牆、綠＝外框／門、藍＝挑空、紫＝樓梯）。
@@ -41,3 +41,10 @@
 
 - 使用者回報「門口平台兩側的階梯下不去」：G／H 梯頂端原以最近頂點取高度，與坡面鋪面差一階以上且中間有縫。改為在梯頂端點內插坡面高度，並加 1.8m 頂端平台接上坡面；現在可從 S04 側一路下到 B1 地面（tests/library-interior.mjs）。
 - 使用者更正：「雙線裡面為虛線的才是鐵門」。`extract-library-walls.py` 的 `gates()` 找雙線中間有虛線（墨水覆蓋約 2/3）的段落；中間是「＋」刻痕（約 1/4）的仍是牆。鐵捲門改為開啟的通道：頂部捲門箱、兩側導軌，開口兩側 0.55m 內的平行細線（捲門後的玻璃門線）一併打開。目前：1F 4 處（137 旁、南翼 110 南緣、106 西側外牆〔做成對外開口〕、110 西緣）、2F 6 處（北棟南側 236/237/249 三段、221/233 南側、北棟南側兩段縱向）。
+
+## 2026-11-26：西側山體與步道
+
+- 使用者：圖資大樓西邊到馬路前的山體要與北側停車場同高（門外廣場底下還有一層），與馬路保留 1.5 倍人行道寬度（3.6×1.5＝5.4m），其餘直接做斜坡快速降到該高度，連帶西南方銜接；人行道東邊多餘的步道移除。
+- `scripts/build-library-terrace.py`：新增 level area `library-west-terrace`（facilities/campus-plazas/layout.json）。範圍＝建築西側視窗扣掉各機動道路的（路寬/2＋人行道3.6＋保留5.4＋斜坡8m）緩衝；level＝B1 地面−0.185（level area 渲染時加0.185），blend 8m，所以道路人行道外5.4m維持原地形、其後8m內降到B1高度、再平接建築；西南端以同一 blend 銜接下降的地形。因 B1 由 S04 人行道高度推算，**B1 高度改變後需重跑此腳本**（先 build-library-interior.py）。直接修補 data/campus.json、data/site-layout.js（不要用 build-campus-plazas.py，它會洗掉 yongxuAccess 的 groundClipRing）。
+- 移除 OSM 445696818（人行道東邊長步道）與 459920530–534（扇形廣場舊短步道／階梯，已由平面圖的扇形取代）；`removeFootpaths` 存各路線的 route points（`line`），`landscape.js` 在種子序列中重播它們（照 roads.js nearest 的排名與24m分格），避免移除步道使全校後續植栽位移；最終過濾只用現有道路。
+- 訪客傳送點改用 building.json `geometry.arrival`（S04 人行道，扇形廣場旁），因為原本落在那些被移除的步道上；travel.js 優先採用。

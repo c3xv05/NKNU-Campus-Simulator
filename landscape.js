@@ -21,10 +21,20 @@ export function entranceBed(){
 export function landscapeAreas(campus){return [...(campus.campusTransitions||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.bioConnection.corridor?.regions||[]).map(([ring])=>({ring})),...(campus.gaussStop?[campus.gaussStop]:[]),...(campus.grassParking?[campus.grassParking]:[]),...(campus.courtParking?.entrance?[campus.courtParking.entrance]:[]),...(campus.yongxuLandscape?[campus.yongxuLandscape.lawn]:[]),...(campus.huanyuAccess?[campus.huanyuAccess,campus.huanyuAccess.ramp]:[]),campus.bioConnection.stairs,...(campus.bioConnection.sewageRoom?[{ring:campus.bioConnection.sewageRoom.undercroft}]:[]),...(campus.bioConnection.sideStairs||[]).flatMap(s=>[{ring:s.well},...s.pieces.map(p=>({ring:p.ring}))]),...(campus.bioConnection.corridor?.deckRing?[{ring:campus.bioConnection.corridor.deckRing}]:[]),...(campus.bioConnection.eastLanding?.sidePlanters||[]).map(ring=>({ring})),...(campus.levelLink.stairs||[]),...(campus.courtyard.stairs||[]),...campus.places,...campus.buildings,...campus.water,...campus.courts,...(campus.sportsAccess?.surfaces||[]).flatMap(a=>a.regions.map(([ring])=>({ring}))),...(campus.sportsGardens||[]),...(campus.pavedAreas||[]),...(campus.junctionFillets||[]),...(campus.sidewalkFrontages||[]),...(campus.pedestrianAreas||[]),...(campus.pedestrianLinks||[]),...perimeterWallRings(campus.perimeterWalls).map(ring=>({ring})),...(campus.sideGate?sidegateWalls(campus.sideGate).map(ring=>({ring})):[]),...(campus.courtyard?[campus.courtyard]:[]),...(campus.levelLink?.ring?[campus.levelLink]:[]),...(campus.welcomeBoard?[campus.welcomeBoard]:[])].map(a=>{const xs=a.ring.map(p=>p[0]),zs=a.ring.map(p=>p[1]);return{...a,west:Math.min(...xs),east:Math.max(...xs),north:Math.min(...zs),south:Math.max(...zs)};});}
 export function createLandscapeLayout(campus,network,height){
  let seed=170491;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
- const bed=entranceBed(),areas=landscapeSeedAreas,currentAreas=landscapeAreas(campus);
+ const bed=entranceBed(),areas=landscapeSeedAreas,currentAreas=landscapeAreas(campus),removedPaths=(campus.removeFootpaths||[]).map(r=>r.line);
  function eligible(x,z,margin=0,list=areas){
   if(ringDistance(x,z,campus.boundary)!==0)return false;
-  const road=network.nearest(x,z);if(road){const s=road.segment,side=Math.sign((x-s.a.x)*(-s.dz)+(z-s.a.z)*s.dx),walk=(campus.sidewalkRoadIds||[]).includes(s.route.osm)&&sidewalkSides(campus,s.route.osm).includes(side)?SIDEWALK_WIDTH:0;if(road.d<road.width/2+walk+margin)return false;}
+  // Footpaths removed later (campus.removeFootpaths) still take part in the SEEDED sequence as the nearest 'road' (width 2, no sidewalk),
+  // so removing a path never shifts every later random plant; the final filter below uses the current network only.
+  let road=network.nearest(x,z);
+  if(list===areas&&removedPaths.length&&!(road&&!road.segment.route.style.path&&road.d<=road.width/2+1e-6)){   // same ranking as roads.js nearest(): distance to the pavement edge, 24 m buckets (+13 m margin)
+   const cell=24,cx=Math.floor(x/cell),cz=Math.floor(z/cell),own=road?Math.max(0,road.d-road.width/2)+road.d*.001:Infinity;let best=null;
+   for(const l of removedPaths)for(let i=0;i<l.length-1;i++){const a=l[i],b=l[i+1];
+    if(Math.floor((Math.min(a[0],b[0])-13)/cell)>cx||Math.floor((Math.max(a[0],b[0])+13)/cell)<cx||Math.floor((Math.min(a[1],b[1])-13)/cell)>cz||Math.floor((Math.max(a[1],b[1])+13)/cell)<cz)continue;
+    const dx=b[0]-a[0],dz=b[1]-a[1],q=dx*dx+dz*dz;if(q<1e-6)continue;const u=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/q)),d=Math.hypot(x-a[0]-dx*u,z-a[1]-dz*u),score=Math.max(0,d-1)+d*.001;if(!best||score<best.score)best={d,score};}
+   if(best&&best.score<own){if(best.d<1+margin)return false;road=null;}   // a removed footpath was the nearest 'road': width 2, no sidewalk
+  }
+  if(road){const s=road.segment,side=Math.sign((x-s.a.x)*(-s.dz)+(z-s.a.z)*s.dx),walk=(campus.sidewalkRoadIds||[]).includes(s.route.osm)&&sidewalkSides(campus,s.route.osm).includes(side)?SIDEWALK_WIDTH:0;if(road.d<road.width/2+walk+margin)return false;}
   if(ringDistance(x,z,bed)<1+margin)return false;
   return !list.some(a=>x>=a.west-margin&&x<=a.east+margin&&z>=a.north-margin&&z<=a.south+margin&&ringDistance(x,z,a.ring)<margin+.01);
  }

@@ -21,8 +21,9 @@ assert.equal(roadStyle({width:2},{highway:'footway'}).edges,false);
 assert.equal(roadStyle({width:4.5},{highway:'service',oneway:'yes'}).oneWay,true);
 assert.equal(network.walkHeight(0,50,0),network.surfaceHeight(0,50)+.035);
 // A close parallel footpath must never bank or lift the vehicle carriageway.
-const parallel=createRoadNetwork([{osm:3,width:12,line:[[0,0],[0,100]]},{osm:4,width:2,line:[[3,0],[3,100]]}],(x,z)=>x*2+z*.1);
-for(let z=10;z<90;z+=10)assert(Math.abs(parallel.surfaceHeight(-3,z)-parallel.surfaceHeight(3,z))<1e-7,'Adjacent footpath stole the carriageway height');
+const OX=4000;/* synthetic roads far from every campus level area */
+const parallel=createRoadNetwork([{osm:3,width:12,line:[[OX,0],[OX,100]]},{osm:4,width:2,line:[[OX+3,0],[OX+3,100]]}],(x,z)=>(x-OX)*2+z*.1);
+for(let z=10;z<90;z+=10)assert(Math.abs(parallel.surfaceHeight(OX-3,z)-parallel.surfaceHeight(OX+3,z))<1e-7,'Adjacent footpath stole the carriageway height');
 const campus=JSON.parse(fs.readFileSync(new URL('../data/campus.json',import.meta.url))),grid=JSON.parse(fs.readFileSync(new URL('../data/elevation.json',import.meta.url))),tags=JSON.parse(fs.readFileSync(new URL('../data/road-tags.json',import.meta.url)));
 const areas=[...campus.places,...campus.buildings,...campus.water,...campus.courts];
 const terrain=createTerrain(grid,areas,{levelLink:campus.levelLink}),roads=createRoadNetwork(campus.roads,terrain.rawHeight,tags);
