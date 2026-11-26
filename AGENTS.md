@@ -64,3 +64,5 @@ Bio A (444867696) = 生物科技館 and Bio B (444867695) = 生物教學大樓 n
 ## Floor containment rule (2026-11-25, user)
 
 Without the user's explicit consent, partitions, interior walls and furniture of one floor must never appear on another floor (no stalls, sills, fixtures or wall boxes poking through a slab into the storey below or above). Low partitions and curbs stand on their own floor surface (`low:true` sills in interior.json); only exterior-shell wall bodies may extend into the slab thickness. Check the neighbouring floors from a first-person view after changing any interior geometry.
+
+Library west hillside (2026-11-26): the hill west of 圖資大樓 is a level area (library-west-terrace) at B1 height with a 5.4 m untouched strip beyond the sidewalk and an 8 m slope; footpaths 445696818/4599205xx were removed (campus.removeFootpaths keeps their route points for landscape.js's seeded sequence). After any B1 height change rerun scripts/build-library-interior.py then scripts/build-library-terrace.py (never scripts/build-campus-plazas.py for this).

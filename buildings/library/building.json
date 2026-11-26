@@ -337,7 +337,7 @@
       38.431,
       -52.911
     ],
-    "platformOffset": 1.059,
+    "platformOffset": 0.689,
     "drawingPlacement": {
       "source": "buildings/library/source/floor-1F.pdf, floor-2F.pdf",
       "metresPerPoint": 0.07092198581560284,
@@ -347,9 +347,13 @@
         -143.445
       ],
       "levels": "圖面1F＝遊戲B1（B1地面＝base），圖面2F＝遊戲1F（+4.5m，西側扇形廣場204入口）；使用者2026-11-25確認無其他樓層",
-      "base": 10.58,
-      "s04Sidewalk": 16.376
-    }
+      "base": 10.21,
+      "s04Sidewalk": 16.013
+    },
+    "arrival": [
+      -15.27,
+      -54.34
+    ]
   },
   "appearance": {
     "id": "library",

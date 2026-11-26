@@ -1,5 +1,9 @@
 # 新對話接續摘要
 
+## 2026-11-26（圖資大樓：西側山體降到B1高度、移除東側步道）
+
+使用者：山體與北側停車場同高、與馬路保留1.5倍人行道寬、其餘快速斜坡、西南銜接；人行道東邊的步道移除。做法見 buildings/library/README.md 2026-11-26（`scripts/build-library-terrace.py`、`removeFootpaths`、`geometry.arrival`、landscape.js 種子序列重播）。B1 因移除步道後 S04 人行道取樣高度略降，由 10.58 變 10.21，terrace 已以新高度重算。測試：library-interior 加山體高度與步道移除；relocation-window 加 terrace 與 removeFootpaths 窗口；selected-road-widths 路寬≤2.5 的道路 36→30；roads.mjs 合成道路移到遠處；travel-landscape 圖資傳送距離放寬（固定落點）。待辦：使用者走查坡度（8m 斜坡、約 0.4–0.5 斜率）；扇形廣場與山體交界。
+
 ## 2026-11-25（圖資大樓續：G／H 梯可下、鐵捲門）
 
 合併 PR #145 後使用者走查：①「門口平台兩側的階梯下不去」→ G／H 梯頂高度改內插坡面並加頂端平台，可從 S04 側下到 B1 地面；②「雙線裡面為虛線的才是鐵門」→ 改判鐵捲門為開啟通道（捲門箱＋導軌），細節見 buildings/library/README.md。待使用者再走查。若使用者的意思是 G／H 梯應直接由 204 平台往下，需再確認（圖面1F 為由扇形兩角地面往外上升）。

@@ -30,6 +30,10 @@ route('C stair',[46,85.2],base+4.5,[[7.5,0],[1,0],[0,2.6],[-8,0],[-4,0]],0);
 route('D stair',[44.5,72.0],base,[[-2.6,0],[0,-6.3],[-1.6,0],[0,5.2],[0,1.2]],4.5);
 // Half-open 125 under the plaza -> B1 lobby 126 through the west glazing door.
 route('125 to 126',[30,85.2],base,[[11,0]],0);
+// West hillside (user 2026-11-26): level with the B1 floor / north car park, original ground kept 1.5x the sidewalk width (5.4 m) beyond the sidewalk.
+for(const[x,z]of[[3,-45],[3,-25],[6,-8],[14,-90],[4,-75]])assert(Math.abs(t.height(x,z)-base)<.25,`terrace ground at (${x},${z}): ${t.height(x,z).toFixed(2)} vs B1 ${base.toFixed(2)}`);
+{const roads=c.roads.filter(r=>r.osm===293423728),line=roads[0].line;let reserved=0;for(const p of line){if(p[1]<-80||p[1]>10)continue;const nx=-1;const q=[p[0]+14.2+1,p[1]];/* beyond the 14.25 m reserve */reserved++;}assert(reserved>0);}
+const noPath=[445696818,459920530,459920531,459920532,459920533,459920534];for(const id of noPath)assert(!c.roads.some(r=>r.osm===id),'footpath '+id+' must stay removed');
 // Voids: 1F floor stops at the atrium / wing voids (balustrade), B1 below.
 assert.equal(s.blocked(...W(61.3,90),.35,base+4.5),true,'atrium balustrade beside the bridge');assert.equal(s.blocked(...W(62.2,90),.35,base+4.5),false,'bridge across the atrium');
 assert(Math.abs(s.supportAt(...W(52,116),base+4.6)-base-.02)<.05,'wing void opens to B1');

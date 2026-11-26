@@ -548,6 +548,7 @@ g['terrainRing'] = [[round(v, 3) for v in q] for q in out['site']['terrainRing']
 g['platformAnchor'] = [round(v, 3) for v in out['site']['anchor']]
 g['platformOffset'] = round(BASE - SH['anchor'], 3)
 g.update(height=2 * H, floors=2, floorHeight=H, basementFloors=0)
+g['arrival'] = [round(v, 2) for v in W((4.5, 89.0))]    # visitor teleport: S04 sidewalk beside the fan plaza, ~25 m from the building ring (the S04 footways that used to serve it were removed 2026-11-26)
 g['drawingPlacement'] = {'source': 'buildings/library/source/floor-1F.pdf, floor-2F.pdf', 'metresPerPoint': LD.S, 'rotationDeg': math.degrees(LD.THETA), 'translation': list(LD.T),
                          'levels': '圖面1F＝遊戲B1（B1地面＝base），圖面2F＝遊戲1F（+4.5m，西側扇形廣場204入口）；使用者2026-11-25確認無其他樓層',
                          'base': BASE, 's04Sidewalk': SIDEWALK}
